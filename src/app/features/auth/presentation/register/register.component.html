@@ -1,0 +1,145 @@
+<!-- <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"> -->
+
+
+<div class="min-h-screen flex bg-gray-50">
+
+  <!-- Partie gauche : Image / Illustration école -->
+     <div class="hidden lg:flex lg:w-1/2 relative bg-primary-600 items-center justify-center overflow-hidden">
+
+  <app-school-illustration/> 
+</div>
+
+<!-- Partie droite : Formulaire Login -->
+  <div class="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+
+    <div class="max-w-md w-full space-y-8">
+
+      <div>
+        <!-- Logo école -->
+        <div class="flex justify-center mb-6">
+          <img
+            src="assets/images/logo-school.png"
+            alt="Logo école"
+            class="h-20 w-20 object-contain"
+          />
+        </div>
+
+
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          {{ 'auth.login' | translate }}
+        </h2>
+
+        <p class="mt-2 text-center text-sm text-gray-600">
+          Connectez-vous à votre espace scolaire
+        </p>
+
+      </div>
+
+  
+    <div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        {{ 'auth.registerTitle' | translate }}
+      </h2>
+    </div>
+
+    <form class="mt-8 space-y-6" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div *ngIf="error" class="bg-red-50 text-red-700 p-3 rounded-lg">
+        {{ error }}
+      </div>
+
+      <app-form-body class="space-y-4">
+        <app-input
+          [label]="'auth.firstName' | translate"
+          id="firstName"
+          type="text"
+          formControlName="firstName"
+          [placeholder]="'auth.firstNamePlaceholder' | translate"
+        />
+        <div *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched" class="mt-1 text-red-600 text-sm">
+          <span *ngIf="registerForm.get('firstName')?.errors?.['required']">{{ 'auth.firstNameRequired' | translate }}</span>
+          <span *ngIf="registerForm.get('firstName')?.errors?.['minlength']">{{ 'auth.firstNameMin' | translate }}</span>
+        </div>
+
+        <app-input
+          [label]="'auth.lastName' | translate"
+          id="lastName"
+          type="text"
+          formControlName="lastName"
+          [placeholder]="'auth.lastNamePlaceholder' | translate"
+        />
+        <div *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched" class="mt-1 text-red-600 text-sm">
+          <span *ngIf="registerForm.get('lastName')?.errors?.['required']">{{ 'auth.lastNameRequired' | translate }}</span>
+          <span *ngIf="registerForm.get('lastName')?.errors?.['minlength']">{{ 'auth.lastNameMin' | translate }}</span>
+        </div>
+
+        <app-input
+          [label]="'auth.email' | translate"
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="email@exemple.com"
+        />
+        <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="mt-1 text-red-600 text-sm">
+          <span *ngIf="registerForm.get('email')?.errors?.['required']">{{ 'auth.emailRequired' | translate }}</span>
+          <span *ngIf="registerForm.get('email')?.errors?.['email']">{{ 'auth.emailInvalid' | translate }}</span>
+        </div>
+
+        <app-select
+          [label]="'auth.accountType' | translate"
+          id="roleType"
+          formControlName="roleType"
+          [options]="roles"
+          [placeholder]="'auth.selectAccountType' | translate"
+        />
+
+        <app-input
+          [label]="'auth.password' | translate"
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+        />
+        <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="mt-1 text-red-600 text-sm">
+          <span *ngIf="registerForm.get('password')?.errors?.['required']">{{ 'auth.passwordRequired' | translate }}</span>
+          <span *ngIf="registerForm.get('password')?.errors?.['minlength']">{{ 'auth.passwordMin' | translate }}</span>
+          <span *ngIf="registerForm.get('password')?.errors?.['pattern']">{{ 'auth.passwordPattern' | translate }}</span>
+        </div>
+
+        <app-input
+          [label]="'auth.confirmPassword' | translate"
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          placeholder="••••••••"
+        />
+        <div *ngIf="registerForm.get('confirmPassword')?.touched" class="mt-1 text-red-600 text-sm">
+          <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">{{ 'auth.confirmRequired' | translate }}</span>
+          <span *ngIf="registerForm.hasError('mismatch')">{{ 'auth.passwordMismatch' | translate }}</span>
+        </div>
+      </app-form-body>
+
+      <div>
+        <button
+          type="submit"
+          [disabled]="registerForm.invalid || isLoading"
+          class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span *ngIf="!isLoading">{{ 'auth.registerButton' | translate }}</span>
+          <span *ngIf="isLoading" class="flex items-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ 'auth.registerLoading' | translate }}
+          </span>
+        </button>
+      </div>
+    </form>
+
+    <div class="text-center mt-4">
+      <a routerLink="/auth/login" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+        {{ 'auth.alreadyAccount' | translate }}
+      </a>
+    </div>
+  
+</div>

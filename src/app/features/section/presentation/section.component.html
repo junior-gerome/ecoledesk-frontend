@@ -1,0 +1,54 @@
+<app-page-layout>
+  <app-page-header [title]="isEditMode() ? ('sectionPage.editTitle' | translate) : ('sectionPage.createTitle' | translate)">
+  </app-page-header>
+
+  <form [formGroup]="sectionForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+    <app-page-form-body>
+      <app-form-body>
+        <app-input
+          [label]="'sectionPage.sectionName' | translate"
+          type="text"
+          formControlName="libelle"
+          [control]="ctrl['libelle']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'sectionPage.schoolYear' | translate"
+          id="anneeScolaire"
+          type="text"
+          [value]="activeSchoolYear()?.libelleAnneeScolaire || ('sectionPage.loading' | translate)"
+          [readonly]="true"
+        />
+
+        <div class="mb-6">
+          <app-textarea
+            [label]="'common.description' | translate"
+            formControlName="description"
+            [control]="ctrl['description']"
+            [rows]="2"
+          />
+        </div>
+      </app-form-body>
+    </app-page-form-body>
+
+    <div class="flex justify-between space-x-4">
+      <app-button type="button" variant="ghost" (clicked)="cancel()">
+        {{ 'common.cancel' | translate }}
+      </app-button>
+      <app-button
+        type="submit"
+        variant="primary"
+        [disabled]="sectionForm.invalid || isSubmitting()"
+      >
+        {{ isSubmitting() ? ('sectionPage.saving' | translate) : (isEditMode() ? ('sectionPage.update' | translate) : ('sectionPage.create' | translate)) }}
+      </app-button>
+    </div>
+
+    @if (error()) {
+      <div class="mt-4 rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200">
+        {{ error() }}
+      </div>
+    }
+  </form>
+</app-page-layout>

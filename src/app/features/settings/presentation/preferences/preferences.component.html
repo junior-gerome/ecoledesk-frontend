@@ -1,0 +1,234 @@
+<app-page-layout>
+  <app-page-header [title]="'preferencesPage.title' | translate">
+    <div class="flex flex-wrap gap-2">
+      <app-button variant="secondary" (clicked)="resetDefaults()">
+        {{ 'preferencesPage.reset' | translate }}
+      </app-button>
+      <app-button
+        variant="primary"
+        [disabled]="preferencesForm.invalid || saving()"
+        (clicked)="savePreferences()"
+      >
+        {{ saving() ? ('preferencesPage.saving' | translate) : ('preferencesPage.save' | translate) }}
+      </app-button>
+    </div>
+  </app-page-header>
+
+  <div class="fixed right-4 top-4 z-[70]">
+    <app-toast
+      [visible]="toast().visible"
+      [title]="toast().title"
+      [message]="toast().message"
+      [variant]="toast().variant"
+      [duration]="5000"
+      (dismissed)="hideToast()"
+    />
+  </div>
+
+  @if (loading()) {
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ 'preferencesPage.loading' | translate }}</p>
+  }
+
+  <form [formGroup]="preferencesForm" class="space-y-6">
+
+    <!-- Profil école -->
+    <app-card padding="lg">
+      <h2 class="card-header">{{ 'preferencesPage.schoolProfile' | translate }}</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-input [label]="'preferencesPage.schoolName' | translate" type="text" formControlName="schoolName"
+          [control]="ctrl['schoolName']" [required]="true" />
+        <app-input [label]="'preferencesPage.schoolCode' | translate" type="text" formControlName="schoolCode" />
+        <app-input [label]="'preferencesPage.schoolEmail' | translate" type="email" formControlName="schoolEmail"
+          [control]="ctrl['schoolEmail']" [required]="true" />
+        <app-input [label]="'preferencesPage.schoolPhone' | translate" type="tel" formControlName="schoolPhone" />
+        <app-input [label]="'preferencesPage.schoolWebsite' | translate" type="url" formControlName="schoolWebsite" />
+        <app-textarea [label]="'preferencesPage.schoolAddress' | translate" [rows]="3" formControlName="schoolAddress" />
+      </div>
+    </app-card>
+
+    <!-- Localisation -->
+    <app-card padding="lg">
+      <h2 class="card-header">{{ 'preferencesPage.localization' | translate }}</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-select [label]="'preferencesPage.language' | translate" formControlName="language" [options]="languageOptions" />
+        <app-select [label]="'preferencesPage.timezone' | translate" formControlName="timezone" [options]="timezoneOptions" />
+        <app-select [label]="'preferencesPage.currency' | translate" formControlName="currency" [options]="currencyOptions" />
+        <app-select [label]="'preferencesPage.dateFormat' | translate" formControlName="dateFormat" [options]="dateFormatOptions" />
+        <app-select [label]="'preferencesPage.timeFormat' | translate" formControlName="timeFormat" [options]="timeFormatOptions" />
+        <app-select [label]="'preferencesPage.weekStart' | translate" formControlName="startOfWeek" [options]="weekStartOptions" />
+      </div>
+    </app-card>
+
+    <!-- Expérience -->
+    <app-card padding="lg">
+      <h2 class="card-header">{{ 'preferencesPage.experience' | translate }}</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-select [label]="'preferencesPage.theme' | translate" formControlName="theme" [options]="themeOptions" />
+        <app-input [label]="'preferencesPage.pageSize' | translate" type="number" formControlName="pageSize"
+          [min]="5" [max]="100" />
+      </div>
+    </app-card>
+
+    <!-- Notifications -->
+    <app-card padding="lg">
+      <h2 class="card-header">{{ 'preferencesPage.notifications' | translate }}</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-select [label]="'preferencesPage.notifyEmail' | translate" formControlName="notifyEmail" [options]="yesNoOptions" />
+        <app-select [label]="'preferencesPage.notifySms' | translate" formControlName="notifySms" [options]="yesNoOptions" />
+        <app-select [label]="'preferencesPage.notifyAbsence' | translate" formControlName="notifyAbsence" [options]="yesNoOptions" />
+        <app-select [label]="'preferencesPage.notifyGrades' | translate" formControlName="notifyGrades" [options]="yesNoOptions" />
+      </div>
+    </app-card>
+
+    <!-- Sécurité -->
+    <app-card padding="lg">
+      <h2 class="card-header">{{ 'preferencesPage.security' | translate }}</h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-select [label]="'preferencesPage.twoFactor' | translate" formControlName="requireTwoFactor" [options]="yesNoOptions" />
+        <app-input [label]="'preferencesPage.sessionTimeout' | translate" type="number"
+          formControlName="sessionTimeoutMinutes" [min]="5" [max]="240" />
+        <app-input [label]="'preferencesPage.passwordMinLength' | translate" type="number"
+          formControlName="passwordMinLength" [min]="6" [max]="32" />
+      </div>
+    </app-card>
+
+  </form>
+
+  <!-- Bulletin branding -->
+  <section [formGroup]="bulletinBrandingForm" class="mt-6">
+    <app-card padding="lg">
+      <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div>
+          <h2 class="card-header mb-1">{{ 'preferencesPage.bulletinBranding' | translate }}</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            {{ 'preferencesPage.bulletinBrandingDesc' | translate }}
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <app-button variant="secondary" (clicked)="resetBulletinBranding()">{{ 'preferencesPage.resetBranding' | translate }}</app-button>
+          <app-button variant="primary" [disabled]="brandingSaving()" (clicked)="saveBulletinBranding()">
+            {{ brandingSaving() ? ('preferencesPage.saving' | translate) : ('preferencesPage.saveBranding' | translate) }}
+          </app-button>
+        </div>
+      </div>
+
+      @if (brandingLoading()) {
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'preferencesPage.brandingLoading' | translate }}</p>
+      } @else {
+        <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <app-input label="Logo (chemin ou URL)" type="text" formControlName="logoUrl"
+                [control]="bulletinCtrl['logoUrl']"
+                hint="Supporte /assets/..., https://... ou data:image/..." />
+            </div>
+            <div class="sm:col-span-2">
+              <app-textarea label="Lignes d'en-tête institutionnelle" [rows]="4"
+                formControlName="institutionLinesText" [control]="bulletinCtrl['institutionLinesText']"
+                hint="Une ligne par rangée. Ex: REPUBLIQUE DU CAMEROUN" />
+            </div>
+            <div class="sm:col-span-2">
+              <app-input label="Ligne de contact" type="text" formControlName="contactLine"
+                [control]="bulletinCtrl['contactLine']" />
+            </div>
+            <app-input label="Titre du document" type="text" formControlName="documentTitle"
+              [control]="bulletinCtrl['documentTitle']" />
+            <app-input label="Sous-titre du document" type="text" formControlName="documentSubtitle"
+              [control]="bulletinCtrl['documentSubtitle']" />
+            <app-input label="Couleur principale" type="text" formControlName="accentColor"
+              [control]="bulletinCtrl['accentColor']" hint="Hex, ex: #0f766e" />
+            <app-input label="Couleur secondaire" type="text" formControlName="secondaryColor"
+              [control]="bulletinCtrl['secondaryColor']" hint="Hex, ex: #b6853d" />
+            <app-input label="Signature parent" type="text" formControlName="parentSignatureLabel"
+              [control]="bulletinCtrl['parentSignatureLabel']" />
+            <app-input label="Signature enseignant" type="text" formControlName="teacherSignatureLabel"
+              [control]="bulletinCtrl['teacherSignatureLabel']" />
+            <app-input label="Signature directeur" type="text" formControlName="headSignatureLabel"
+              [control]="bulletinCtrl['headSignatureLabel']" />
+            <div class="sm:col-span-2">
+              <app-textarea label="Lignes de pied de page" [rows]="4" formControlName="footerLinesText"
+                [control]="bulletinCtrl['footerLinesText']"
+                hint="Une ligne par rangée. Apparaît dans le pied de page A4 et l'export Excel." />
+            </div>
+          </div>
+
+          <!-- Aperçu -->
+          <div class="space-y-4">
+            <div class="overflow-hidden rounded-[2rem] border bg-white shadow-sm"
+              [style.border-color]="getBrandingPreviewAccentColor()">
+              <div class="p-6" [style.background]="'linear-gradient(135deg, ' + getBrandingPreviewAccentColor() + '18, ' + getBrandingPreviewSecondaryColor() + '14)'">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="space-y-1">
+                    @for (line of getBrandingPreviewInstitutionLines(); track line) {
+                      <p class="uppercase tracking-[0.16em] text-slate-800"
+                        [class.text-lg]="$first" [class.font-black]="$first"
+                        [class.text-xs]="!$first" [class.font-semibold]="!$first">
+                        {{ line }}
+                      </p>
+                    }
+                    <p class="pt-1 text-xs font-medium text-slate-500">
+                      {{ getBrandingPreviewField('contactLine', defaultBulletinBranding.contactLine) }}
+                    </p>
+                  </div>
+                  <div class="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border-2 bg-white shadow-sm"
+                    [style.border-color]="getBrandingPreviewSecondaryColor()">
+                    @if (hasBrandingPreviewLogo()) {
+                      <img [src]="getBrandingPreviewLogoUrl()" alt="Logo" class="h-14 w-14 object-contain" (error)="onBrandingLogoError()" />
+                    } @else {
+                      <span class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Logo</span>
+                    }
+                  </div>
+                </div>
+                <div class="mt-5 rounded-[1.5rem] border border-white/70 bg-white/85 p-5 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.24em]"
+                    [style.color]="getBrandingPreviewAccentColor()">
+                    {{ getBrandingPreviewField('documentTitle', defaultBulletinBranding.documentTitle) }}
+                  </p>
+                  <h3 class="mt-2 font-serif text-2xl font-semibold text-slate-900">Bulletin A4 institutionnel</h3>
+                  <p class="mt-2 text-sm leading-6 text-slate-600">
+                    {{ getBrandingPreviewField('documentSubtitle', defaultBulletinBranding.documentSubtitle) }}
+                  </p>
+                  <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">PDF</p>
+                      <p class="mt-2 text-sm font-medium text-slate-800">Logo, en-tête et couleurs repris dans la vue A4.</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Excel</p>
+                      <p class="mt-2 text-sm font-medium text-slate-800">Même structure éditoriale, mentions et signatures.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="border-t border-slate-200 bg-white px-6 py-5">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-medium text-slate-600">
+                    {{ getBrandingPreviewField('parentSignatureLabel', defaultBulletinBranding.parentSignatureLabel) }}
+                  </div>
+                  <div class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-medium text-slate-600">
+                    {{ getBrandingPreviewField('teacherSignatureLabel', defaultBulletinBranding.teacherSignatureLabel) }}
+                  </div>
+                  <div class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-medium text-slate-600">
+                    {{ getBrandingPreviewField('headSignatureLabel', defaultBulletinBranding.headSignatureLabel) }}
+                  </div>
+                </div>
+                <div class="mt-4 space-y-2 border-t border-dashed border-slate-200 pt-4">
+                  @for (line of getBrandingPreviewFooterLines(); track line) {
+                    <p class="text-xs leading-5 text-slate-500">{{ line }}</p>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-5">
+              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Conseil</p>
+              <p class="mt-2 text-sm leading-6 text-slate-600">
+                Utilisez un logo avec fond transparent, 3 à 5 lignes d'en-tête maximum et des couleurs institutionnelles contrastées.
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+    </app-card>
+  </section>
+
+</app-page-layout>

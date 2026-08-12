@@ -1,0 +1,249 @@
+<app-page-layout>
+  <app-page-header [title]="'receiptPage.title' | translate">
+    <app-button type="button" variant="secondary" prefixIcon="+" (clicked)="store.goToNewPayment()">
+      {{ 'receiptPage.newPayment' | translate }}
+    </app-button>
+  </app-page-header>
+
+  <div class="fixed right-4 top-4 z-[70]">
+    <app-toast
+      [visible]="store.toast().visible"
+      [title]="store.toast().title"
+      [message]="store.toast().message"
+      [variant]="store.toast().variant"
+      [duration]="5000"
+      (dismissed)="store.hideToast()"
+    />
+  </div>
+
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
+        {{ 'receiptPage.displayedReceipts' | translate }}
+      </p>
+      <p class="mt-3 text-3xl font-semibold text-gray-900 dark:text-gray-100">
+        {{ store.summary().totalReceipts }}
+      </p>
+    </article>
+
+    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
+        {{ 'receiptPage.collectedAmount' | translate }}
+      </p>
+      <p class="mt-3 text-3xl font-semibold text-gray-900 dark:text-gray-100">
+        {{ store.summary().totalPaidAmount | currency:'XOF':'symbol':'1.0-0' }}
+      </p>
+    </article>
+
+    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
+        {{ 'receiptPage.numberedReceipts' | translate }}
+      </p>
+      <p class="mt-3 text-3xl font-semibold text-gray-900 dark:text-gray-100">
+        {{ store.summary().numberedReceipts }}
+      </p>
+    </article>
+
+    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
+        {{ 'receiptPage.toGenerate' | translate }}
+      </p>
+      <p class="mt-3 text-3xl font-semibold text-gray-900 dark:text-gray-100">
+        {{ store.summary().pendingReceiptGeneration }}
+      </p>
+    </article>
+  </section>
+
+  <form [formGroup]="store.filterForm" class="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-6">
+    <app-input
+      class="lg:col-span-2"
+      [label]="'receiptPage.searchStudent' | translate"
+      id="search"
+      type="search"
+      formControlName="search"
+      [placeholder]="'receiptPage.searchPlaceholder' | translate"
+    />
+
+    <app-input
+      [label]="'receiptPage.receiptNumber' | translate"
+      id="receiptNumber"
+      type="text"
+      formControlName="receiptNumber"
+      placeholder="REC-2026-001"
+    />
+
+    <app-select
+      [label]="'receiptPage.status' | translate"
+      id="status"
+      formControlName="status"
+      [options]="store.statusOptions"
+      [placeholder]="'receiptPage.allStatuses' | translate"
+    />
+
+    <app-select
+      [label]="'receiptPage.type' | translate"
+      id="type"
+      formControlName="type"
+      [options]="store.typeOptions"
+      [placeholder]="'receiptPage.allTypes' | translate"
+    />
+
+    <div class="flex items-end justify-end">
+      <app-button type="button" variant="ghost" (clicked)="store.resetFilters()">
+        {{ 'receiptPage.reset' | translate }}
+      </app-button>
+    </div>
+
+    <app-input
+      [label]="'receiptPage.startDate' | translate"
+      id="startDate"
+      type="date"
+      formControlName="startDate"
+    />
+
+    <app-input
+      [label]="'receiptPage.endDate' | translate"
+      id="endDate"
+      type="date"
+      formControlName="endDate"
+    />
+  </form>
+
+  @if (store.isLoading()) {
+    <div class="mt-6 rounded-xl border border-dashed border-gray-300 bg-white p-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+      {{ 'receiptPage.loading' | translate }}
+    </div>
+  }
+
+  <app-table
+    [empty]="!store.isLoading() && store.receipts().length === 0"
+    [emptyColspan]="8"
+    [emptyMessage]="'receiptPage.noReceipt' | translate"
+  >
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+      {{ 'receiptPage.receipt' | translate }}
+    </th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
+      {{ 'receiptPage.student' | translate }}
+    </th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
+      {{ 'receiptPage.type' | translate }}
+    </th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
+      {{ 'receiptPage.amount' | translate }}
+    </th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
+      {{ 'receiptPage.date' | translate }}
+    </th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
+      {{ 'receiptPage.method' | translate }}
+    </th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
+      {{ 'common.status' | translate }}
+    </th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
+      {{ 'receiptPage.actions' | translate }}
+    </th>
+
+    @for (receipt of store.receipts(); track receipt.id) {
+      <tr table-body class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          @if (receipt.receiptNumber) {
+            <span class="font-medium text-gray-900 dark:text-gray-100">
+              {{ receipt.receiptNumber }}
+            </span>
+          } @else {
+            <span class="italic text-gray-400 dark:text-gray-500">{{ 'receiptPage.pending' | translate }}</span>
+          }
+        </td>
+
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          <div class="font-medium text-gray-900 dark:text-gray-100">
+            {{ receipt.studentName }}
+          </div>
+          <div class="text-xs text-gray-400 dark:text-gray-500">
+            ID {{ receipt.studentId }}
+          </div>
+        </td>
+
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+          {{ receipt.typeLabel }}
+        </td>
+
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          {{ receipt.amount | currency:'XOF':'symbol':'1.0-0' }}
+        </td>
+
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          {{ receipt.paymentDate | date:'dd/MM/yyyy' }}
+        </td>
+
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          {{ receipt.paymentMethodLabel }}
+        </td>
+
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          <app-badge [variant]="receipt.statusVariant" size="sm" [dot]="true">
+            {{ receipt.statusLabel }}
+          </app-badge>
+        </td>
+
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          <div class="flex flex-wrap gap-2">
+            <span class="inline-flex" [attr.title]="store.receiptActionTooltip(receipt, 'preview')">
+              <app-button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="font-medium"
+                [disabled]="!receipt.canGenerateReceipt || store.printingReceiptId() === receipt.id || store.downloadingReceiptId() === receipt.id"
+                [loading]="store.previewingReceiptId() === receipt.id"
+                (clicked)="store.previewReceipt(receipt)"
+              >
+                {{ 'receiptPage.preview' | translate }}
+              </app-button>
+            </span>
+
+            <span class="inline-flex" [attr.title]="store.receiptActionTooltip(receipt, 'print')">
+              <app-button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="font-semibold"
+                prefixIcon="⎙"
+                [disabled]="!receipt.canGenerateReceipt || store.downloadingReceiptId() === receipt.id || store.previewingReceiptId() === receipt.id"
+                [loading]="store.printingReceiptId() === receipt.id"
+                (clicked)="store.printReceipt(receipt)"
+              >
+                {{ 'receiptPage.printReceipt' | translate }}
+              </app-button>
+            </span>
+
+            <span class="inline-flex" [attr.title]="store.receiptActionTooltip(receipt, 'download')">
+              <app-button
+                type="button"
+                size="sm"
+                variant="neutral"
+                className="font-medium"
+                prefixIcon="↓"
+                [disabled]="!receipt.canGenerateReceipt || store.printingReceiptId() === receipt.id || store.previewingReceiptId() === receipt.id"
+                [loading]="store.downloadingReceiptId() === receipt.id"
+                (clicked)="store.downloadReceipt(receipt)"
+              >
+                {{ 'receiptPage.downloadPdf' | translate }}
+              </app-button>
+            </span>
+
+            <app-button type="button" size="sm" variant="ghost" (clicked)="store.editReceipt(receipt.id)">
+              {{ 'receiptPage.edit' | translate }}
+            </app-button>
+
+            <app-button type="button" size="sm" variant="danger" (clicked)="store.deleteReceipt(receipt.id)">
+              {{ 'receiptPage.delete' | translate }}
+            </app-button>
+          </div>
+        </td>
+      </tr>
+    }
+  </app-table>
+</app-page-layout>

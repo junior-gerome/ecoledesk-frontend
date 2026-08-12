@@ -1,0 +1,88 @@
+<app-page-layout>
+  <app-page-header [title]="'supportContactPage.title' | translate" />
+
+  <div class="fixed right-4 top-4 z-[70]">
+    <app-toast
+      [visible]="toast().visible"
+      [title]="toast().title"
+      [message]="toast().message"
+      [variant]="toast().variant"
+      [duration]="5000"
+      (dismissed)="hideToast()"
+    />
+  </div>
+
+  <form [formGroup]="contactForm" (ngSubmit)="submit()" class="mt-6 space-y-6" novalidate>
+    <app-page-form-body>
+      <app-form-body>
+
+        <app-input
+          [label]="'supportContactPage.name' | translate"
+          id="name"
+          type="text"
+          formControlName="name"
+          [control]="ctrl['name']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'supportContactPage.email' | translate"
+          id="email"
+          type="email"
+          formControlName="email"
+          [control]="ctrl['email']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'supportContactPage.subject' | translate"
+          id="subject"
+          type="text"
+          formControlName="subject"
+          [control]="ctrl['subject']"
+          [required]="true"
+        />
+
+        <app-select
+          [label]="'supportContactPage.priority' | translate"
+          id="priority"
+          formControlName="priority"
+          [options]="priorityOptions"
+          [control]="ctrl['priority']"
+          [required]="true"
+          [placeholder]="'supportContactPage.selectPriority' | translate"
+        />
+
+        <div class="sm:col-span-2">
+          <app-textarea
+            [label]="'supportContactPage.message' | translate"
+            id="message"
+            [rows]="5"
+            formControlName="message"
+            [control]="ctrl['message']"
+            [required]="true"
+          />
+        </div>
+
+      </app-form-body>
+    </app-page-form-body>
+
+    <div class="flex items-center justify-between gap-3 pt-2">
+      <app-button type="button" variant="ghost" (clicked)="resetForm()">
+        {{ 'supportContactPage.cancel' | translate }}
+      </app-button>
+      <app-button
+        type="submit"
+        variant="primary"
+        [disabled]="contactForm.invalid || saving()"
+      >
+        @if (saving()) {
+          <span>{{ 'supportContactPage.sending' | translate }}</span>
+        } @else {
+          <span>{{ 'supportContactPage.send' | translate }}</span>
+        }
+      </app-button>
+    </div>
+  </form>
+
+</app-page-layout>

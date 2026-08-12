@@ -1,0 +1,161 @@
+<app-page-layout>
+  <app-page-header [title]="'parentPage.title' | translate" />
+
+  <div class="space-y-5">
+
+    <!-- Onglets -->
+    <div class="flex flex-wrap gap-2">
+      <button type="button"
+        [class]="activeTab() === 'list'
+          ? 'px-3 py-2 text-sm font-medium rounded-md border border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 dark:border-primary-700'
+          : 'px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
+        (click)="setTab('list')">
+        {{ 'parentPage.listTab' | translate }}
+      </button>
+      <button type="button"
+        [class]="activeTab() === 'links'
+          ? 'px-3 py-2 text-sm font-medium rounded-md border border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 dark:border-primary-700'
+          : 'px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
+        (click)="setTab('links')">
+        {{ 'parentPage.linksTab' | translate }}
+      </button>
+      <button type="button"
+        [class]="activeTab() === 'messages'
+          ? 'px-3 py-2 text-sm font-medium rounded-md border border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 dark:border-primary-700'
+          : 'px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
+        (click)="setTab('messages')">
+        {{ 'parentPage.messagesTab' | translate }}
+      </button>
+    </div>
+
+    @if (notice()) {
+      <div class="rounded-md border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/30 px-4 py-3 text-sm text-blue-800 dark:text-blue-200">
+        {{ notice() }}
+      </div>
+    }
+
+    <!-- Onglet Liste -->
+    @if (activeTab() === 'list') {
+      <div class="card">
+        <h2 class="card-header">{{ 'parentPage.registration' | translate }}</h2>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <app-input [label]="'parents.lastName' | translate" [(ngModel)]="form.lastNameParent" />
+          <app-input [label]="'parents.firstName' | translate" [(ngModel)]="form.firstNameParent" />
+          <app-input [label]="'parents.phone' | translate" [(ngModel)]="form.phoneNumber" />
+          <app-input [label]="'parents.email' | translate" type="email" [(ngModel)]="form.email" />
+          <app-input [label]="'parentPage.profession' | translate" [(ngModel)]="form.professionParent" />
+          <div class="sm:col-span-2 lg:col-span-3">
+            <app-input [label]="'parentPage.address' | translate" [(ngModel)]="form.address" />
+          </div>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <app-button type="button" variant="primary" (clicked)="saveParent()">
+            {{ form.id ? ('common.update' | translate) : ('common.add' | translate) }}
+          </app-button>
+          <app-button type="button" variant="secondary" (clicked)="resetForm()">{{ 'common.reset' | translate }}</app-button>
+        </div>
+      </div>
+
+      <div class="card p-0 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700/50">
+              <tr>
+                <th class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:pl-6">{{ 'parentPage.parent' | translate }}</th>
+                <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ 'parentPage.contact' | translate }}</th>
+                <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ 'parentPage.profession' | translate }}</th>
+                <th class="relative py-3.5 pl-3 pr-4 sm:pr-6"><span class="sr-only">{{ 'common.actions' | translate }}</span></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+              @for (parent of parents(); track parent.id) {
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6">
+                    {{ parent.firstNameParent }} {{ parent.lastNameParent }}
+                  </td>
+                  <td class="px-3 py-4 text-sm">
+                    <div class="text-gray-900 dark:text-gray-100">{{ parent.phoneNumber }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ parent.email }}</div>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
+                    {{ parent.professionParent || '-' }}
+                  </td>
+                  <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right sm:pr-6">
+                    <div class="flex justify-end gap-2">
+                      <app-button size="sm" variant="secondary" (clicked)="editParent(parent)">{{ 'parentPage.edit' | translate }}</app-button>
+                      <app-button size="sm" variant="danger" (clicked)="deleteParent(parent)">{{ 'parentPage.delete' | translate }}</app-button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">{{ 'parentPage.noParent' | translate }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- Onglets Liaisons & Messages -->
+    @if (activeTab() === 'links' || activeTab() === 'messages') {
+      <div class="card">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <app-select
+            [label]="'parentPage.parent' | translate"
+            [options]="parentOptions()"
+            [ngModel]="selectedParentId()"
+            (ngModelChange)="selectedParentId.set($event); loadLinkedStudents()"
+          />
+          @if (selectedParent(); as parent) {
+            <div class="flex flex-col gap-1 rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 px-4 py-3 text-sm">
+              <span class="font-semibold text-gray-900 dark:text-gray-100">{{ parent.firstNameParent }} {{ parent.lastNameParent }}</span>
+              <span class="text-gray-600 dark:text-gray-300">{{ parent.phoneNumber }} — {{ parent.email }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">{{ parent.address || ('parentPage.addressNotProvided' | translate) }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="card p-0 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700/50">
+              <tr>
+                <th class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:pl-6">{{ 'students.title' | translate }}</th>
+                <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ 'parentPage.dateOfBirth' | translate }}</th>
+                <th class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ 'parentPage.gender' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+              @for (student of linkedStudents(); track student.studentId) {
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6">{{ student.studentName }}</td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">{{ student.dateOfBirth }}</td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">{{ student.gender }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">{{ 'parentPage.noLinkedStudent' | translate }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- Onglet Messages -->
+    @if (activeTab() === 'messages') {
+      <div class="card">
+        <h2 class="card-header">{{ 'parentPage.messageToParent' | translate }}</h2>
+        <app-textarea [label]="'parentPage.message' | translate" [rows]="5" [ngModel]="message()" (ngModelChange)="message.set($event)" />
+        <div class="mt-4">
+          <app-button type="button" variant="primary" (clicked)="sendMessage()">{{ 'parentPage.send' | translate }}</app-button>
+        </div>
+      </div>
+    }
+
+  </div>
+</app-page-layout>

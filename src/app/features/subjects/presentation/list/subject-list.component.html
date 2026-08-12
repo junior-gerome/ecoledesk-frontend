@@ -1,0 +1,87 @@
+﻿<div class="py-6 min-h-screen dark:bg-gray-900">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-semibold text-gray-900 leading-tight dark:text-gray-100">
+        {{ 'subjectPage.listTitle' | translate }}
+      </h1>
+
+      <app-button type="button" variant="primary" prefixIcon="+" [routerLink]="['/subjects/new']">
+        {{ 'subjectPage.addSubject' | translate }}
+      </app-button>
+    </div>
+
+    <app-table
+      [empty]="subjects().length === 0"
+      [emptyColspan]="5"
+      [emptyMessage]="'subjectPage.noSubject' | translate"
+    >
+      <th
+        table-head
+        scope="col"
+        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase"
+      >
+        {{ 'subjectPage.name' | translate }}
+      </th>
+      <th
+        table-head
+        scope="col"
+        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase"
+      >
+        {{ 'subjectPage.code' | translate }}
+      </th>
+      <th
+        table-head
+        scope="col"
+        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase"
+      >
+        {{ 'subjectPage.coeff' | translate }}
+      </th>
+      <th
+        table-head
+        scope="col"
+        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase"
+      >
+        {{ 'subjectPage.status' | translate }}
+      </th>
+      <th
+        table-head
+        scope="col"
+        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase flex justify-center"
+      >
+        {{ 'common.actions' | translate }}
+      </th>
+
+      @for(subject of subjects(); track subject.id) {
+        <tr table-body class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+          <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-white">
+            {{ subject.nameSubject }}
+          </td>
+          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+            {{ subject.code }}
+          </td>
+          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+            {{ subject.coefficient }}
+          </td>
+          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+            <span
+              class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+              [ngClass]="subject.actif ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+            >
+              {{ (subject.actif ? 'subjectPage.active' : 'subjectPage.inactive') | translate }}
+            </span>
+          </td>
+          <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+            <div class="flex justify-center gap-3">
+              <app-button type="button" variant="secondary" [routerLink]="[subject.id!]">
+                {{ 'common.edit' | translate }}
+              </app-button>
+              <app-button type="button" variant="danger" (click)="deleteSubject(subject.id!)">
+                {{ 'common.delete' | translate }}
+              </app-button>
+            </div>
+          </td>
+        </tr>
+      }
+    </app-table>
+  </div>
+</div>

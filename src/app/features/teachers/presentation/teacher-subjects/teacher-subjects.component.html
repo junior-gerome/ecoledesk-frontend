@@ -1,0 +1,33 @@
+<app-page-layout>
+  <app-page-header title="Matieres enseignees"></app-page-header>
+
+  <section class="mb-4 rounded-md border border-slate-200 bg-white p-4">
+    <app-select
+      label="Filtrer par enseignant"
+      [options]="teacherOptions"
+      [ngModel]="selectedTeacherId()"
+      (ngModelChange)="selectedTeacherId.set($event); loadRows()"
+    ></app-select>
+  </section>
+
+  <app-table [empty]="rows().length === 0" emptyMessage="Aucune matiere affectee">
+    <thead>
+      <tr>
+        <th>Enseignant</th>
+        <th>Matiere</th>
+        <th>Classe</th>
+        <th>Annee scolaire</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.teacherId + '-' + row.subjectId + '-' + row.classId) {
+        <tr>
+          <td>{{ row.teacherName }}</td>
+          <td>{{ row.subjectName }}</td>
+          <td>{{ row.className }}</td>
+          <td>{{ row.schoolYear || '-' }}</td>
+        </tr>
+      }
+    </tbody>
+  </app-table>
+</app-page-layout>

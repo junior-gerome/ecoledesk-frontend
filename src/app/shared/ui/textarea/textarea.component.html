@@ -1,0 +1,36 @@
+﻿<div class='flex flex-col gap-1.5'>
+  @if (label) {
+    <label [for]='id' class='form-label'>
+      {{ label }}@if (required) { <span class='ml-0.5 text-red-500'>*</span> }
+    </label>
+  }
+
+  <textarea
+    [id]='id'
+    [rows]='rows'
+    [value]='value()'
+    [disabled]='disabled()'
+    [placeholder]='placeholder'
+    [class]='textareaClasses'
+    [attr.aria-describedby]='describedBy'
+    [attr.aria-invalid]='hasError'
+    [attr.aria-required]='required'
+    (input)='handleInput($event)'
+    (blur)='handleBlur()'
+  ></textarea>
+
+  @if (hint && !hasError) {
+    <p [id]='hintId' class='form-hint'>{{ hint }}</p>
+  }
+
+  @if (hasError) {
+    @for (entry of errorEntries; track entry.key) {
+      @if (control?.hasError(entry.key)) {
+        <p [id]='errorId' class='form-error' role='alert'>
+          <span aria-hidden='true'>!</span> {{ entry.msg }}
+        </p>
+      }
+    }
+  }
+</div>
+

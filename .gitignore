@@ -1,0 +1,13 @@
+# Angular
+.angular/cache/
+node_modules/
+dist/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Environnement
+.env
+*.log

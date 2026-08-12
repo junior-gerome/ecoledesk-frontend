@@ -1,0 +1,213 @@
+﻿<app-page-layout>
+  <app-page-header [title]="pageTitleKey() | translate">
+    @if (isListMode()) {
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Export Actions Dropdown -->
+        <div class="relative inline-flex items-center gap-1.5">
+          <app-button
+            type="button"
+            variant="success"
+            size="sm"
+            [loading]="isExportingExcel()"
+            (clicked)="onExportExcel()"
+          >
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Excel
+          </app-button>
+
+          <app-button
+            type="button"
+            variant="neutral"
+            size="sm"
+            [loading]="isExportingPdf()"
+            (clicked)="onExportPdf()"
+          >
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            PDF
+          </app-button>
+        </div>
+
+        <!-- Separator -->
+        <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+
+        <!-- Import Actions -->
+        <app-button
+          type="button"
+          variant="ghost"
+          size="sm"
+          (clicked)="onDownloadTemplate()"
+        >
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          {{ 'studentPage.template' | translate }}
+        </app-button>
+
+        <label
+          class="btn btn-sm btn-warning cursor-pointer inline-flex items-center gap-1.5"
+          [class.opacity-60]="isImporting()"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          @if (isImporting()) {
+            {{ 'studentPage.importing' | translate }}
+          } @else {
+            {{ 'studentPage.import' | translate }}
+          }
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            class="hidden"
+            (change)="onImportExcel($event)"
+            [disabled]="isImporting()"
+          />
+        </label>
+
+        <!-- Separator -->
+        <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+
+        <!-- Create Button -->
+        <app-button *hasPermission="permissions.STUDENTS_WRITE" type="button" variant="primary" prefixIcon="+" (clicked)="goToCreate()">
+          {{ 'studentPage.createTitle' | translate }}
+        </app-button>
+      </div>
+    }
+  </app-page-header>
+
+  <div class="fixed right-4 top-4 z-[70]">
+    <app-toast
+      [visible]="toast().visible"
+      [title]="toast().title"
+      [message]="toast().message"
+      [variant]="toast().variant"
+      [duration]="5000"
+      (dismissed)="hideToast()"
+    />
+  </div>
+
+  @if (isListMode()) {
+    @if (error()) {
+      <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-200">
+        {{ error() }}
+      </div>
+    }
+
+    <form class="mt-4 mb-3 flex flex-col gap-2 sm:flex-row sm:items-center" (ngSubmit)="onSearch()">
+      <input
+        type="search"
+        name="studentSearch"
+        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 sm:max-w-sm"
+        [placeholder]="'studentPage.searchPlaceholder' | translate"
+        [ngModel]="searchInput()"
+        (ngModelChange)="searchInput.set($event)"
+      />
+      <app-button type="submit" variant="secondary" size="sm">
+        {{ 'studentPage.search' | translate }}
+      </app-button>
+      @if (appliedSearch()) {
+        <app-button type="button" variant="ghost" size="sm" (clicked)="clearSearch()">
+          {{ 'studentPage.clear' | translate }}
+        </app-button>
+      }
+    </form>
+
+    <app-students-list
+      [students]="filteredStudents()"
+      [studentClasses]="studentClasses()"
+      (editRequested)="goToEdit($event)"
+      (deleteRequested)="deleteStudent($event)"
+    />
+
+    @if (importPreviewOpen()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
+        <section class="max-h-[85vh] w-full max-w-5xl overflow-hidden rounded-lg bg-white shadow-xl dark:bg-slate-900">
+          <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700">
+            <div>
+              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                {{ 'studentPage.previewImport' | translate }}
+              </h2>
+              <p class="text-sm text-slate-500 dark:text-slate-400">
+                {{ 'studentPage.previewHint' | translate }}
+              </p>
+            </div>
+            <app-button type="button" variant="ghost" size="sm" (clicked)="cancelImportPreview()">
+              Fermer
+            </app-button>
+          </header>
+
+          <div class="max-h-[52vh] overflow-auto p-5">
+            @if (importValidationErrors().length) {
+              <div class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                @for (message of importValidationErrors(); track message) {
+                  <p>{{ message }}</p>
+                }
+              </div>
+            }
+
+            <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-700">
+              <thead class="bg-slate-50 dark:bg-slate-800">
+                <tr>
+                  <th class="px-3 py-2 text-left font-semibold">{{ 'students.title' | translate }}</th>
+                  <th class="px-3 py-2 text-left font-semibold">{{ 'studentPage.birthDate' | translate }}</th>
+                  <th class="px-3 py-2 text-left font-semibold">{{ 'students.gender' | translate }}</th>
+                  <th class="px-3 py-2 text-left font-semibold">{{ 'parents.title' | translate }}</th>
+                  <th class="px-3 py-2 text-left font-semibold">{{ 'parents.phone' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                @for (row of importPreviewRows(); track $index) {
+                  <tr>
+                    <td class="px-3 py-2">{{ row.lastNameStudent }} {{ row.firstNameStudent }}</td>
+                    <td class="px-3 py-2">{{ row.dateOfBirth }}</td>
+                    <td class="px-3 py-2">{{ row.gender }}</td>
+                    <td class="px-3 py-2">{{ row.parent?.lastNameParent }} {{ row.parent?.firstNameParent }}</td>
+                    <td class="px-3 py-2">{{ row.parent?.phoneNumber }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <footer class="flex justify-end gap-2 border-t border-slate-200 px-5 py-4 dark:border-slate-700">
+            <app-button type="button" variant="ghost" (clicked)="cancelImportPreview()">
+              Annuler
+            </app-button>
+            <app-button
+              type="button"
+              variant="primary"
+              [disabled]="!!importValidationErrors().length || isImporting()"
+              [loading]="isImporting()"
+              (clicked)="confirmImportExcel()"
+            >
+              {{ 'studentPage.confirmImport' | translate }}
+            </app-button>
+          </footer>
+        </section>
+      </div>
+    }
+  } @else {
+    <app-students-form
+      [form]="studentForm"
+      [isEditMode]="isEditMode()"
+      [isSubmitting]="isSubmitting()"
+      [error]="error()"
+      [montantLoading]="montantLoading()"
+      [selectedMontant]="selectedMontant()"
+      [genderOptions]="genderOptions"
+      [typeParentOptions]="typeParentOptions"
+      [sectionOptions]="sectionOptions()"
+      [classOptions]="classOptions()"
+      [classPlaceholder]="classPlaceholder()"
+      (submitted)="onSubmit()"
+      (cancelled)="cancel()"
+      (sectionChanged)="onSectionChange($event)"
+      (classChanged)="onClassChange($event)"
+    />
+  }
+</app-page-layout>
+

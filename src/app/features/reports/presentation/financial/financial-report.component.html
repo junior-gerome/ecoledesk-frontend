@@ -1,0 +1,155 @@
+<div class="py-6 min-h-screen dark:bg-gray-900">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          {{ 'financialPage.title' | translate }}
+        </h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          {{ 'financialPage.subtitle' | translate }}
+        </p>
+      </div>
+    </div>
+
+    <div class="fixed right-4 top-4 z-[70]">
+      <app-toast
+        [visible]="useCase.toast().visible"
+        [title]="useCase.toast().title"
+        [message]="useCase.toast().message"
+        [variant]="useCase.toast().variant"
+        [duration]="5000"
+        (dismissed)="useCase.hideToast()"
+      />
+    </div>
+
+    <form
+      class="grid grid-cols-1 gap-4 md:grid-cols-3"
+      [formGroup]="useCase.filtersForm"
+      (ngSubmit)="useCase.applyFilters()"
+    >
+      <app-input [label]="'financialPage.from' | translate" type="date" formControlName="dateFrom"></app-input>
+      <app-input [label]="'financialPage.to' | translate" type="date" formControlName="dateTo"></app-input>
+      <div class="flex items-end gap-2">
+        <app-button type="submit" variant="primary">
+          {{ 'financialPage.apply' | translate }}
+        </app-button>
+        <app-button type="button" variant="ghost" (clicked)="useCase.resetFilters()">
+          {{ 'financialPage.reset' | translate }}
+        </app-button>
+      </div>
+    </form>
+
+    <p class="text-sm text-gray-500 dark:text-gray-400" *ngIf="useCase.loading()">
+      {{ 'financialPage.loading' | translate }}
+    </p>
+
+    @if (useCase.report(); as r) {
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <app-card padding="md">
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'financialPage.totalRevenue' | translate }}</p>
+          <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {{ r.summary.totalRevenue | number: '1.0-0' }}
+          </p>
+        </app-card>
+        <app-card padding="md">
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'financialPage.outstanding' | translate }}</p>
+          <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {{ r.summary.totalOutstanding | number: '1.0-0' }}
+          </p>
+        </app-card>
+        <app-card padding="md">
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'financialPage.paidCount' | translate }}</p>
+          <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {{ r.summary.paidCount }}
+          </p>
+        </app-card>
+        <app-card padding="md">
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'financialPage.unpaidCount' | translate }}</p>
+          <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {{ r.summary.unpaidCount }}
+          </p>
+        </app-card>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <app-table
+          [empty]="r.revenueByMonth.length === 0"
+          [emptyColspan]="2"
+          [emptyMessage]="'financialPage.noData' | translate"
+        >
+          <th
+            table-head
+            scope="col"
+            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100"
+          >
+            {{ 'financialPage.month' | translate }}
+          </th>
+          <th
+            table-head
+            scope="col"
+            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100"
+          >
+            {{ 'financialPage.amount' | translate }}
+          </th>
+
+          @for (row of r.revenueByMonth; track row.month) {
+            <tr table-body>
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900 sm:pl-6 dark:text-gray-100">
+                {{ row.month }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
+                {{ row.amount | number: '1.0-0' }}
+              </td>
+            </tr>
+          }
+        </app-table>
+
+        <app-table
+          [empty]="r.topOutstanding.length === 0"
+          [emptyColspan]="3"
+          [emptyMessage]="'financialPage.noOutstanding' | translate"
+        >
+          <th
+            table-head
+            scope="col"
+            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100"
+          >
+            {{ 'financialPage.student' | translate }}
+          </th>
+          <th
+            table-head
+            scope="col"
+            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100"
+          >
+            {{ 'financialPage.class' | translate }}
+          </th>
+          <th
+            table-head
+            scope="col"
+            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100"
+          >
+            {{ 'financialPage.amount' | translate }}
+          </th>
+
+          @for (row of r.topOutstanding; track row.studentName) {
+            <tr table-body>
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900 sm:pl-6 dark:text-gray-100">
+                {{ row.studentName }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
+                {{ row.className }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
+                {{ row.amount | number: '1.0-0' }}
+              </td>
+            </tr>
+          }
+        </app-table>
+      </div>
+    } @else if (!useCase.loading()) {
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        {{ 'financialPage.noReport' | translate }}
+      </p>
+    }
+  </div>
+</div>

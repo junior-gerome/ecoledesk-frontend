@@ -1,0 +1,198 @@
+<!-- <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+    <div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        {{ 'auth.login' | translate }}
+      </h2>
+    </div>
+
+    @if (message) {
+      <div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        {{ message }}
+      </div>
+    }
+
+    <form class="mt-8 space-y-6" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <app-form-body>
+        <app-input
+          [label]="'auth.email' | translate"
+          id="email"
+          type="email"
+          formControlName="email"
+          [control]="loginForm.get('email')"
+          [placeholder]="'auth.emailPlaceholder' | translate"
+        />
+
+        <app-input
+          [label]="'auth.password' | translate"
+          id="password"
+          type="password"
+          formControlName="password"
+          [control]="loginForm.get('password')"
+          [placeholder]="'auth.passwordPlaceholder' | translate"
+        />
+      </app-form-body>
+
+      <div class="flex items-center justify-between">
+        <div class="text-sm">
+          <a routerLink="/auth/forgot-password" class="font-medium text-primary-600 hover:text-primary-500">
+            {{ 'auth.forgotPassword' | translate }}
+          </a>
+          <a routerLink="/auth/register" class="ml-4 font-medium text-primary-600 hover:text-primary-500">
+            {{ 'auth.register' | translate }}
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <button
+          type="submit"
+          [disabled]="loginForm.invalid || isLoading"
+          class="btn-primary w-full flex justify-center"
+        >
+          <span *ngIf="isLoading" class="mr-2">{{ 'auth.loginLoading' | translate }}</span>
+          <span *ngIf="!isLoading">{{ 'auth.loginButton' | translate }}</span>
+        </button>
+      </div>
+    </form>
+
+    <div *ngIf="error" class="mt-4 text-center text-sm text-red-600">
+      {{ error }}
+    </div>
+  </div>
+</div> -->
+
+
+<div class="min-h-screen flex bg-gray-50">
+
+  <!-- Partie gauche : Image / Illustration école -->
+     <div class="hidden lg:flex lg:w-1/2 relative bg-primary-600 items-center justify-center overflow-hidden">
+
+  <app-school-illustration/> 
+</div>
+
+  <!-- Partie droite : Formulaire Login -->
+  <div class="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+
+    <div class="max-w-md w-full space-y-8">
+
+      <div>
+        <!-- Logo école -->
+        <div class="flex justify-center mb-6">
+          <img
+            src="assets/images/logo-school.png"
+            alt="Logo école"
+            class="h-20 w-20 object-contain"
+          />
+        </div>
+
+
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          {{ 'auth.login' | translate }}
+        </h2>
+
+        <p class="mt-2 text-center text-sm text-gray-600">
+          Connectez-vous à votre espace scolaire
+        </p>
+
+      </div>
+
+
+      @if (message) {
+        <div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          {{ message }}
+        </div>
+      }
+
+
+      <form 
+        class="mt-8 space-y-6" 
+        [formGroup]="loginForm" 
+        (ngSubmit)="onSubmit()"
+      >
+
+        <app-form-body>
+
+          <app-input
+            [label]="'auth.email' | translate"
+            id="email"
+            type="email"
+            formControlName="email"
+            [control]="loginForm.get('email')"
+            [placeholder]="'auth.emailPlaceholder' | translate"
+          />
+
+
+          <app-input
+            [label]="'auth.password' | translate"
+            id="password"
+            type="password"
+            formControlName="password"
+            [control]="loginForm.get('password')"
+            [placeholder]="'auth.passwordPlaceholder' | translate"
+          />
+
+        </app-form-body>
+
+
+        <div class="flex items-center justify-between">
+
+          <div class="text-sm">
+
+            <a 
+              routerLink="/auth/forgot-password"
+              class="font-medium text-primary-600 hover:text-primary-500"
+            >
+              {{ 'auth.forgotPassword' | translate }}
+            </a>
+
+
+            <a 
+              routerLink="/auth/register"
+              class="ml-4 font-medium text-primary-600 hover:text-primary-500"
+            >
+              {{ 'auth.register' | translate }}
+            </a>
+
+          </div>
+
+        </div>
+
+
+        <div>
+
+          <button
+            type="submit"
+            [disabled]="loginForm.invalid || isLoading"
+            class="btn-primary w-full flex justify-center"
+          >
+
+            <span *ngIf="isLoading" class="mr-2">
+              {{ 'auth.loginLoading' | translate }}
+            </span>
+
+
+            <span *ngIf="!isLoading">
+              {{ 'auth.loginButton' | translate }}
+            </span>
+
+          </button>
+
+        </div>
+
+      </form>
+
+
+      <div 
+        *ngIf="error" 
+        class="mt-4 text-center text-sm text-red-600"
+      >
+        {{ error }}
+      </div>
+
+
+    </div>
+
+  </div>
+
+</div>

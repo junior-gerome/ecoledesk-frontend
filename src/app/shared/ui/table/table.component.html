@@ -1,0 +1,27 @@
+﻿@if (empty) {
+  <app-empty-state
+    [title]="emptyTitle"
+    [description]="emptyMessage"
+  />
+} @else {
+  <div class="mt-8 flex flex-col">
+    <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8" role="region" tabindex="0" [attr.aria-label]="tableLabel">
+      <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg dark:ring-white dark:ring-opacity-10">
+          <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <ng-content select="[table-head]"></ng-content>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-800 dark:divide-gray-700">
+              <ng-content select="[table-body]"></ng-content>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+

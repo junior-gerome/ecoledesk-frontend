@@ -1,0 +1,48 @@
+<!-- EXEMPLE D'INTÉGRATION DANS UN FORMULAIRE PARENT -->
+
+<section aria-labelledby="parent-photos-title" class="mb-8">
+  <h2 id="parent-photos-title" class="text-lg font-medium text-gray-900 mb-4 dark:text-gray-100">
+    Photos et Documents
+  </h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Photo du parent -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Photo du parent
+      </label>
+      <app-photo-upload
+        [photoUrl]="form.controls.photoUrl.value"
+        (photoUrlChange)="form.controls.photoUrl.setValue($event)"
+        label="Ajouter photo"
+        hint="JPG, PNG (max 5MB)"
+        uploadType="photos/parents"
+      />
+    </div>
+
+    <!-- Numéro CNI -->
+    <div class="md:col-span-2">
+      <app-input
+        label="Numéro CNI"
+        id="cniNumber"
+        type="text"
+        formControlName="cniNumber"
+        [control]="ctrl['cniNumber']"
+        placeholder="Ex: 123456789"
+      />
+      
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Photo CNI
+        </label>
+        <app-photo-upload
+          [photoUrl]="form.controls.cniPhotoUrl.value"
+          (photoUrlChange)="form.controls.cniPhotoUrl.setValue($event)"
+          label="Ajouter CNI"
+          hint="Photo recto/verso"
+          uploadType="cni/parents"
+        />
+      </div>
+    </div>
+  </div>
+</section>

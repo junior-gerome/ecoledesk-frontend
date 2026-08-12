@@ -1,0 +1,80 @@
+<div class="min-h-screen bg-gray-100 py-6 dark:bg-gray-900">
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          {{ 'reportPage.title' | translate }}
+        </h1>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+          {{ 'reportPage.subtitle' | translate }}
+        </p>
+      </div>
+
+      <a
+        routerLink="/grades"
+        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+      >
+        {{ 'reportPage.backToGrades' | translate }}
+      </a>
+    </div>
+
+    <div class="rounded-2xl bg-white p-6 shadow dark:bg-gray-800">
+      <form [formGroup]="form" class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div>
+          <label for="classId" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ 'reportPage.class' | translate }}
+          </label>
+          <app-select
+            id="classId"
+            formControlName="classId"
+            [options]="classOptions"
+            [placeholder]="'reportPage.selectClass' | translate"
+          />
+        </div>
+
+        <div>
+          <label for="period" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ 'reportPage.sequence' | translate }}
+          </label>
+          <app-select
+            id="period"
+            formControlName="period"
+            [options]="periodOptions"
+            [placeholder]="'reportPage.selectSequence' | translate"
+          />
+        </div>
+      </form>
+
+      <div class="mt-6 flex flex-wrap justify-end gap-2">
+        <app-button
+          type="button"
+          variant="secondary"
+          [loading]="isSubmitting"
+          [disabled]="!form.get('classId')?.value || isSubmitting || isZipSubmitting"
+          (click)="generateReport()"
+        >
+          {{ 'reportPage.download' | translate }}
+        </app-button>
+        <app-button
+          type="button"
+          variant="primary"
+          [loading]="isZipSubmitting"
+          [disabled]="!form.get('classId')?.value || isSubmitting || isZipSubmitting"
+          (click)="generateBulletinsZip()"
+        >
+          {{ 'reportPage.exportZip' | translate }}
+        </app-button>
+      </div>
+    </div>
+
+    @if (!form.get('classId')?.value) {
+      <div class="mt-6">
+        <app-empty-state
+          [title]="'reportPage.noClassSelected' | translate"
+          [description]="'reportPage.noClassHint' | translate"
+          icon="O"
+        />
+      </div>
+    }
+  </div>
+</div>

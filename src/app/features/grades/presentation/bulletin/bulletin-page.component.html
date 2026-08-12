@@ -1,0 +1,431 @@
+<div
+  class="bulletin-shell"
+  [class.bulletin-shell--pdf]="pdfMode()"
+  [style.--bulletin-accent]="branding().accentColor"
+  [style.--bulletin-accent-soft]="branding().accentSoftColor"
+  [style.--bulletin-gold]="branding().secondaryColor"
+  [style.--bulletin-gold-soft]="branding().secondarySoftColor"
+>
+  <div class="mx-auto max-w-[96rem] px-4 py-6 sm:px-6 lg:px-8">
+    @if (!autoPrint()) {
+      <section class="print:hidden">
+        <app-card padding="lg" class="action-card">
+          <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div class="max-w-2xl space-y-2">
+              <p class="action-eyebrow">{{ 'bulletinPage.eyebrow' | translate }}</p>
+              <h1 class="action-title">{{ 'bulletinPage.title' | translate }}</h1>
+              <p class="action-copy">
+                {{ 'bulletinPage.description' | translate }}
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end">
+              <a routerLink="/grades" class="toolbar-link">
+                {{ 'bulletinPage.backToGrades' | translate }}
+              </a>
+
+              <app-select
+                [ngModel]="selectedPeriod()"
+                (ngModelChange)="onPeriodChange($event)"
+                [options]="periodOptions()"
+                [placeholder]="'bulletinPage.selectPeriod' | translate"
+                class="min-w-[240px]"
+              />
+
+              <app-button
+                type="button"
+                variant="secondary"
+                size="sm"
+                (click)="printBulletin()"
+                [disabled]="loading() || !bulletin()"
+              >
+                {{ 'bulletinPage.print' | translate }}
+              </app-button>
+
+              <app-button
+                type="button"
+                variant="secondary"
+                size="sm"
+                (click)="exportExcel()"
+                [disabled]="exporting() || !bulletin()"
+                [loading]="exporting()"
+              >
+                {{ 'bulletinPage.excel' | translate }}
+              </app-button>
+
+              <app-button
+                type="button"
+                variant="primary"
+                size="sm"
+                (click)="exportPdf()"
+                [disabled]="!bulletin() || exportingPdf()"
+                [loading]="exportingPdf()"
+              >
+                {{ 'bulletinPage.pdf' | translate }}
+              </app-button>
+            </div>
+          </div>
+        </app-card>
+      </section>
+    }
+
+    @if (loading()) {
+      <app-card padding="lg" class="mt-6">
+        <div class="space-y-5">
+          <app-skeleton height="52px" class="rounded-2xl" />
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <app-skeleton height="120px" class="rounded-2xl" />
+            <app-skeleton height="120px" class="rounded-2xl" />
+            <app-skeleton height="120px" class="rounded-2xl" />
+          </div>
+          <app-skeleton height="420px" class="rounded-3xl" />
+        </div>
+      </app-card>
+    } @else if (error()) {
+      <app-card padding="lg" class="mt-6">
+        <div class="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-800">
+          <p class="text-sm font-semibold uppercase tracking-[0.28em]">{{ 'bulletinPage.error' | translate }}</p>
+          <h2 class="mt-3 text-2xl font-semibold">{{ 'bulletinPage.loadError' | translate }}</h2>
+          <p class="mt-2 text-sm leading-6">{{ error() }}</p>
+        </div>
+      </app-card>
+    } @else {
+      @if (bulletin(); as bulletinData) {
+        <article class="bulletin-stage">
+          <div
+            #bulletinSheet
+            class="bulletin-sheet"
+            [class.bulletin-sheet--pdf]="pdfMode()"
+          >
+            <div class="sheet-watermark" aria-hidden="true">
+              @if (hasLogo()) {
+                <img
+                  [src]="branding().logoUrl"
+                  alt=""
+                  class="sheet-watermark__logo"
+                  (error)="onLogoError()"
+                />
+              } @else {
+                <span class="sheet-watermark__fallback">{{ studentInitials() }}</span>
+              }
+            </div>
+
+            <header class="sheet-header">
+              <div class="header-crest">
+                <div class="header-crest__frame">
+                  <span class="header-crest__ring"></span>
+                  @if (hasLogo()) {
+                    <img
+                      [src]="branding().logoUrl"
+                      alt="Logo etablissement"
+                      class="header-crest__logo"
+                      (error)="onLogoError()"
+                    />
+                  } @else {
+                    <span class="header-crest__fallback">{{ studentInitials() }}</span>
+                  }
+                </div>
+                <p class="header-crest__caption">Identite visuelle officielle</p>
+              </div>
+
+              <div class="official-stack">
+                @for (line of officialLines(); track line) {
+                  <p [class.official-stack__lead]="$first">{{ line }}</p>
+                }
+                <span class="official-rule"></span>
+                <p class="official-caption">{{ branding().contactLine }}</p>
+                <div class="official-meta">
+                  <span>Annee scolaire {{ bulletinData.academicYear }}</span>
+                  <span>
+                    Reference: BUL/{{ bulletinData.studentId }}/{{ selectedPeriod() || bulletinData.sequence }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="period-panel">
+                <p class="period-panel__label">Periode evaluee</p>
+                <h2 class="period-panel__title">{{ bulletinData.sequence }}</h2>
+                <div class="period-panel__meta">
+                  <span>{{ bulletinData.trimester }}</span>
+                  <span>{{ bulletinData.evaluationMonth }}</span>
+                </div>
+              </div>
+            </header>
+
+            <section class="identity-board">
+              <div class="identity-field identity-field--wide">
+                <span class="identity-field__label">Nom de l'eleve</span>
+                <strong class="identity-field__value">{{ bulletinData.studentName }}</strong>
+              </div>
+
+              <div class="identity-field">
+                <span class="identity-field__label">Matricule</span>
+                <strong class="identity-field__value">{{ bulletinData.studentMatricule || "N/A" }}</strong>
+              </div>
+
+              <div class="identity-field">
+                <span class="identity-field__label">Classe</span>
+                <strong class="identity-field__value">{{ bulletinData.className }}</strong>
+              </div>
+
+              <div class="identity-field">
+                <span class="identity-field__label">Annee scolaire</span>
+                <strong class="identity-field__value">{{ bulletinData.academicYear }}</strong>
+              </div>
+
+              <div class="identity-field">
+                <span class="identity-field__label">Trimestre</span>
+                <strong class="identity-field__value">{{ bulletinData.trimester }}</strong>
+              </div>
+
+              <div class="identity-field">
+                <span class="identity-field__label">Rang</span>
+                <strong class="identity-field__value">
+                  {{ bulletinData.rank ? bulletinData.rank + " / " + bulletinData.totalStudents : "Non disponible" }}
+                </strong>
+              </div>
+            </section>
+
+            <section class="headline-ribbon">
+              <div>
+                <p class="headline-ribbon__eyebrow">{{ branding().documentTitle }}</p>
+                <h1 class="headline-ribbon__title">{{ bulletinTitle() }}</h1>
+                <p class="headline-ribbon__copy">
+                  {{ branding().documentSubtitle }}
+                  Synthese pedagogique generee le {{ bulletinData.lastUpdatedAt | date: "dd/MM/yyyy" }}.
+                </p>
+              </div>
+
+              <div class="headline-ribbon__status">
+                <app-badge
+                  [variant]="bulletinData.isSuccessful ? 'success' : 'warning'"
+                  size="sm"
+                  [dot]="true"
+                >
+                  {{ getResultLabel(bulletinData.isSuccessful) }}
+                </app-badge>
+                <p class="headline-ribbon__date">{{ masteryRate() }}% de matieres validees</p>
+              </div>
+            </section>
+
+            <section class="metrics-grid">
+              <article class="metric-card metric-card--accent">
+                <p class="metric-card__label">Moyenne generale</p>
+                <p class="metric-card__value">{{ bulletinData.generalAverage | number: "1.2-2" }}/20</p>
+              </article>
+
+              <article class="metric-card metric-card--gold">
+                <p class="metric-card__label">Mention</p>
+                <p class="metric-card__value metric-card__value--sm">{{ bulletinData.generalMention }}</p>
+              </article>
+
+              <article class="metric-card metric-card--emerald">
+                <p class="metric-card__label">Matieres reussies</p>
+                <p class="metric-card__value">{{ bulletinData.passingCount }}/{{ bulletinData.gradeRows.length }}</p>
+              </article>
+
+              <article class="metric-card metric-card--ink">
+                <p class="metric-card__label">Coeff. cumules</p>
+                <p class="metric-card__value">{{ bulletinData.totalCoefficient }}</p>
+              </article>
+            </section>
+
+            <section class="table-panel">
+              <div class="table-panel__header">
+                <div>
+                  <p class="table-panel__eyebrow">Resultats detailles</p>
+                  <h2 class="table-panel__title">Tableau des apprentissages</h2>
+                </div>
+                <p class="table-panel__legend">
+                  Les colonnes de sequence s'adaptent automatiquement aux notes disponibles.
+                </p>
+              </div>
+
+              <div class="table-scroll">
+                <table class="bulletin-table">
+                  <thead>
+                    <tr>
+                      <th>Discipline</th>
+                      @for (sequence of sequenceColumns(); track sequence.key) {
+                        <th class="text-center">{{ sequence.label }}</th>
+                      }
+                      <th class="text-center">Total</th>
+                      <th class="text-center">Coeff</th>
+                      <th class="text-center">Moyenne</th>
+                      <th>Appreciation</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    @for (row of bulletinData.gradeRows; track row.id) {
+                      <tr>
+                        <td>
+                          <div class="subject-cell">
+                            <strong>{{ row.subjectName }}</strong>
+                            @if (row.subjectCode) {
+                              <span>{{ row.subjectCode }}</span>
+                            }
+                          </div>
+                        </td>
+
+                        @for (sequence of sequenceColumns(); track sequence.key) {
+                          <td class="text-center score-cell">
+                            {{ getScoreValue(row, sequence.key) }}
+                          </td>
+                        }
+
+                        <td class="text-center total-cell">
+                          {{ getSubjectTotal(row) }}
+                        </td>
+
+                        <td class="text-center coeff-cell">
+                          {{ row.coefficient }}
+                        </td>
+
+                        <td class="text-center average-cell">
+                          <span class="average-chip" [class]="'average-chip average-chip--' + getAverageBand(row.average)">
+                            {{ row.average | number: "1.2-2" }}
+                          </span>
+                        </td>
+
+                        <td>
+                          <div class="observation-cell">
+                            <span class="observation-pill" [class]="'observation-pill observation-pill--' + getAverageBand(row.average)">
+                              {{ row.mention }} {{ row.mentionEmoji }}
+                            </span>
+                            <p>{{ getObservation(row) }}</p>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+
+                  <tfoot>
+                    <tr>
+                      <td class="summary-label">Moyennes obtenues</td>
+                      @for (sequence of sequenceColumns(); track sequence.key) {
+                        <td class="text-center summary-value">
+                          {{ formatAverageCell(sequence.average) }}
+                        </td>
+                      }
+                      <td class="text-center summary-value">-</td>
+                      <td class="text-center summary-value">{{ bulletinData.totalCoefficient }}</td>
+                      <td class="text-center summary-value">
+                        {{ bulletinData.generalAverage | number: "1.2-2" }}
+                      </td>
+                      <td class="summary-note">{{ bulletinData.generalMention }}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </section>
+
+            <section class="insights-grid">
+              <article class="insight-card insight-card--positive">
+                <p class="insight-card__label">Point fort</p>
+                <h3 class="insight-card__title">
+                  {{ strongestSubject()?.subjectName || "Aucune discipline" }}
+                </h3>
+                <p class="insight-card__copy">
+                  @if (strongestSubject(); as bestRow) {
+                    Meilleure moyenne observee: {{ bestRow.average | number: "1.2-2" }}/20.
+                  } @else {
+                    Les points forts apparaitront des que des evaluations seront disponibles.
+                  }
+                </p>
+              </article>
+
+              <article class="insight-card insight-card--alert">
+                <p class="insight-card__label">Vigilance</p>
+                <h3 class="insight-card__title">
+                  {{ supportSubject()?.subjectName || "Aucune discipline" }}
+                </h3>
+                <p class="insight-card__copy">
+                  @if (supportSubject(); as supportRow) {
+                    Zone a renforcer: {{ supportRow.average | number: "1.2-2" }}/20.
+                  } @else {
+                    Aucun besoin specifique n'a encore ete identifie.
+                  }
+                </p>
+              </article>
+
+              <article class="insight-card insight-card--neutral">
+                <p class="insight-card__label">Appreciation generale</p>
+                <h3 class="insight-card__title">{{ bulletinData.generalMention }}</h3>
+                <p class="insight-card__copy">{{ generalCommentary() }}</p>
+              </article>
+            </section>
+
+            <section class="table-panel">
+              <div class="table-panel__header">
+                <div>
+                  <p class="table-panel__eyebrow">Suivi pedagogique detaille</p>
+                  <h2 class="table-panel__title">Progression et recommandations</h2>
+                </div>
+                <p class="table-panel__legend">
+                  Synthese d'aide a la decision pour l'enseignant et la direction.
+                </p>
+              </div>
+
+              <div class="insights-grid">
+                <article class="insight-card insight-card--neutral">
+                  <p class="insight-card__label">Courbe de progression</p>
+                  @for (point of progressionPoints(); track point) {
+                    <p class="insight-card__copy">{{ point }}</p>
+                  }
+                </article>
+
+                <article class="insight-card insight-card--alert">
+                  <p class="insight-card__label">Matieres faibles</p>
+                  @if (weakSubjects().length) {
+                    @for (row of weakSubjects(); track row.id) {
+                      <p class="insight-card__copy">
+                        {{ row.subjectName }}: {{ row.average | number: "1.2-2" }}/20
+                      </p>
+                    }
+                  } @else {
+                    <p class="insight-card__copy">
+                      Aucune matiere sous la moyenne pour cette periode.
+                    </p>
+                  }
+                </article>
+
+                <article class="insight-card insight-card--positive">
+                  <p class="insight-card__label">Recommandations enseignant</p>
+                  @for (recommendation of teacherRecommendations(); track recommendation) {
+                    <p class="insight-card__copy">{{ recommendation }}</p>
+                  }
+                </article>
+              </div>
+            </section>
+
+            <footer class="signature-strip">
+              <div class="signature-meta">
+                <p>Fait le {{ bulletinData.lastUpdatedAt | date: "dd/MM/yyyy" }}</p>
+                <p>Document numerique valable pour suivi pedagogique interne.</p>
+              </div>
+
+              <div class="signature-grid">
+                <div class="signature-box">
+                  <span>{{ branding().parentSignatureLabel }}</span>
+                </div>
+                <div class="signature-box">
+                  <span>{{ branding().teacherSignatureLabel }}</span>
+                </div>
+                <div class="signature-box">
+                  <span>{{ branding().headSignatureLabel }}</span>
+                </div>
+              </div>
+            </footer>
+
+            <div class="footnote">
+              @for (line of footerLines(); track line) {
+                <p>{{ line }}</p>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    }
+  </div>
+</div>

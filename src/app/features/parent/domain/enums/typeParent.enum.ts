@@ -1,0 +1,11 @@
+export enum TypeParent {
+  PERE = "PERE",
+  MERE = "MERE",
+  TUTEUR_LEGAL = "TUTEUR_LEGAL",
+  ONCLE = "ONCLE",
+  TANTE = "TANTE",
+  GRAND_PERE = "GRAND_PERE",
+  GRANDE_MERE = "GRANDE_MERE",
+  FRERE_AINE = "FRERE_AINE",
+  SOEUR_AINE = "SOEUR_AINE",
+}

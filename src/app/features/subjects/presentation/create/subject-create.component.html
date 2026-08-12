@@ -1,0 +1,99 @@
+<app-page-layout>
+  <app-page-header [title]="(isEditMode() ? 'subjectPage.editTitle' : 'subjectPage.createTitle') | translate" />
+
+  <form [formGroup]="subjectForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+    <app-page-form-body>
+      <app-form-body>
+
+        <app-input
+          [label]="'subjectPage.subjectName' | translate"
+          id="nameSubject"
+          type="text"
+          formControlName="nameSubject"
+          [control]="ctrl['nameSubject']"
+          [required]="true"
+          [errorMessages]="{
+            required: 'errors.required' | translate,
+            minlength: 'errors.minLength' | translate: { min: 2 },
+            maxlength: 'errors.maxLength' | translate: { max: 100 }
+          }"
+        />
+
+        <app-input
+          [label]="'subjectPage.subjectCode' | translate"
+          id="code"
+          type="text"
+          formControlName="code"
+          [control]="ctrl['code']"
+          [required]="true"
+          placeholder="Ex: MATH, FRAN, ANG..."
+          [errorMessages]="{
+            required: 'errors.required' | translate,
+            minlength: 'errors.minLength' | translate: { min: 2 },
+            maxlength: 'errors.maxLength' | translate: { max: 20 },
+            pattern: 'errors.pattern' | translate
+          }"
+        />
+
+        <app-input
+          [label]="'subjectPage.coefficient' | translate"
+          id="coefficient"
+          type="number"
+          formControlName="coefficient"
+          [control]="ctrl['coefficient']"
+          [required]="true"
+          [min]="1"
+          [max]="10"
+          [errorMessages]="{
+            required: 'errors.required' | translate,
+            min: 'errors.min' | translate: { min: 1 },
+            max: 'errors.max' | translate: { max: 10 }
+          }"
+        />
+
+        <app-select
+          [label]="'subjectPage.status' | translate"
+          id="actif"
+          formControlName="actif"
+          [control]="ctrl['actif']"
+          [options]="actifOptions"
+        />
+
+        <div class="sm:col-span-2">
+          <app-textarea
+            [label]="'subjectPage.description' | translate"
+            id="description"
+            formControlName="description"
+            [rows]="2"
+            [control]="ctrl['description']"
+            [errorMessages]="{ maxlength: 'errors.maxLength' | translate: { max: 500 } }"
+          />
+          <p class="form-hint mt-1">
+            {{ subjectForm.get('description')?.value?.length || 0 }}/500
+          </p>
+        </div>
+
+      </app-form-body>
+    </app-page-form-body>
+
+    @if (isEditMode() && subjectForm.get('createdAt')?.value) {
+      <div class="mt-2 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div><span class="font-medium">{{ 'subjectPage.createdAt' | translate }} :</span> {{ subjectForm.get('createdAt')?.value | date: "dd/MM/yyyy à HH:mm" }}</div>
+        @if (subjectForm.get('updatedAt')?.value) {
+          <div><span class="font-medium">{{ 'subjectPage.updatedAt' | translate }} :</span> {{ subjectForm.get('updatedAt')?.value | date: "dd/MM/yyyy à HH:mm" }}</div>
+        }
+      </div>
+    }
+
+    <div class="flex justify-between space-x-3">
+      <app-button type="button" variant="ghost" (click)="cancel()">{{ 'common.cancel' | translate }}</app-button>
+      <app-button type="submit" variant="primary" [disabled]="subjectForm.invalid || isSubmitting()">
+        @if (isSubmitting()) {
+          <span>{{ 'subjectPage.saving' | translate }}</span>
+        } @else {
+          <span>{{ (isEditMode() ? 'common.update' : 'common.create') | translate }}</span>
+        }
+      </app-button>
+    </div>
+  </form>
+</app-page-layout>

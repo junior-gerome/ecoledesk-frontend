@@ -1,0 +1,128 @@
+<app-page-layout>
+  <app-page-header [title]="'userPage.title' | translate">
+    <app-button variant="primary" (clicked)="openCreate()">{{ 'userPage.newUser' | translate }}</app-button>
+  </app-page-header>
+
+  <div class="fixed right-4 top-4 z-[70]">
+    <app-toast [visible]="toast().visible" [title]="toast().title" [message]="toast().message"
+      [variant]="toast().variant" [duration]="5000" (dismissed)="hideToast()" />
+  </div>
+
+  <div class="card mb-6">
+    <form [formGroup]="filtersForm" class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <app-input [label]="'userPage.search' | translate" type="text" formControlName="search" [placeholder]="'userPage.searchPlaceholder' | translate" />
+      <app-select [label]="'userPage.role' | translate" formControlName="roleType" [options]="roleOptions" [placeholder]="'userPage.allRoles' | translate" />
+      <app-select [label]="'userPage.status' | translate" formControlName="status" [options]="statusOptions" [placeholder]="'userPage.allStatuses' | translate" />
+    </form>
+  </div>
+
+  @if (loading()) {
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ 'userPage.loading' | translate }}</p>
+  }
+
+  <app-table [empty]="filteredUsers().length === 0" [emptyColspan]="6" [emptyMessage]="'userPage.noUser' | translate">
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:pl-6">{{ 'userPage.userCol' | translate }}</th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ 'userPage.role' | translate }}</th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ 'userPage.status' | translate }}</th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ 'userPage.rights' | translate }}</th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ 'userPage.lastLogin' | translate }}</th>
+    <th table-head scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6"><span class="sr-only">{{ 'common.actions' | translate }}</span></th>
+
+    @for (user of filteredUsers(); track user.id) {
+      <tr table-body class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+        <td class="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
+          <div class="flex flex-col">
+            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ user.firstName }} {{ user.lastName }}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">{{ user.email }}</span>
+          </div>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4">
+          <app-badge [variant]="roleVariant(user.roleType)">{{ roleLabel(user.roleType) }}</app-badge>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4">
+          <app-badge [variant]="statusVariant(user.status)">{{ statusLabel(user.status) }}</app-badge>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4">
+          <app-badge variant="neutral">{{ permissionCount(user) }} perms</app-badge>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+          {{ user.lastLoginAt ? (user.lastLoginAt | date:'short') : '-' }}
+        </td>
+        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right sm:pr-6">
+          <div class="flex flex-wrap justify-end gap-2">
+            <app-button size="sm" variant="secondary" (clicked)="openEdit(user)">{{ 'userPage.edit' | translate }}</app-button>
+            <app-button size="sm" variant="ghost" (clicked)="toggleStatus(user)">
+              {{ (user.status === 'ACTIVE' ? 'userPage.suspend' : 'userPage.activate') | translate }}
+            </app-button>
+            <app-button size="sm" variant="danger" (clicked)="deleteUser(user)">{{ 'userPage.delete' | translate }}</app-button>
+          </div>
+        </td>
+      </tr>
+    }
+  </app-table>
+
+  <app-modal [open]="modalOpen()" [title]="(isEditMode ? 'userPage.editUser' : 'userPage.newUser') | translate"
+    size="xl" [showFooter]="true" (closed)="closeModal()">
+    <form [formGroup]="userForm" class="p-6 space-y-8">
+      <section>
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">{{ 'userPage.basicInfo' | translate }}</h3>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <app-input [label]="'userPage.firstName' | translate" type="text" formControlName="firstName" [control]="ctrl['firstName']" [required]="true" />
+          <app-input [label]="'userPage.lastName' | translate" type="text" formControlName="lastName" [control]="ctrl['lastName']" [required]="true" />
+          <app-input [label]="'userPage.email' | translate" type="email" formControlName="email" [control]="ctrl['email']" [required]="true" />
+          <app-input [label]="'userPage.password' | translate" type="password" formControlName="password" [control]="ctrl['password']"
+            [required]="!isEditMode" [hint]="isEditMode ? ('userPage.passwordHint' | translate) : ''" />
+        </div>
+      </section>
+      <section>
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">{{ 'userPage.roleAndStatus' | translate }}</h3>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <app-select [label]="'userPage.role' | translate" formControlName="roleType" [options]="roleOptions" [required]="true" />
+          <app-select [label]="'userPage.status' | translate" formControlName="status" [options]="statusOptions" [required]="true" />
+        </div>
+      </section>
+      <section>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ 'userPage.permissions' | translate }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              {{ 'userPage.autoSync' | translate }} : {{ autoSyncRole() ? ('userPage.autoSyncOn' | translate) : ('userPage.autoSyncOff' | translate) }}.
+            </p>
+          </div>
+          <app-button size="sm" variant="secondary" (clicked)="applyCurrentRoleDefaults()">{{ 'userPage.applyRoleDefaults' | translate }}</app-button>
+        </div>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          @for (group of permissionGroups; track group.group) {
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">{{ group.group }}</h4>
+              <div class="space-y-3">
+                @for (perm of group.items; track perm.key) {
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ perm.label }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">{{ perm.description }}</p>
+                    </div>
+                    <app-button size="sm" [variant]="hasPermission(perm.key) ? 'success' : 'ghost'" (clicked)="togglePermission(perm.key)">
+                      {{ (hasPermission(perm.key) ? 'userPage.allowed' : 'userPage.blocked') | translate }}
+                    </app-button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    </form>
+    <div modal-footer class="flex justify-end gap-3">
+      <app-button variant="ghost" (clicked)="closeModal()">{{ 'userPage.cancel' | translate }}</app-button>
+      <app-button variant="primary" [disabled]="userForm.invalid || saving()" (clicked)="saveUser()">
+        @if (saving()) {
+          <span>{{ 'userPage.saving' | translate }}</span>
+        } @else {
+          <span>{{ (isEditMode ? 'common.update' : 'common.create') | translate }}</span>
+        }
+      </app-button>
+    </div>
+  </app-modal>
+
+</app-page-layout>

@@ -1,0 +1,151 @@
+<app-page-layout>
+  <app-page-header [title]="'attendancePage.dailyTitle' | translate">
+    <app-button
+      type="button"
+      variant="primary"
+      [loading]="store.saving()"
+      [disabled]="store.students().length === 0"
+      (clicked)="store.markAttendance()"
+    >
+      {{ 'attendancePage.saveAttendance' | translate }}
+    </app-button>
+  </app-page-header>
+
+  <div class="fixed right-4 top-4 z-[70]">
+    <app-toast
+      [visible]="store.toast().visible"
+      [title]="store.toast().title"
+      [message]="store.toast().message"
+      [variant]="store.toast().variant"
+      [duration]="5000"
+      (dismissed)="store.hideToast()"
+    />
+  </div>
+
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ 'attendancePage.attendanceDate' | translate }}</p>
+      <p class="mt-3 text-lg font-semibold text-gray-900 dark:text-gray-100">{{ store.selectedDateLabel() }}</p>
+    </article>
+    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ 'attendancePage.loadedStudents' | translate }}</p>
+      <p class="mt-3 text-3xl font-semibold text-gray-900 dark:text-gray-100">{{ store.stats().totalStudents }}</p>
+    </article>
+    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ 'attendancePage.present' | translate }}</p>
+      <p class="mt-3 text-3xl font-semibold text-green-700 dark:text-green-300">{{ store.stats().presentCount }}</p>
+    </article>
+    <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ 'attendancePage.absencesAndLates' | translate }}</p>
+      <p class="mt-3 text-3xl font-semibold text-amber-700 dark:text-amber-300">{{ store.stats().absentCount + store.stats().lateCount }}</p>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ store.stats().impactedHours }} {{ 'attendancePage.impactedHours' | translate }}</p>
+    </article>
+  </section>
+
+  <form [formGroup]="store.form" class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+    <app-select
+      [label]="'attendancePage.section' | translate"
+      id="sectionId"
+      formControlName="sectionId"
+      [options]="store.sectionOptions"
+      [placeholder]="'attendancePage.selectSection' | translate"
+      [autoFocus]="true"
+    />
+    <app-select
+      [label]="'attendancePage.class' | translate"
+      id="classId"
+      formControlName="classId"
+      [options]="store.classOptions"
+      [placeholder]="'attendancePage.selectClass' | translate"
+    />
+    <app-input [label]="'attendancePage.date' | translate" id="date" type="date" formControlName="date" />
+  </form>
+
+  <div class="mt-4 flex flex-wrap gap-2">
+    <app-button type="button" size="sm" variant="success" (clicked)="store.setAllStatuses('PRESENT')">
+      {{ 'attendancePage.allPresent' | translate }}
+    </app-button>
+    <app-button type="button" size="sm" variant="danger" (clicked)="store.setAllStatuses('ABSENT')">
+      {{ 'attendancePage.allAbsent' | translate }}
+    </app-button>
+    <app-button type="button" size="sm" variant="warning" (clicked)="store.setAllStatuses('LATE')">
+      {{ 'attendancePage.allLate' | translate }}
+    </app-button>
+  </div>
+
+  @if (store.loadingSections()) {
+    <div class="mt-6 rounded-xl border border-dashed border-gray-300 bg-white p-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+      {{ 'attendancePage.loadingSections' | translate }}
+    </div>
+  }
+  @if (store.loadingClasses()) {
+    <div class="mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+      {{ 'attendancePage.loadingClasses' | translate }}
+    </div>
+  }
+  @if (store.loadingStudents() || store.loadingRecords()) {
+    <div class="mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+      {{ 'attendancePage.loadingStudents' | translate }}
+    </div>
+  }
+
+  <app-table
+    [empty]="!store.loadingStudents() && !store.loadingRecords() && store.students().length === 0"
+    [emptyColspan]="4"
+    [emptyMessage]="'attendancePage.emptyAttendance' | translate"
+  >
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">{{ 'attendancePage.student' | translate }}</th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">{{ 'attendancePage.status' | translate }}</th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">{{ 'common.actions' | translate }}</th>
+    <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">{{ 'attendancePage.hours' | translate }}</th>
+
+    @for (student of store.students(); track student.studentId) {
+      <tr table-body class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          <div class="font-medium text-gray-900 dark:text-gray-100">{{ student.studentName }}</div>
+          <div class="text-xs text-gray-400 dark:text-gray-500">ID {{ student.studentId }}</div>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          <app-badge
+            [variant]="student.status === 'PRESENT' ? 'success' : student.status === 'ABSENT' ? 'danger' : 'warning'"
+            size="sm"
+            [dot]="true"
+          >
+            {{ (student.status === 'PRESENT' ? 'attendancePage.present' : student.status === 'ABSENT' ? 'attendancePage.absent' : 'attendancePage.late') | translate }}
+          </app-badge>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          <div class="flex flex-wrap gap-2">
+            <app-button type="button" size="sm" [variant]="student.status === 'PRESENT' ? 'success' : 'secondary'" (clicked)="store.setStatus(student, 'PRESENT')">
+              {{ 'attendancePage.present' | translate }}
+            </app-button>
+            <app-button type="button" size="sm" [variant]="student.status === 'ABSENT' ? 'danger' : 'secondary'" (clicked)="store.setStatus(student, 'ABSENT')">
+              {{ 'attendancePage.absent' | translate }}
+            </app-button>
+            <app-button type="button" size="sm" [variant]="student.status === 'LATE' ? 'warning' : 'secondary'" (clicked)="store.setStatus(student, 'LATE')">
+              {{ 'attendancePage.late' | translate }}
+            </app-button>
+          </div>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          <app-input
+            type="number"
+            [min]="0"
+            [step]="0.5"
+            [placeholder]="'attendancePage.hours' | translate"
+            [ngModel]="student.hours"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="store.updateHours(student, $event)"
+            [disabled]="student.status === 'PRESENT'"
+          />
+        </td>
+      </tr>
+    }
+  </app-table>
+
+  @if (store.existingRecordsCount() > 0) {
+    <div class="mt-6 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+      {{ 'attendancePage.existingRecords' | translate }} {{ store.existingRecordsCount() }} {{ 'attendancePage.lines' | translate }}
+    </div>
+  }
+</app-page-layout>

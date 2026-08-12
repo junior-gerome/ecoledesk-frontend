@@ -1,0 +1,72 @@
+<app-page-layout>
+  <app-page-header [title]="'montantPage.title' | translate" />
+
+  <form [formGroup]="montantForm" (ngSubmit)="onSubmit()" class="mt-6 space-y-6">
+    <app-page-form-body>
+      <app-form-body>
+
+        <app-input
+          [label]="'montantPage.feeLabel' | translate"
+          type="number"
+          formControlName="count"
+          [control]="montantForm.get('count')"
+          [required]="true"
+          [min]="1000"
+          [errorMessages]="{ required: 'errors.required' | translate, min: 'Minimum 1000 FCFA' }"
+        />
+
+        <app-select
+          [label]="'montantPage.class' | translate"
+          formControlName="classId"
+          [control]="montantForm.get('classId')"
+          [options]="classOptions"
+          [required]="true"
+          [placeholder]="'montantPage.selectClass' | translate"
+          [errorMessage]="'errors.required' | translate"
+        />
+
+        <app-select
+          [label]="'montantPage.feeType' | translate"
+          formControlName="typePaiement"
+          [control]="montantForm.get('typePaiement')"
+          [options]="typeOptions"
+          [required]="true"
+          [placeholder]="'montantPage.selectType' | translate"
+          [errorMessage]="'errors.required' | translate"
+        />
+
+      </app-form-body>
+    </app-page-form-body>
+
+    <div class="flex justify-end">
+      <app-button type="submit" variant="primary" [disabled]="montantForm.invalid || isSubmitting">
+        {{ isSubmitting ? ('montantPage.saving' | translate) : ('montantPage.save' | translate) }}
+      </app-button>
+    </div>
+  </form>
+
+  <div class="mt-8">
+    <app-table
+      [empty]="montants.length === 0"
+      [emptyColspan]="4"
+      [emptyMessage]="'montantPage.noMontant' | translate"
+    >
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">{{ 'montantPage.class' | translate }}</th>
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">{{ 'montantPage.feeType' | translate }}</th>
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">{{ 'montantPage.amount' | translate }}</th>
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-center text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">{{ 'common.actions' | translate }}</th>
+
+      @for (m of montants; track m.id) {
+        <tr table-body class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">{{ m.classeRoom.nameClasse }}</td>
+          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">{{ typePaiementLabel(m.typePaiement) }}</td>
+          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">{{ m.count | number }}</td>
+          <td class="whitespace-nowrap px-3 py-4 text-sm text-center">
+            <app-button variant="danger" size="sm" (clicked)="deleteMontant(m.id!)">{{ 'montantPage.delete' | translate }}</app-button>
+          </td>
+        </tr>
+      }
+    </app-table>
+  </div>
+
+</app-page-layout>

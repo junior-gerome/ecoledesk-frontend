@@ -1,0 +1,75 @@
+<app-page-layout>
+  <app-page-header title="Personnel">
+    <div class="flex items-center gap-3">
+      <app-badge variant="info" size="sm">
+        {{ useCase.members().length }} membres
+      </app-badge>
+      <app-button type="button" routerLink="new" variant="primary">
+        Ajouter un membre
+      </app-button>
+    </div>
+  </app-page-header>
+
+  <app-table
+    [empty]="useCase.members().length === 0"
+    [emptyColspan]="7"
+    emptyMessage="Aucun membre du personnel trouvé."
+  >
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">N° Employé</th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">Nom</th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">Prénom</th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100">Email</th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100">Spécialité</th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100">Statut</th>
+    <th table-head scope="col" class="flex justify-center py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">Actions</th>
+
+    @for (member of useCase.members(); track member.id) {
+      <tr table-body class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">{{ member.employeeNumber }}</td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">{{ member.lastName }}</td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">{{ member.firstName }}</td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">{{ member.email }}</td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          <app-badge variant="neutral" size="xs">{{ member.speciality || 'Non spécifié' }}</app-badge>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm">
+          <app-badge [variant]="member.active ? 'success' : 'danger'" size="xs">
+            {{ member.active ? 'Actif' : 'Inactif' }}
+          </app-badge>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm">
+          <div class="flex justify-center gap-3">
+            <app-button [routerLink]="[member.id]" variant="ghost">Détail</app-button>
+            <app-button [routerLink]="[member.id, 'edit']" variant="secondary">Modifier</app-button>
+            <app-button type="button" variant="danger" (clicked)="requestDeactivate(member)">Désactiver</app-button>
+          </div>
+        </td>
+      </tr>
+    }
+  </app-table>
+
+  @if (useCase.error()) {
+    <div class="mt-4 rounded-md border border-red-200 bg-red-50 p-4">
+      <p class="text-sm text-red-700">{{ useCase.error() }}</p>
+    </div>
+  }
+
+  <app-modal
+    [open]="!!memberPendingDeactivation()"
+    title="Désactiver le membre"
+    size="md"
+    [showFooter]="true"
+    (closed)="closeModal()"
+  >
+    <p class="text-sm text-gray-600 dark:text-gray-300">
+      Confirmer la désactivation de
+      <span class="font-semibold text-gray-900 dark:text-gray-100">
+        {{ memberPendingDeactivation()?.lastName }} {{ memberPendingDeactivation()?.firstName }}
+      </span> ?
+    </p>
+    <div modal-footer class="flex justify-end gap-3">
+      <app-button type="button" variant="ghost" (clicked)="closeModal()">Annuler</app-button>
+      <app-button type="button" variant="danger" (clicked)="confirmDeactivate()">Désactiver</app-button>
+    </div>
+  </app-modal>
+</app-page-layout>

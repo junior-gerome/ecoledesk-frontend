@@ -1,0 +1,10 @@
+<app-button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="rounded-full"
+      (click)="toggleTheme()"
+      [attr.aria-label]="ariaLabel()"
+    >
+      {{ isDarkMode() ? "☀️" : "🌙" }}
+    </app-button>

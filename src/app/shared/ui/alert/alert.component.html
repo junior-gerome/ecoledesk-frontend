@@ -1,0 +1,9 @@
+﻿<div
+  [class]="alertClasses"
+  [attr.role]="type === 'error' ? 'alert' : 'status'"
+  aria-live="polite"
+>
+  <p *ngIf="title" class="font-semibold">{{ title }}</p>
+  <p class="text-sm">{{ message }}</p>
+</div>
+

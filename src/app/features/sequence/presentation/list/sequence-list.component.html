@@ -1,0 +1,63 @@
+<div class="py-6 min-h-screen dark:bg-gray-900">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-semibold text-gray-900 leading-tight dark:text-gray-100">
+        {{ 'sequencePage.listTitle' | translate }}
+      </h1>
+        
+      <app-button type="button" variant="primary" prefixIcon="+" [routerLink]="['/sequence/new']" > {{ 'sequencePage.addSequence' | translate }}</app-button>
+    </div>
+
+    <!-- Tableau -->
+    
+      <app-table 
+        [empty]="sequences().length === 0"
+        [emptyColspan]="3"
+        [emptyMessage]="'sequencePage.noSequence' | translate">
+        
+          <th 
+            table-head
+            scope="col"
+            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+            {{ 'sequencePage.name' | translate }}
+          </th>
+          <th 
+            table-head
+            scope="col"
+            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+            {{ 'sequencePage.trimestre' | translate }}
+          </th>
+          <th 
+            table-head
+            scope="col"
+            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase flex justify-center">
+            {{ 'common.actions' | translate }}
+          </th>
+
+          @for(sequence of sequences(); track sequence.id){
+          <tr table-body class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+                  {{ sequence.libelleSequence }}
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+                  {{ sequence.trimestre?.libelleTrimestre }}
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+                  <div class="flex justify-center gap-3">
+                    <app-button type="button" variant="secondary" [routerLink]="[ sequence.id!]">
+                      {{ 'common.edit' | translate }}
+                    </app-button>
+                    <app-button type="button" variant="danger" (click)="deleteSequences(sequence.id!)" >
+                      {{ 'common.delete' | translate }}
+                    </app-button>
+                  </div>
+            
+              </td>
+        </tr>
+          }
+
+      </app-table>
+    </div>
+  </div>
+

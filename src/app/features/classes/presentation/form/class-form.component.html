@@ -1,0 +1,88 @@
+<app-page-layout>
+  <app-page-header [title]="(isEditMode() ? 'classPage.editTitle' : 'classPage.createTitle') | translate" />
+
+  <form [formGroup]="classForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+    <app-page-form-body>
+      <app-form-body>
+
+        <app-select
+          [label]="'classPage.section' | translate"
+          formControlName="sectionId"
+          [control]="ctrl['sectionId']"
+          [required]="true"
+          [options]="sectionOptions()"
+          [placeholder]="'classPage.selectSection' | translate"
+        />
+
+        <app-input
+          [label]="'classPage.className' | translate"
+          type="text"
+          formControlName="nameClasse"
+          [control]="ctrl['nameClasse']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'classPage.level' | translate"
+          type="text"
+          formControlName="level"
+          [control]="ctrl['level']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'classPage.capacity' | translate"
+          type="number"
+          formControlName="capacity"
+          [control]="ctrl['capacity']"
+          [required]="true"
+        />
+
+        <app-select
+          [label]="'classPage.teacher' | translate"
+          formControlName="teacherId"
+          [options]="teacherOptions()"
+          [control]="ctrl['teacherId']"
+          [required]="true"
+          [placeholder]="'classPage.selectTeacher' | translate"
+        />
+
+        <app-input
+          [label]="'classPage.schoolYear' | translate"
+          type="text"
+          [value]="statutCode()?.libelleAnneeScolaire || ('common.loading' | translate)"
+          [readonly]="true"
+        />
+
+        <div class="mb-6 sm:col-span-2">
+          <app-textarea
+            [label]="'classPage.description' | translate"
+            formControlName="description"
+            [control]="ctrl['description']"
+            [rows]="2"
+          />
+        </div>
+
+      </app-form-body>
+    </app-page-form-body>
+
+    <div class="flex items-center justify-between gap-3 pt-2">
+      <app-button variant="ghost" (click)="cancel()">
+        {{ 'common.cancel' | translate }}
+      </app-button>
+      <app-button type="submit" variant="primary" [disabled]="classForm.invalid || isSubmitting()">
+        @if (isSubmitting()) {
+          <span>{{ 'classPage.saving' | translate }}</span>
+        } @else {
+          <span>{{ (isEditMode() ? 'common.update' : 'common.create') | translate }}</span>
+        }
+      </app-button>
+    </div>
+
+    @if (error()) {
+      <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-200">
+        {{ error() }}
+      </div>
+    }
+  </form>
+</app-page-layout>

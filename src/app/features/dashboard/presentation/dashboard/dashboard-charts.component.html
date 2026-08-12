@@ -1,0 +1,38 @@
+<div class="charts-grid">
+
+  <app-card padding="lg" class="chart-card">
+    <h2 class="dashboard-card-title">{{ 'dashboardPage.chartByClass' | translate }}</h2>
+    <div class="chart-wrap">
+      <canvas baseChart [data]="studentsByClasseData()" [options]="studentsByClasseOptions" [type]="studentsByClasseType"></canvas>
+    </div>
+  </app-card>
+
+  <app-card padding="lg" class="chart-card">
+    <h2 class="dashboard-card-title">{{ 'dashboardPage.chartBySection' | translate }}</h2>
+    <div class="chart-wrap">
+      <canvas baseChart [data]="studentsBySectionData()" [options]="studentsBySectionOptions" [type]="studentsBySectionType"></canvas>
+    </div>
+  </app-card>
+
+  <app-card padding="lg" class="chart-card">
+    <h2 class="dashboard-card-title">{{ 'dashboardPage.chartNewBySection' | translate }}</h2>
+    <div class="chart-wrap">
+      <canvas baseChart [data]="newStudentsBySectionData()" [options]="newStudentsBySectionOptions" [type]="newStudentsBySectionType"></canvas>
+    </div>
+  </app-card>
+
+  <app-card padding="lg" class="chart-card">
+    <h2 class="dashboard-card-title">{{ 'dashboardPage.chartEnrollmentByClass' | translate }}</h2>
+    <div class="chart-wrap">
+      <canvas baseChart [data]="studentsByClasseDoughnutData()" [options]="studentsByClasseDoughnutOptions" [type]="studentsByClasseDoughnutType"></canvas>
+    </div>
+  </app-card>
+
+  <app-card padding="lg" class="chart-card chart-card--centered">
+    <h2 class="dashboard-card-title">{{ 'dashboardPage.chartNewByClass' | translate }}</h2>
+    <div class="chart-wrap">
+      <canvas baseChart [data]="newStudentsByClasseData()" [options]="newStudentsByClasseOptions" [type]="newStudentsByClasseType"></canvas>
+    </div>
+  </app-card>
+
+</div>

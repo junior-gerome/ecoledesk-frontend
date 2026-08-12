@@ -1,0 +1,208 @@
+@if (error) {
+  <div class="mt-4 rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200">
+    {{ error }}
+  </div>
+}
+
+<form [formGroup]="form" (ngSubmit)="submitForm()" class="mt-6 space-y-6" novalidate>
+  <app-page-form-body>
+
+    <!-- ── Section 1 : {{ 'studentPage.studentInfo' | translate }} ── -->
+    <section aria-labelledby="student-info-title" class="mb-8">
+      <h2 id="student-info-title" class="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">
+        {{ 'studentPage.studentInfo' | translate }}
+      </h2>
+
+      <app-form-body>
+        <app-input
+          [label]="'students.lastName' | translate"
+          id="lastNameStudent"
+          type="text"
+          formControlName="lastNameStudent"
+          [control]="ctrl['lastNameStudent']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'studentPage.firstName' | translate"
+          id="firstNameStudent"
+          type="text"
+          formControlName="firstNameStudent"
+          [control]="ctrl['firstNameStudent']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'studentPage.birthDate' | translate"
+          id="dateOfBirth"
+          type="date"
+          formControlName="dateOfBirth"
+          [control]="ctrl['dateOfBirth']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'studentPage.previousSchool' | translate"
+          id="ecolePrecedente"
+          type="text"
+          formControlName="ecolePrecedente"
+          [control]="ctrl['ecolePrecedente']"
+          [required]="true"
+        />
+
+        <app-select
+          [label]="'students.gender' | translate"
+          id="gender"
+          formControlName="gender"
+          [options]="genderOptions"
+          [required]="true"
+          [placeholder]="'studentPage.selectGender' | translate"
+        />
+
+        <!-- Photo élève -->
+        <div class="flex flex-col gap-1.5">
+          <label class="form-label">{{ 'studentPage.studentPhoto' | translate }}</label>
+          <app-photo-upload
+            [photoUrl]="ctrl['photoUrl'].value"
+            (photoUrlChange)="ctrl['photoUrl'].setValue($event)"
+            [label]="'studentPage.addPhoto' | translate"
+            hint="JPG, PNG (max 5MB)"
+            uploadType="photos/students"
+          />
+        </div>
+      </app-form-body>
+    </section>
+
+    <!-- ── Section 2 : {{ 'studentPage.preEnrollmentInfo' | translate }} ── -->
+    <section aria-labelledby="preinscription-info-title" class="mb-8">
+      <h2 id="preinscription-info-title" class="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">
+        {{ 'studentPage.preEnrollmentInfo' | translate }}
+      </h2>
+
+      <app-form-body>
+        <app-select
+          [label]="'studentPage.section' | translate"
+          id="sectionId"
+          formControlName="sectionId"
+          [options]="sectionOptions"
+          [required]="true"
+          [placeholder]="'studentPage.selectSection' | translate"
+        />
+
+        <app-select
+          [label]="'studentPage.classLabel' | translate"
+          id="classId"
+          formControlName="classId"
+          [options]="classOptions"
+          [required]="true"
+          [placeholder]="classPlaceholder | translate"
+        />
+
+        <!-- {{ 'studentPage.preEnrollmentFee' | translate }} : même hauteur que form-control -->
+        <div class="flex flex-col gap-1.5 sm:col-span-2">
+          <label class="form-label">{{ 'studentPage.preEnrollmentFee' | translate }}</label>
+          <div class="form-control min-h-[2.375rem] flex items-center">
+            <span [class]="amountClassName()">{{ amountLabel() }}</span>
+          </div>
+        </div>
+      </app-form-body>
+    </section>
+
+    <!-- ── Section 3 : {{ 'studentPage.parentInfo' | translate }} ── -->
+    <section aria-labelledby="parent-info-title" class="mb-8">
+      <h2 id="parent-info-title" class="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">
+        {{ 'studentPage.parentInfo' | translate }}
+      </h2>
+
+      <app-form-body>
+        <app-select
+          [label]="'studentPage.parentStatus' | translate"
+          id="TypeParent"
+          formControlName="TypeParent"
+          [options]="typeParentOptions"
+          [required]="true"
+          [placeholder]="'studentPage.selectParentStatus' | translate"
+        />
+
+        <app-input
+          [label]="'studentPage.parentLastName' | translate"
+          id="lastNameParent"
+          type="text"
+          formControlName="lastNameParent"
+          [control]="ctrl['lastNameParent']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'studentPage.parentFirstName' | translate"
+          id="firstNameParent"
+          type="text"
+          formControlName="firstNameParent"
+          [control]="ctrl['firstNameParent']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'parents.phone' | translate"
+          id="phoneNumber"
+          type="tel"
+          formControlName="phoneNumber"
+          [control]="ctrl['phoneNumber']"
+          [required]="true"
+          placeholder="+237..."
+        />
+
+        <app-input
+          [label]="'parents.email' | translate"
+          id="email"
+          type="email"
+          formControlName="email"
+          [control]="ctrl['email']"
+          placeholder="exemple@gmail.com"
+        />
+
+        <!-- Photo parent -->
+        <div class="flex flex-col gap-1.5">
+          <label class="form-label">{{ 'studentPage.parentPhoto' | translate }}</label>
+          <app-photo-upload
+            [photoUrl]="ctrl['photoUrlParent'].value"
+            (photoUrlChange)="ctrl['photoUrlParent'].setValue($event)"
+            [label]="'studentPage.addPhoto' | translate"
+            hint="JPG, PNG (max 5MB)"
+            uploadType="photos/parents"
+          />
+        </div>
+
+        <div class="sm:col-span-2">
+          <app-textarea
+            [label]="'studentPage.address' | translate"
+            id="address"
+            formControlName="address"
+            [control]="ctrl['address']"
+            [rows]="2"
+          />
+        </div>
+      </app-form-body>
+    </section>
+
+  </app-page-form-body>
+
+  <!-- ── Actions ── -->
+  <div class="flex items-center justify-between gap-3 pt-2">
+    <app-button type="button" variant="ghost" (clicked)="cancel()">
+      {{ 'common.cancel' | translate }}
+    </app-button>
+
+    <app-button
+      type="submit"
+      variant="primary"
+      [disabled]="form.invalid || isSubmitting || montantLoading"
+    >
+      @if (isSubmitting) {
+        <span>{{ 'studentPage.saving' | translate }}</span>
+      } @else {
+        <span>{{ isEditMode ? ('common.update' | translate) : ('common.create' | translate) }}</span>
+      }
+    </app-button>
+  </div>
+</form>

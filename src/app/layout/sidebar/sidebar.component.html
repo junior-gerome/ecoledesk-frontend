@@ -1,0 +1,194 @@
+﻿<nav
+  id="primary-sidebar"
+  class="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-slate-900 text-white shadow-xl transition-transform duration-300 md:z-auto"
+  [class.translate-x-0]="layoutService.sidebarOpen()"
+  [class.-translate-x-full]="!layoutService.sidebarOpen()"
+>
+  <!-- En-tÃªte -->
+  <div class="flex shrink-0 items-center justify-between border-b border-slate-700/60 px-4 py-4">
+    <div class="flex items-center gap-2">
+      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
+        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.083 12.083 0 0121 13c0 5.523-4.477 10-10 10S1 18.523 1 13c0-.85.095-1.678.274-2.476L12 14z"/>
+        </svg>
+      </div>
+      <span class="text-base font-bold tracking-wide text-white">GSBP</span>
+    </div>
+    @if (layoutService.isMobile()) {
+      <button
+        type="button"
+        (click)="layoutService.toggleSidebar()"
+        class="rounded-md p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white"
+        [attr.aria-label]="'nav.closeMenu' | translate"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    }
+  </div>
+
+  <!-- Navigation scrollable -->
+  <div class="flex-1 overflow-y-auto py-3 scrollbar-thin">
+    @for (category of categories; track category.id) {
+
+      <!-- CatÃ©gorie sans label : items directs (Accueil) -->
+      @if (!category.label) {
+        <div class="px-2 pb-2">
+          @for (item of category.items; track item.id) {
+            <a
+              [class.hidden]="!isItemVisible(item)"
+              [routerLink]="item.routerLink"
+              routerLinkActive="bg-primary-600/20 text-primary-300 font-semibold"
+              [routerLinkActiveOptions]="{exact: true}"
+              class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-700/60 hover:text-white"
+              (click)="layoutService.closeSidebarMobile()"
+            >
+              <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="item.iconSvg"></span>
+              <span class="text-sm font-medium">{{ item.label | translate }}</span>
+            </a>
+          }
+        </div>
+        <div class="mx-3 mb-2 border-t border-slate-700/50"></div>
+      }
+
+      <!-- CatÃ©gorie dÃ©roulante -->
+      @if (category.label) {
+        <div class="px-2 pb-1">
+
+          <!-- Bouton catÃ©gorie -->
+          <button
+            type="button"
+            (click)="toggleCategory(category.id, isCategoryExpanded(category))"
+            class="flex w-full items-center justify-between rounded-lg px-3 py-1.5 transition-colors hover:bg-slate-700/40"
+          >
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              {{ category.label | translate }}
+            </span>
+            <svg
+              class="h-3 w-3 shrink-0 text-slate-500 transition-transform duration-200"
+              [class.rotate-180]="isCategoryExpanded(category)"
+              fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+
+          <!-- Items de la catÃ©gorie -->
+          <div
+            class="overflow-hidden transition-all duration-200"
+            [style.max-height]="isCategoryExpanded(category) ? '600px' : '0px'"
+            [style.opacity]="isCategoryExpanded(category) ? '1' : '0'"
+          >
+            <div class="mt-0.5 flex flex-col gap-0.5">
+              @for (item of category.items; track item.id) {
+
+                <!-- Item sans sous-menu -->
+                @if (!item.children) {
+                  <a
+                    [class.hidden]="!isItemVisible(item)"
+              [routerLink]="item.routerLink"
+                    routerLinkActive="bg-primary-600/20 text-primary-300 font-semibold"
+                    class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-700/60 hover:text-white"
+                    (click)="layoutService.closeSidebarMobile()"
+                  >
+                    <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="item.iconSvg"></span>
+                    <span class="text-sm">{{ item.label | translate }}</span>
+                    @if (item.comingSoon) {
+                      <app-badge variant="warning" size="xs">{{ 'common.comingSoon' | translate }}</app-badge>
+                    }
+                  </a>
+                }
+
+                <!-- Item avec sous-menu -->
+                @if (item.children) {
+                  <div>
+                    <button
+                      type="button"
+                      (click)="onMenuClick(item)"
+                      class="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-slate-700/60"
+                      [class.bg-slate-700]="isMenuExpanded(item) || isMenuActive(item)"
+                      [class.text-white]="isMenuExpanded(item) || isMenuActive(item)"
+                      [class.text-slate-300]="!isMenuExpanded(item) && !isMenuActive(item)"
+                    >
+                      <div class="flex items-center gap-3">
+                        <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="item.iconSvg"></span>
+                        <span class="text-sm">{{ item.label | translate }}</span>
+                        @if (item.comingSoon) {
+                          <app-badge variant="warning" size="xs">{{ 'common.comingSoon' | translate }}</app-badge>
+                        }
+                      </div>
+                      <svg
+                        class="h-3.5 w-3.5 shrink-0 transition-transform duration-200"
+                        [class.rotate-180]="isMenuExpanded(item)"
+                        fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </button>
+
+                    <!-- Sous-items avec animation -->
+                    <div
+                      class="overflow-hidden transition-all duration-200"
+                      [style.max-height]="isMenuExpanded(item) ? '400px' : '0px'"
+                      [style.opacity]="isMenuExpanded(item) ? '1' : '0'"
+                    >
+                      <div class="ml-3 mt-0.5 flex flex-col border-l border-slate-700 pl-3 pb-1">
+                        @for (subItem of item.children; track subItem.label) {
+                          @if (subItem.disabled) {
+                            <div class="flex items-center justify-between py-1.5 pl-1">
+                              <span class="text-xs text-slate-600">{{ subItem.label | translate }}</span>
+                              <app-badge variant="warning" size="xs">{{ 'common.comingSoon' | translate }}</app-badge>
+                            </div>
+                          } @else {
+                            <a
+                              [routerLink]="subItem.routerLink"
+                              routerLinkActive="text-primary-300 font-semibold"
+                              class="flex items-center gap-2 rounded-md py-1.5 pl-1 pr-2 text-sm text-slate-400 transition-colors hover:bg-slate-700/50 hover:text-white"
+                              (click)="layoutService.closeSidebarMobile()"
+                            >
+                              <span class="h-1 w-1 shrink-0 rounded-full bg-slate-600"></span>
+                              {{ subItem.label | translate }}
+                            </a>
+                          }
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+
+              }
+            </div>
+          </div>
+
+          <div class="mx-1 mt-2 border-t border-slate-700/40"></div>
+        </div>
+      }
+
+    }
+  </div>
+  <!-- Pied de sidebar : profil + logout -->
+  <div class="shrink-0 border-t border-slate-700/60 px-3 py-3">
+    <button
+      type="button"
+      (click)="logout()"
+      class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-red-500/10 hover:text-red-400"
+    >
+      <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+      </svg>
+      <span class="text-sm font-medium">{{ 'auth.logout' | translate }}</span>
+    </button>
+  </div>
+</nav>
+
+@if (layoutService.sidebarOpen() && layoutService.isMobile()) {
+  <div
+    (click)="layoutService.toggleSidebar()"
+    class="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
+  ></div>
+}
+
+
+

@@ -1,0 +1,138 @@
+<app-page-layout>
+
+  <app-page-header [title]="'gradePage.formTitle' | translate">
+    <app-button type="button" variant="ghost" routerLink="/grades">
+      {{ 'gradePage.back' | translate }}
+    </app-button>
+  </app-page-header>
+
+  @if (success()) {
+    <app-alert
+      type="success"
+      [title]="'gradePage.success' | translate"
+      [message]="success()!"
+      class="mb-6"
+    />
+  }
+
+  @if (error()) {
+    <app-alert
+      type="error"
+      [title]="'gradePage.error' | translate"
+      [message]="error()!"
+      class="mb-6"
+    />
+  }
+
+  <app-card padding="lg" class="shadow-xl">
+    <form [formGroup]="gradeForm" (ngSubmit)="submitForm()" class="mt-8 space-y-6">
+      <app-page-form-body>
+        <app-form-body>
+
+          <app-select
+            [label]="'gradePage.class' | translate"
+            formControlName="classId"
+            [options]="classOptions()"
+            [placeholder]="'gradePage.selectClass' | translate"
+            [required]="true"
+            class="mt-2"
+          />
+
+          <app-select
+            [label]="'gradePage.student' | translate"
+            formControlName="studentId"
+            [options]="studentOptions()"
+            [placeholder]="'gradePage.selectStudent' | translate"
+            [required]="true"
+            class="mt-2"
+          />
+
+          <app-select
+            [label]="'gradePage.subject' | translate"
+            formControlName="subjectId"
+            [options]="subjectOptions()"
+            [placeholder]="'gradePage.selectMatter' | translate"
+            [required]="true"
+            class="mt-2"
+          />
+
+          <app-select
+            [label]="'gradePage.period' | translate"
+            formControlName="period"
+            [options]="periodOptions()"
+            [placeholder]="'gradePage.selectPeriod' | translate"
+            [required]="true"
+            class="mt-2"
+          />
+
+          <app-input
+            [label]="'gradePage.scoreLabel' | translate"
+            type="number"
+            formControlName="score"
+            min="0"
+            max="20"
+            step="0.5"
+            class="mt-2"
+          />
+          @if (gradeForm.get("score")?.invalid && gradeForm.get("score")?.touched) {
+            <p class="mt-1 text-sm text-red-600">Note invalide (0-20)</p>
+          }
+
+          @if (mentionLabel()) {
+            <div
+              [class]="
+                'mt-3 rounded-lg px-3 py-2 text-center text-sm font-semibold ' +
+                (scoreStatus() === 'valid'
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                  : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400')
+              "
+            >
+              {{ mentionLabel() }}
+            </div>
+          }
+
+          <app-input
+            [label]="'gradePage.coefficientLabel' | translate"
+            type="number"
+            formControlName="coefficient"
+            [required]="true"
+            min="1"
+            max="10"
+            step="1"
+            class="mt-2"
+          />
+          @if (gradeForm.get("coefficient")?.invalid && gradeForm.get("coefficient")?.touched) {
+            <p class="mt-1 text-sm text-red-600">Coefficient invalide (1-10)</p>
+          }
+
+          <app-input
+            [label]="'gradePage.assessmentDate' | translate"
+            type="date"
+            formControlName="assessmentDate"
+            class="mt-2"
+          />
+
+          <app-textarea
+            [label]="'gradePage.comments' | translate"
+            formControlName="comments"
+            [rows]="3"
+          />
+
+        </app-form-body>
+      </app-page-form-body>
+
+      <div class="flex justify-between space-x-3">
+        <app-button type="button" variant="ghost" (click)="resetForm()" [disabled]="submitting()">
+          {{ 'common.cancel' | translate }}
+        </app-button>
+        <app-button type="submit" variant="primary" [disabled]="submitting() || gradeForm.invalid" [loading]="submitting()">
+          @if (submitting()) {
+            <span>{{ 'gradePage.saving' | translate }}</span>
+          } @else {
+            <span>{{ 'common.create' | translate }}</span>
+          }
+        </app-button>
+      </div>
+    </form>
+  </app-card>
+</app-page-layout>

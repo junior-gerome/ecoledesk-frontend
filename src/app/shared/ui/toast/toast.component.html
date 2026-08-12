@@ -1,0 +1,31 @@
+@if (visible) {
+  <div [class]="toastClasses" role="status" aria-live="polite">
+    <div class="flex items-start gap-3">
+      <span [class]="iconClasses" aria-hidden="true">{{ iconText }}</span>
+
+      <div class="min-w-0 flex-1">
+        @if (title) {
+          <p class="text-sm font-semibold">{{ title }}</p>
+        }
+
+        @if (message) {
+          <p class="text-sm opacity-90">{{ message }}</p>
+        }
+
+        <ng-content></ng-content>
+      </div>
+
+      @if (dismissible) {
+        <button
+          type="button"
+          class="rounded-md p-1 text-current/70 hover:bg-black/5 hover:text-current dark:hover:bg-white/10"
+          [attr.aria-label]="'common.dismiss' | translate"
+          (click)="requestDismiss()"
+        >
+          x
+        </button>
+      }
+    </div>
+  </div>
+}
+

@@ -1,0 +1,17 @@
+<div [class]="avatarClasses">
+  @if (showImage) {
+    <img
+      [src]="src"
+      [alt]="alt || name || 'avatar'"
+      class="h-full w-full object-cover"
+      (error)="onImageError()"
+    />
+  } @else {
+    <span class="font-semibold">{{ initials }}</span>
+  }
+
+  @if (status !== "none") {
+    <span [class]="statusClasses" aria-hidden="true"></span>
+  }
+</div>
+

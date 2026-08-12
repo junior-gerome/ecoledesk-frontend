@@ -1,0 +1,34 @@
+<app-page-layout>
+  <app-page-header [title]="isEdit() ? ('sequencePage.editTitle' | translate) : ('sequencePage.createTitle' | translate)" />
+
+  <form [formGroup]="Sequenceform" (ngSubmit)="onsubmit()" class="mt-8 space-y-6">
+    <app-page-form-body>
+      <app-form-body>
+
+        <app-input
+          [label]="'sequencePage.label' | translate"
+          type="text"
+          formControlName="libelleSequence"
+          [control]="Sequenceform.get('libelleSequence')"
+          [required]="true"
+          placeholder="Ex: Séquence 1"
+        />
+
+        <app-select
+          [label]="'sequencePage.trimestre' | translate"
+          formControlName="trimestreId"
+          [options]="trimestreOptions()"
+          [placeholder]="'sequencePage.selectTrimestre' | translate"
+        />
+
+      </app-form-body>
+    </app-page-form-body>
+
+    <div class="flex justify-between space-x-4">
+      <app-button type="button" variant="ghost" (click)="cancel()">{{ 'common.cancel' | translate }}</app-button>
+      <app-button type="submit" variant="primary" [disabled]="!Sequenceform.valid || isSubmitting()">
+        {{ isSubmitting() ? ('sequencePage.saving' | translate) : (isEdit() ? ('common.update' | translate) : ('common.create' | translate)) }}
+      </app-button>
+    </div>
+  </form>
+</app-page-layout>

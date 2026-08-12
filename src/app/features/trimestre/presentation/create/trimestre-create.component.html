@@ -1,0 +1,38 @@
+<app-page-layout>
+  <app-page-header [title]="isEdit() ? ('trimestrePage.editTitle' | translate) : ('trimestrePage.createTitle' | translate)">
+  </app-page-header>
+  <form [formGroup]="formTrim" (ngSubmit)="onsubmit()" class="mt-8 space-y-6">
+      <app-page-form-body>
+        <app-form-body>
+          <app-input 
+            [label]="'trimestrePage.label' | translate"
+            id="libelleTrimestre" 
+            type="text" 
+            formControlName="libelleTrimestre"
+            [control]="ctrl['libelleTrimestre']"
+            [required]="true" 
+            placeholder="Ex: Trimestre 1"
+            [errorMessages]="{
+                  required: 'trimestrePage.labelRequired' | translate,
+                  minlength: 'trimestrePage.labelMinLength' | translate,
+                  maxlength: 'trimestrePage.labelMaxLength' | translate}"
+            />
+          
+
+          <app-input 
+          [label]="'trimestrePage.schoolYear' | translate"
+          id="anneeScolaire" 
+          type="text" 
+          [value]="statutCode()?.libelleAnneeScolaire ?? null" 
+          placeholder="Ex: 2024-2025" [readonly]="true"
+          />
+          </app-form-body>
+      </app-page-form-body>
+      <div class="flex justify-between space-x-4 ">
+        <app-button type="button" variant="ghost" (click)="cancel()">{{ 'common.cancel' | translate }}</app-button>
+        <app-button type="submit" variant="primary" [disabled]="!formTrim.valid || isSubmitting()">
+          {{ isSubmitting() ? ('trimestrePage.saving' | translate) : (isEdit() ? ('common.update' | translate) : ('common.create' | translate)) }}
+        </app-button>
+      </div>
+    </form>
+</app-page-layout>

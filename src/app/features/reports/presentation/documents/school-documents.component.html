@@ -1,0 +1,149 @@
+<div class="min-h-screen py-6 dark:bg-gray-900">
+  <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          {{ 'documentsPage.title' | translate }}
+        </h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          {{ 'documentsPage.subtitle' | translate }}
+        </p>
+      </div>
+
+      <app-button
+        type="button"
+        variant="primary"
+        [loading]="generating()"
+        [disabled]="loading() || filteredRecipients().length === 0"
+        (clicked)="generatePdf()"
+      >
+        {{ 'documentsPage.generatePdf' | translate }}
+      </app-button>
+    </div>
+
+    <div class="fixed right-4 top-4 z-[70]">
+      <app-toast
+        [visible]="toast().visible"
+        [title]="toast().title"
+        [message]="toast().message"
+        [variant]="toast().variant"
+        [duration]="5000"
+        (dismissed)="hideToast()"
+      />
+    </div>
+
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ 'documentsPage.schoolYear' | translate }}</p>
+        <p class="mt-3 text-lg font-semibold text-gray-900 dark:text-gray-100">{{ activeSchoolYearLabel() }}</p>
+      </article>
+
+      <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ 'documentsPage.availableStudents' | translate }}</p>
+        <p class="mt-3 text-3xl font-semibold text-gray-900 dark:text-gray-100">{{ recipients().length }}</p>
+      </article>
+
+      <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ 'documentsPage.classesWithStudents' | translate }}</p>
+        <p class="mt-3 text-3xl font-semibold text-blue-700 dark:text-blue-300">{{ classesWithStudentsCount() }}</p>
+      </article>
+
+      <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ 'documentsPage.activeSelection' | translate }}</p>
+        <p class="mt-3 text-3xl font-semibold text-emerald-700 dark:text-emerald-300">{{ filteredRecipients().length }}</p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ 'documentsPage.toProduceDoc' | translate }}</p>
+      </article>
+    </section>
+
+    <form
+      class="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm md:grid-cols-4 dark:border-gray-700 dark:bg-gray-800"
+      [formGroup]="documentForm"
+    >
+      <app-select
+        [label]="'documentsPage.documentType' | translate"
+        formControlName="documentType"
+        [options]="documentTypeOptions"
+        [placeholder]="'documentsPage.selectType' | translate"
+      ></app-select>
+
+      <app-select
+        [label]="'documentsPage.scope' | translate"
+        formControlName="scope"
+        [options]="scopeOptions"
+        [placeholder]="'documentsPage.selectScope' | translate"
+      ></app-select>
+
+      @if (formState().scope === "student") {
+        <app-select
+          [label]="'documentsPage.student' | translate"
+          formControlName="studentId"
+          [options]="studentOptions()"
+          [placeholder]="'documentsPage.selectStudent' | translate"
+        ></app-select>
+      } @else {
+        <app-select
+          [label]="'documentsPage.class' | translate"
+          formControlName="classId"
+          [options]="classOptions()"
+          [placeholder]="'documentsPage.selectClass' | translate"
+        ></app-select>
+      }
+
+      <div class="flex items-end gap-2">
+        <app-button type="button" variant="secondary" [loading]="loading()" (clicked)="loadData()">
+          {{ 'documentsPage.refresh' | translate }}
+        </app-button>
+      </div>
+    </form>
+
+    @if (loading()) {
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'documentsPage.loading' | translate }}</p>
+    }
+
+    <section class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <app-table
+        [empty]="previewRecipients().length === 0"
+        [emptyColspan]="5"
+        [emptyMessage]="'documentsPage.noStudent' | translate"
+      >
+        <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100">{{ 'documentsPage.studentCol' | translate }}</th>
+        <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">{{ 'documentsPage.registrationNumber' | translate }}</th>
+        <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">{{ 'documentsPage.class' | translate }}</th>
+        <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">{{ 'documentsPage.birthDate' | translate }}</th>
+        <th table-head scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">{{ 'documentsPage.year' | translate }}</th>
+
+        @for (recipient of previewRecipients(); track recipient.studentId) {
+          <tr table-body>
+            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-gray-100">{{ recipient.studentName }}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">{{ recipient.registrationNumber }}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">{{ recipient.className }}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">{{ recipient.dateOfBirth }}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600 dark:text-gray-300">{{ recipient.schoolYearLabel }}</td>
+          </tr>
+        }
+      </app-table>
+
+      <aside class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ 'documentsPage.previewTitle' | translate }}</p>
+        <dl class="mt-4 space-y-4 text-sm">
+          <div>
+            <dt class="text-gray-500 dark:text-gray-400">{{ 'documentsPage.document' | translate }}</dt>
+            <dd class="mt-1 font-medium text-gray-900 dark:text-gray-100">{{ selectedDocumentLabel() }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-500 dark:text-gray-400">{{ 'documentsPage.pageCount' | translate }}</dt>
+            <dd class="mt-1 font-medium text-gray-900 dark:text-gray-100">{{ estimatedPages() }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-500 dark:text-gray-400">{{ 'documentsPage.source' | translate }}</dt>
+            <dd class="mt-1 font-medium text-gray-900 dark:text-gray-100">Base bd_gsbp via API</dd>
+          </div>
+        </dl>
+
+        @if (filteredRecipients().length > previewRecipients().length) {
+          <p class="mt-5 text-sm text-gray-500 dark:text-gray-400">{{ 'documentsPage.previewNote' | translate }}</p>
+        }
+      </aside>
+    </section>
+  </div>
+</div>

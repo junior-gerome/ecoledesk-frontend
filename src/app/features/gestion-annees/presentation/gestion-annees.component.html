@@ -1,0 +1,84 @@
+<app-page-layout>
+  <app-page-header [title]="'anneePage.title' | translate" />
+
+  <form [formGroup]="anneeForm" (ngSubmit)="onSubmit()" class="mt-6 space-y-6" novalidate>
+    <app-page-form-body>
+      <app-form-body>
+
+        <app-input
+          [label]="'anneePage.label' | translate"
+          id="libelleAnneeScolaire"
+          type="text"
+          formControlName="libelleAnneeScolaire"
+          [control]="anneeForm.get('libelleAnneeScolaire')"
+          [required]="true"
+          placeholder="ex: 2024-2025"
+        />
+
+        <app-input
+          [label]="'anneePage.startDate' | translate"
+          id="dateDebut"
+          type="date"
+          formControlName="dateDebut"
+          [control]="anneeForm.get('dateDebut')"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'anneePage.endDate' | translate"
+          id="dateFin"
+          type="date"
+          formControlName="dateFin"
+          [control]="anneeForm.get('dateFin')"
+          [required]="true"
+        />
+
+      </app-form-body>
+    </app-page-form-body>
+
+    <div class="flex justify-between pt-2">
+      <app-button type="button" variant="ghost" (clicked)="anneeForm.reset()">
+        {{ 'anneePage.reset' | translate }}
+      </app-button>
+      <app-button type="submit" variant="primary" [disabled]="anneeForm.invalid">
+        {{ 'anneePage.create' | translate }}
+      </app-button>
+    </div>
+  </form>
+
+  <div class="mt-8">
+    <app-table
+      [empty]="annees.length === 0"
+      [emptyColspan]="3"
+      [emptyMessage]="'anneePage.noAnnee' | translate"
+    >
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">{{ 'anneePage.label' | translate }}</th>
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">{{ 'anneePage.status' | translate }}</th>
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-right text-sm font-semibold text-gray-900 sm:pr-6 dark:text-gray-100 uppercase">{{ 'anneePage.actions' | translate }}</th>
+
+      @for (annee of annees; track annee.id) {
+        <tr table-body class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors" [class.bg-green-50]="annee.statutCode" [class.dark:bg-green-950]="annee.statutCode">
+          <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 dark:text-gray-100 sm:pl-6">
+            {{ annee.libelleAnneeScolaire }}
+          </td>
+          <td class="whitespace-nowrap px-3 py-4">
+            <span [class]="annee.statutCode ? 'badge badge-success' : 'badge badge-neutral'">
+              {{ annee.statutCode ? ('anneePage.active' | translate) : ('anneePage.inactive' | translate) }}
+            </span>
+          </td>
+          <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right sm:pr-6">
+            <app-button
+              size="sm"
+              variant="success"
+              [disabled]="annee.statutCode"
+              (clicked)="onActivate(annee.id)"
+            >
+              {{ 'anneePage.activate' | translate }}
+            </app-button>
+          </td>
+        </tr>
+      }
+    </app-table>
+  </div>
+
+</app-page-layout>

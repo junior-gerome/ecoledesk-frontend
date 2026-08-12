@@ -1,0 +1,99 @@
+﻿<app-page-layout>
+  <app-page-header [title]="'studentProfile.title' | translate">
+    <div actions class="flex flex-wrap gap-2">
+      <app-button type="button" variant="secondary" (clicked)="backToList()">
+        {{ 'studentProfile.backToList' | translate }}
+      </app-button>
+      <app-button *hasPermission="permissions.STUDENTS_WRITE" type="button" variant="primary" (clicked)="editStudent()">
+        {{ 'common.edit' | translate }}
+      </app-button>
+    </div>
+  </app-page-header>
+
+  @if (loading()) {
+    <app-skeleton [count]="6" height="4rem" />
+  } @else if (error()) {
+    <app-alert variant="error" [message]="error()! | translate" />
+    <app-button type="button" variant="secondary" (clicked)="loadProfile()">{{ 'common.retry' | translate }}</app-button>
+  } @else {
+    @if (student(); as currentStudent) {
+    <app-card padding="lg" class="mb-6 block">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+        @if (currentStudent.photoUrl) {
+          <img class="h-20 w-20 rounded-full object-cover" [src]="currentStudent.photoUrl" [alt]="currentStudent.firstNameStudent + ' ' + currentStudent.lastNameStudent" />
+        } @else {
+          <div class="flex h-20 w-20 items-center justify-center rounded-full bg-slate-200 text-2xl font-semibold text-slate-700" aria-hidden="true">
+            {{ currentStudent.firstNameStudent.charAt(0) }}{{ currentStudent.lastNameStudent.charAt(0) }}
+          </div>
+        }
+        <div class="min-w-0 flex-1">
+          <h2 class="text-2xl font-bold text-slate-900 dark:text-white">{{ currentStudent.firstNameStudent }} {{ currentStudent.lastNameStudent }}</h2>
+          <p class="text-sm text-slate-500">{{ 'studentProfile.registrationNumber' | translate }} : {{ currentStudent.id }}</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <app-badge variant="info">{{ currentClass()?.nameClasse || ('studentProfile.noClass' | translate) }}</app-badge>
+            <app-badge variant="neutral">{{ currentSection()?.libelle || ('studentProfile.noSection' | translate) }}</app-badge>
+            <app-badge variant="success">{{ currentEnrollmentStatus() || ('studentProfile.statusUnknown' | translate) }}</app-badge>
+            <app-badge variant="neutral">{{ activeSchoolYear()?.libelleAnneeScolaire || ('studentProfile.noSchoolYear' | translate) }}</app-badge>
+          </div>
+        </div>
+      </div>
+    </app-card>
+
+    <nav class="mb-6 flex gap-2 overflow-x-auto border-b border-slate-200" [attr.aria-label]="'studentProfile.tabsLabel' | translate">
+      @for (tab of availableTabs(); track tab) {
+        <button type="button" class="whitespace-nowrap border-b-2 px-3 py-3 text-sm" [class.border-blue-600]="selectedTab() === tab" [class.text-blue-600]="selectedTab() === tab" [class.border-transparent]="selectedTab() !== tab" (click)="selectTab(tab)">
+          {{ tabLabel(tab) | translate }}
+        </button>
+      }
+    </nav>
+
+    @if (tabLoading()) {
+      <app-skeleton [count]="3" height="3rem" />
+    } @else if (tabError()) {
+      <app-alert variant="error" [message]="tabError()! | translate" />
+      <app-button type="button" variant="secondary" (clicked)="retryTab()">{{ 'common.retry' | translate }}</app-button>
+    } @else {
+      @switch (selectedTab()) {
+        @case ('personal') {
+          <app-card padding="lg" class="block">
+            <h3 class="mb-4 text-lg font-semibold">{{ 'studentProfile.tabs.personal' | translate }}</h3>
+            <dl class="grid gap-4 sm:grid-cols-2">
+              <div><dt class="text-sm text-slate-500">{{ 'studentProfile.birthDate' | translate }}</dt><dd>{{ currentStudent.dateOfBirth | date:'dd/MM/yyyy' }}</dd></div>
+              <div><dt class="text-sm text-slate-500">{{ 'studentProfile.gender' | translate }}</dt><dd>{{ currentStudent.gender || 'â€”' }}</dd></div>
+              <div><dt class="text-sm text-slate-500">{{ 'studentProfile.registrationDate' | translate }}</dt><dd>{{ currentStudent.registrationDate | date:'dd/MM/yyyy' }}</dd></div>
+              <div><dt class="text-sm text-slate-500">{{ 'studentProfile.previousSchool' | translate }}</dt><dd>{{ currentStudent.ecolePrecedente || 'â€”' }}</dd></div>
+            </dl>
+          </app-card>
+        }
+        @case ('enrollment') {
+          <app-card padding="lg" class="block">
+            <h3 class="mb-4 text-lg font-semibold">{{ 'studentProfile.tabs.enrollment' | translate }}</h3>
+            @if (currentEnrollment(); as enrollment) {
+              <p>{{ 'studentProfile.enrollmentDate' | translate }} : {{ enrollment.dateInscription | date:'dd/MM/yyyy' }}</p>
+              <p>{{ 'studentProfile.status' | translate }} : {{ enrollment.statutPreinscription || 'â€”' }}</p>
+            } @else { <app-empty-state [title]="'common.noData' | translate" /> }
+          </app-card>
+        }
+        @case ('parents') {
+          <app-card padding="lg" class="block"><h3 class="mb-4 text-lg font-semibold">{{ 'studentProfile.tabs.parents' | translate }}</h3><p>{{ currentStudent.parent?.firstNameParent }} {{ currentStudent.parent?.lastNameParent }}</p><p>{{ currentStudent.parent?.phoneNumber }}</p><p>{{ currentStudent.parent?.email }}</p></app-card>
+        }
+        @case ('payments') {
+          @if (payments().length) { <app-card padding="none" class="block overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr><th class="p-3">{{ 'studentProfile.date' | translate }}</th><th class="p-3">{{ 'studentProfile.amount' | translate }}</th><th class="p-3">{{ 'studentProfile.status' | translate }}</th></tr></thead><tbody>@for (payment of payments(); track payment.id) { <tr class="border-t"><td class="p-3">{{ payment.paymentDate | date:'dd/MM/yyyy' }}</td><td class="p-3">{{ payment.amount }}</td><td class="p-3">{{ payment.status }}</td></tr> }</tbody></table></app-card> } @else { <app-empty-state [title]="'common.noData' | translate" [description]="'studentProfile.noPayments' | translate" /> }
+        }
+        @case ('grades') {
+          @if (grades().length) { <app-card padding="none" class="block overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr><th class="p-3">{{ 'studentProfile.subject' | translate }}</th><th class="p-3">{{ 'studentProfile.period' | translate }}</th><th class="p-3">{{ 'studentProfile.score' | translate }}</th></tr></thead><tbody>@for (grade of grades(); track grade.id) { <tr class="border-t"><td class="p-3">{{ grade.subjectName }}</td><td class="p-3">{{ grade.period }}</td><td class="p-3">{{ grade.score }}</td></tr> }</tbody></table></app-card><app-button type="button" variant="secondary" (clicked)="openBulletin()">{{ 'studentProfile.openBulletin' | translate }}</app-button> } @else { <app-empty-state [title]="'common.noData' | translate" [description]="'studentProfile.noGrades' | translate" /> }
+        }
+        @case ('history') {
+          @if (enrollments().length) { <app-card padding="none" class="block overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr><th class="p-3">{{ 'studentProfile.schoolYear' | translate }}</th><th class="p-3">{{ 'studentProfile.class' | translate }}</th><th class="p-3">{{ 'studentProfile.status' | translate }}</th></tr></thead><tbody>@for (enrollment of enrollments(); track enrollment.id) { <tr class="border-t"><td class="p-3">{{ enrollment.anneescolaire?.libelleAnneeScolaire || enrollment.anneeScolaireId || 'â€”' }}</td><td class="p-3">{{ enrollment.classeRoom?.nameClasse || enrollment.classeRoomId || 'â€”' }}</td><td class="p-3">{{ enrollment.statutPreinscription || 'â€”' }}</td></tr> }</tbody></table></app-card> } @else { <app-empty-state [title]="'common.noData' | translate" /> }
+        }
+      }
+    }
+    }
+  }
+</app-page-layout>
+
+
+
+
+
+

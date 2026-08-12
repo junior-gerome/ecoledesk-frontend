@@ -1,0 +1,166 @@
+<section class="dashboard-shell">
+  <header class="dashboard-hero">
+    <div>
+      <p class="dashboard-kicker">{{ 'dashboardPage.administrativeView' | translate }}</p>
+      <h1 class="dashboard-title">{{ 'dashboard.title' | translate }}</h1>
+      <p class="dashboard-subtitle">
+        {{ 'dashboardPage.subtitle' | translate }}
+      </p>
+    </div>
+
+    <a routerLink="/students" class="dashboard-primary-action">
+      {{ 'dashboardPage.viewPreRegistrations' | translate }}
+    </a>
+  </header>
+
+  <ng-container *ngIf="isLoading(); else dashboardContent">
+    <div class="dashboard-loading" aria-live="polite">
+      <div class="h-10 w-10 animate-spin rounded-full border-4 border-primary-100 border-t-primary-600"></div>
+      <p>{{ 'dashboardPage.loading' | translate }}</p>
+    </div>
+  </ng-container>
+
+  <ng-template #dashboardContent>
+    <div class="dashboard-stat-grid">
+      <app-card padding="lg">
+        <div class="dashboard-stat">
+          <div class="dashboard-stat-icon bg-primary-600">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <p class="dashboard-stat-label">{{ 'dashboard.totalStudents' | translate }}</p>
+            <p class="dashboard-stat-value">{{ totalStudents() }}</p>
+          </div>
+        </div>
+      </app-card>
+
+      <app-card padding="lg">
+        <div class="dashboard-stat">
+          <div class="dashboard-stat-icon bg-emerald-600">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <p class="dashboard-stat-label">{{ 'dashboard.totalTeachers' | translate }}</p>
+            <p class="dashboard-stat-value">{{ totalTeachers() }}</p>
+          </div>
+        </div>
+      </app-card>
+
+      <app-card padding="lg">
+        <div class="dashboard-stat">
+          <div class="dashboard-stat-icon bg-amber-600">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <p class="dashboard-stat-label">{{ 'dashboard.totalClasses' | translate }}</p>
+            <p class="dashboard-stat-value">{{ totalClasses() }}</p>
+          </div>
+        </div>
+      </app-card>
+    </div>
+
+    <div class="dashboard-section-grid">
+      <app-card padding="lg">
+        <div class="dashboard-section-card">
+          <div>
+            <p class="dashboard-stat-label">{{ 'dashboardPage.francophoneSection' | translate }}</p>
+            <p class="dashboard-stat-value">{{ francophoneStudents() }}</p>
+          </div>
+          <div class="dashboard-pill">{{ newFrancophoneStudents() }} {{ 'dashboardPage.new' | translate }}</div>
+        </div>
+      </app-card>
+
+      <app-card padding="lg">
+        <div class="dashboard-section-card">
+          <div>
+            <p class="dashboard-stat-label">{{ 'dashboardPage.anglophoneSection' | translate }}</p>
+            <p class="dashboard-stat-value">{{ anglophoneStudents() }}</p>
+          </div>
+          <div class="dashboard-pill">{{ newAnglophoneStudents() }} {{ 'dashboardPage.new' | translate }}</div>
+        </div>
+      </app-card>
+    </div>
+
+    <section class="dashboard-direction-panel">
+      <div>
+        <p class="dashboard-kicker dashboard-kicker-muted">{{ 'dashboardPage.management' | translate }}</p>
+        <h2 class="dashboard-card-title">{{ 'dashboardPage.quickAlerts' | translate }}</h2>
+      </div>
+
+      <div class="dashboard-direction-grid">
+        <div class="dashboard-direction-item">
+          <span>{{ 'dashboardPage.todayAbsences' | translate }}</span>
+          <strong>{{ directionSummary().todayAbsences }}</strong>
+        </div>
+        <div class="dashboard-direction-item">
+          <span>{{ 'dashboardPage.overduePayments' | translate }}</span>
+          <strong>{{ directionSummary().overduePayments }}</strong>
+          <small>{{ directionSummary().overdueAmount | number }} {{ 'dashboardPage.remaining' | translate }}</small>
+        </div>
+        <div class="dashboard-direction-item">
+          <span>{{ 'dashboardPage.weakResults' | translate }}</span>
+          <strong>{{ directionSummary().weakResults }}</strong>
+        </div>
+        <div class="dashboard-direction-item">
+          <span>{{ 'dashboardPage.excellentResults' | translate }}</span>
+          <strong>{{ directionSummary().excellentResults }}</strong>
+        </div>
+        <div class="dashboard-direction-item">
+          <span>{{ 'dashboardPage.overloadedClasses' | translate }}</span>
+          <strong>{{ directionSummary().overloadedClasses }}</strong>
+        </div>
+        <div class="dashboard-direction-item">
+          <span>{{ 'dashboardPage.preRegistrationsToProcess' | translate }}</span>
+          <strong>{{ directionSummary().pendingPreRegistrations }}</strong>
+        </div>
+        <div class="dashboard-direction-item">
+          <span>{{ 'dashboardPage.auditedActions' | translate }}</span>
+          <strong>{{ directionSummary().recentAuditEntries }}</strong>
+        </div>
+      </div>
+    </section>
+
+    @defer (on viewport) {
+      <app-dashboard-charts />
+    } @placeholder {
+      <div class="charts-grid" aria-busy="true" [attr.aria-label]="'dashboardPage.loading' | translate">
+        <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
+        <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
+        <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
+        <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
+      </div>
+    }
+
+    <section class="dashboard-actions">
+      <h2 class="dashboard-card-title">{{ 'dashboardPage.quickActions' | translate }}</h2>
+      <div class="dashboard-action-grid">
+        <app-card padding="lg" [hoverable]="true">
+          <a routerLink="/students" class="dashboard-action-link">
+            <span>{{ 'dashboardPage.managePreRegistrations' | translate }}</span>
+            <small>{{ 'dashboardPage.managePreRegistrationsDescription' | translate }}</small>
+          </a>
+        </app-card>
+
+        <app-card padding="lg" [hoverable]="true">
+          <a routerLink="/teachers" class="dashboard-action-link">
+            <span>{{ 'dashboardPage.manageTeachers' | translate }}</span>
+            <small>{{ 'dashboardPage.manageTeachersDescription' | translate }}</small>
+          </a>
+        </app-card>
+
+        <app-card padding="lg" [hoverable]="true">
+          <a routerLink="/classes" class="dashboard-action-link">
+            <span>{{ 'dashboardPage.manageClasses' | translate }}</span>
+            <small>{{ 'dashboardPage.manageClassesDescription' | translate }}</small>
+          </a>
+        </app-card>
+      </div>
+    </section>
+  </ng-template>
+</section>

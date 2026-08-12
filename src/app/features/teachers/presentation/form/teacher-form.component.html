@@ -1,0 +1,120 @@
+<app-page-layout>
+  <app-page-header
+    [title]="(isEditMode() ? 'teacherPage.editTitle' : 'teacherPage.createTitle') | translate"
+  />
+
+  @if (error()) {
+    <div class="mt-4 p-4 bg-red-100 text-red-700 rounded-md">{{ error() }}</div>
+  }
+
+  <form [formGroup]="teacherForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+    <app-page-form-body>
+      <app-form-body>
+
+        <app-input
+          [label]="'teachers.lastName' | translate"
+          id="lastnameTeacher"
+          type="text"
+          formControlName="lastnameTeacher"
+          [control]="ctrl['lastnameTeacher']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'teachers.firstName' | translate"
+          id="firstnameTeacher"
+          type="text"
+          formControlName="firstnameTeacher"
+          [control]="ctrl['firstnameTeacher']"
+          [required]="true"
+        />
+
+        <app-select
+          [label]="'teacherPage.gender' | translate"
+          id="gender"
+          formControlName="gender"
+          [options]="genderOptions"
+          [control]="ctrl['gender']"
+          [placeholder]="'teacherPage.selectGender' | translate"
+        />
+
+        <app-input
+          [label]="'auth.email' | translate"
+          id="email"
+          type="email"
+          formControlName="email"
+          [control]="ctrl['email']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'teacherPage.phone' | translate"
+          id="phoneNumber"
+          type="tel"
+          formControlName="phoneNumber"
+          [control]="ctrl['phoneNumber']"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'teachers.specialty' | translate"
+          id="speciality"
+          type="text"
+          formControlName="speciality"
+          [control]="ctrl['speciality']"
+        />
+
+        <app-input
+          [label]="'teacherPage.level' | translate"
+          id="niveau"
+          type="text"
+          formControlName="niveau"
+          [control]="ctrl['niveau']"
+        />
+
+        <app-input
+          [label]="'teacherPage.hireDate' | translate"
+          id="dateEmbauche"
+          type="date"
+          formControlName="dateEmbauche"
+          [control]="ctrl['dateEmbauche']"
+        />
+
+        <div class="sm:col-span-2">
+          <app-textarea
+            [label]="'teacherPage.address' | translate"
+            id="address"
+            formControlName="address"
+            [control]="ctrl['address']"
+            [rows]="2"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="form-label">{{ 'teacherPage.photo' | translate }}</label>
+          <app-photo-upload
+            [photoUrl]="ctrl['photoUrl'].value"
+            (photoUrlChange)="ctrl['photoUrl'].setValue($event)"
+            [label]="'teacherPage.addPhoto' | translate"
+            hint="JPG, PNG (max 5MB)"
+            uploadType="photos/teachers"
+          />
+        </div>
+
+      </app-form-body>
+    </app-page-form-body>
+
+    <div class="flex items-center justify-between gap-3 pt-2">
+      <app-button type="button" variant="ghost" (click)="cancel()">
+        {{ 'common.cancel' | translate }}
+      </app-button>
+      <app-button type="submit" [disabled]="teacherForm.invalid || isSubmitting()" variant="primary">
+        @if (isSubmitting()) {
+          <span>{{ 'teacherPage.saving' | translate }}</span>
+        } @else {
+          <span>{{ (isEditMode() ? 'common.update' : 'common.create') | translate }}</span>
+        }
+      </app-button>
+    </div>
+  </form>
+</app-page-layout>

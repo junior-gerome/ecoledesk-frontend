@@ -1,0 +1,77 @@
+﻿@if (inputType === 'hidden') {
+  <input
+    [id]='id'
+    [title]='title'
+    [type]='inputType'
+    [value]='value()'
+    [disabled]='disabled()'
+    [readonly]='readonly'
+    [required]='required'
+    (input)='handleInput($event)'
+    (blur)='handleBlur()'
+  />
+} @else {
+  <div class='flex flex-col gap-1.5'>
+    @if (label) {
+      <label [for]='id' class='form-label'>
+        {{ label }}@if (required) { <span class='ml-0.5 text-red-500'>*</span> }
+      </label>
+    }
+
+    <div class='relative'>
+      <input
+        [id]='id'
+        [title]='title'
+        [type]='inputType'
+        [value]='value()'
+        [disabled]='disabled()'
+        [readonly]='readonly'
+        [required]='required'
+        [attr.min]='min'
+        [attr.max]='max'
+        [attr.step]='step'
+        [attr.minlength]='minlength'
+        [attr.maxlength]='maxlength'
+        [attr.pattern]='pattern'
+        [attr.autocomplete]='autocomplete'
+        [attr.aria-describedby]='describedBy'
+        [attr.aria-invalid]='hasError'
+        [attr.aria-required]='required'
+        [placeholder]='placeholder'
+        [class]='inputClasses'
+        (input)='handleInput($event)'
+        (blur)='handleBlur()'
+      />
+
+      @if (type === 'password') {
+        <button
+          type='button'
+          (click)='togglePasswordVisibility()'
+          class='absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+          [attr.aria-controls]='id'
+          [attr.aria-label]='passwordToggleLabel'
+          [attr.aria-pressed]='showPassword()'
+        >
+          <span class='text-[10px] font-semibold uppercase tracking-wide'>
+            {{ showPassword() ? 'Masquer' : 'Afficher' }}
+          </span>
+        </button>
+      }
+    </div>
+
+    @if (hint && !hasError) {
+      <p [id]='hintId' class='form-hint'>{{ hint }}</p>
+    }
+
+    @if (hasError) {
+      @for (entry of errorEntries; track entry.key) {
+        @if (control?.hasError(entry.key)) {
+          <p [id]='errorId' class='form-error' role='alert'>
+            <span aria-hidden='true'>!</span> {{ entry.msg }}
+          </p>
+        }
+      }
+    }
+  </div>
+}
+

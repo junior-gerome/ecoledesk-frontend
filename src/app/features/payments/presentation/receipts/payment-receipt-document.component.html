@@ -1,0 +1,196 @@
+<div
+  class="payment-receipt-shell"
+  [class.payment-receipt-shell--pdf]="pdfMode"
+  [style.--receipt-accent]="branding.accentColor"
+  [style.--receipt-accent-soft]="branding.accentSoftColor"
+  [style.--receipt-gold]="branding.secondaryColor"
+  [style.--receipt-gold-soft]="branding.secondarySoftColor"
+>
+  <article class="payment-receipt-sheet" data-payment-receipt-sheet="true">
+    <div class="payment-receipt-watermark" aria-hidden="true">
+      @if (hasLogo) {
+        <img
+          [src]="branding.logoUrl"
+          alt=""
+          class="payment-receipt-watermark__logo"
+          (error)="onLogoError()"
+        />
+      } @else {
+        <span class="payment-receipt-watermark__fallback">{{ studentInitials }}</span>
+      }
+    </div>
+
+    <header class="payment-receipt-header">
+      <div class="payment-receipt-crest">
+        <div class="payment-receipt-crest__frame">
+          @if (hasLogo) {
+            <img
+              [src]="branding.logoUrl"
+              alt="Logo etablissement"
+              class="payment-receipt-crest__logo"
+              (error)="onLogoError()"
+            />
+          } @else {
+            <span class="payment-receipt-crest__fallback">{{ studentInitials }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="payment-receipt-official">
+        @for (line of branding.institutionLines; track line) {
+          <p [class.payment-receipt-official__lead]="$first">{{ line }}</p>
+        }
+        <span class="payment-receipt-official__rule"></span>
+        <p class="payment-receipt-official__meta">{{ branding.contactLine }}</p>
+        <p class="payment-receipt-official__meta">{{ branding.documentSubtitle }}</p>
+      </div>
+
+      <div class="payment-receipt-reference">
+        <p class="payment-receipt-reference__label">Recu officiel</p>
+        <h1 class="payment-receipt-reference__value">{{ receiptReference }}</h1>
+        <div class="payment-receipt-reference__chips">
+          <span>Emission {{ receipt.generatedAt | date:'dd/MM/yyyy' }}</span>
+          <span>{{ receipt.statusLabel }}</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="payment-receipt-hero">
+      <div>
+        <p class="payment-receipt-hero__eyebrow">Quittance de paiement</p>
+        <h2 class="payment-receipt-hero__title">Recu de paiement scolaire</h2>
+        <p class="payment-receipt-hero__copy">
+          {{ documentNarrative }}
+          Ce document a ete produit a partir des donnees de paiement valides par le backend.
+        </p>
+      </div>
+
+      <div class="payment-receipt-hero__amount">
+        <span class="payment-receipt-hero__amount-label">Montant recu</span>
+        <strong>{{ receipt.amount | currency:'XOF':'symbol':'1.0-0' }}</strong>
+        <span>{{ amountInWords }}</span>
+      </div>
+    </section>
+
+    <section class="payment-receipt-grid">
+      <article class="payment-receipt-card payment-receipt-card--identity">
+        <p class="payment-receipt-card__label">Eleve concerne</p>
+        <h3>{{ receipt.studentName }}</h3>
+        <dl>
+          <div>
+            <dt>Matricule eleve</dt>
+            <dd>{{ receipt.studentId }}</dd>
+          </div>
+          <div>
+            <dt>Type de reglement</dt>
+            <dd>{{ receipt.typeLabel }}</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="payment-receipt-card payment-receipt-card--timeline">
+        <p class="payment-receipt-card__label">Chronologie</p>
+        <dl>
+          <div>
+            <dt>Date de paiement</dt>
+            <dd>{{ receipt.paymentDate | date:'dd/MM/yyyy' }}</dd>
+          </div>
+          <div>
+            <dt>Echeance associee</dt>
+            <dd>{{ receipt.dueDate | date:'dd/MM/yyyy' }}</dd>
+          </div>
+          <div>
+            <dt>Methode</dt>
+            <dd>{{ paymentMethodDisplay }}</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="payment-receipt-card payment-receipt-card--status">
+        <p class="payment-receipt-card__label">Validation</p>
+        <div class="payment-receipt-stamp" [class.payment-receipt-stamp--paid]="receipt.status === 'PAID'">
+          <span class="payment-receipt-stamp__eyebrow">Statut</span>
+          <strong>{{ receipt.statusLabel }}</strong>
+          <small>{{ receiptReference }}</small>
+        </div>
+      </article>
+    </section>
+
+    <section class="payment-receipt-ledger">
+      <div class="payment-receipt-ledger__header">
+        <div>
+          <p class="payment-receipt-ledger__eyebrow">Detail comptable</p>
+          <h3 class="payment-receipt-ledger__title">Trace du paiement</h3>
+        </div>
+        <p class="payment-receipt-ledger__legend">Document A4 unifie pour telechargement, apercu et impression.</p>
+      </div>
+
+      <table class="payment-receipt-table">
+        <tbody>
+          <tr>
+            <th>Reference recu</th>
+            <td>{{ receiptReference }}</td>
+            <th>Statut</th>
+            <td>{{ receipt.statusLabel }}</td>
+          </tr>
+          <tr>
+            <th>Nature des frais</th>
+            <td>{{ receipt.typeLabel }}</td>
+            <th>Methode de paiement</th>
+            <td>{{ paymentMethodDisplay }}</td>
+          </tr>
+          <tr>
+            <th>Date d'encaissement</th>
+            <td>{{ receipt.paymentDate | date:'dd/MM/yyyy' }}</td>
+            <th>Date d'echeance</th>
+            <td>{{ receipt.dueDate | date:'dd/MM/yyyy' }}</td>
+          </tr>
+          <tr>
+            <th>Montant regle</th>
+            <td>{{ receipt.amount | currency:'XOF':'symbol':'1.0-0' }}</td>
+            <th>Montant en lettres</th>
+            <td>{{ amountInWords }}</td>
+          </tr>
+          <tr>
+            <th>Description</th>
+            <td colspan="3">{{ receipt.description }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="payment-receipt-note">
+      <div>
+        <p class="payment-receipt-note__label">Mention administrative</p>
+        <p>
+          La presente quittance atteste le paiement effectivement enregistre dans le systeme d'information de l'etablissement.
+          Toute verification peut etre effectuee a partir de la reference {{ receiptReference }}.
+        </p>
+      </div>
+      <div>
+        <p class="payment-receipt-note__label">Contact</p>
+        <p>{{ branding.contactLine }}</p>
+      </div>
+    </section>
+
+    <footer class="payment-receipt-footer">
+      <div class="payment-receipt-footer__meta">
+        @for (line of branding.footerLines; track line) {
+          <p>{{ line }}</p>
+        }
+      </div>
+
+      <div class="payment-receipt-signatures">
+        <div class="payment-receipt-signature-box">
+          <span>{{ branding.parentSignatureLabel }}</span>
+        </div>
+        <div class="payment-receipt-signature-box">
+          <span>Service comptable</span>
+        </div>
+        <div class="payment-receipt-signature-box">
+          <span>{{ branding.headSignatureLabel }}</span>
+        </div>
+      </div>
+    </footer>
+  </article>
+</div>

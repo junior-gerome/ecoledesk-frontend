@@ -1,0 +1,79 @@
+<app-page-layout>
+  <app-page-header [title]="isEditMode() ? 'Modifier le membre' : 'Nouveau membre du personnel'" />
+
+  @if (error()) {
+    <div class="mt-4 p-4 bg-red-100 text-red-700 rounded-md">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+    <app-page-form-body>
+      <app-form-body>
+
+        <app-input label="N° Employé" id="employeeNumber" type="text"
+          formControlName="employeeNumber" [control]="ctrl['employeeNumber']" [required]="true" />
+
+        <app-input label="Nom" id="lastName" type="text"
+          formControlName="lastName" [control]="ctrl['lastName']" [required]="true" />
+
+        <app-input label="Prénom" id="firstName" type="text"
+          formControlName="firstName" [control]="ctrl['firstName']" [required]="true" />
+
+        <app-select label="Genre" id="gender" formControlName="gender"
+          [options]="genderOptions" [control]="ctrl['gender']" placeholder="Sélectionner le genre" />
+
+        <app-input label="Email" id="email" type="email"
+          formControlName="email" [control]="ctrl['email']" />
+
+        <app-input label="Téléphone" id="phone" type="tel"
+          formControlName="phone" [control]="ctrl['phone']" />
+
+        <app-input label="Date d'embauche" id="employmentDate" type="date"
+          formControlName="employmentDate" [control]="ctrl['employmentDate']" [required]="true" />
+
+        <app-input label="Date de naissance" id="birthDate" type="date"
+          formControlName="birthDate" [control]="ctrl['birthDate']" />
+
+        <app-input label="Spécialité" id="speciality" type="text"
+          formControlName="speciality" [control]="ctrl['speciality']" />
+
+        <app-input label="Niveau" id="level" type="text"
+          formControlName="level" [control]="ctrl['level']" />
+
+        <app-input label="Adresse" id="address" type="text"
+          formControlName="address" [control]="ctrl['address']" />
+
+        <app-input label="Ville" id="city" type="text"
+          formControlName="city" [control]="ctrl['city']" />
+
+        <app-input label="Pays" id="country" type="text"
+          formControlName="country" [control]="ctrl['country']" />
+
+        <app-input label="N° CNI" id="cniNumber" type="text"
+          formControlName="cniNumber" [control]="ctrl['cniNumber']" />
+
+        <div class="flex flex-col gap-1.5">
+          <label class="form-label">Photo</label>
+          <app-photo-upload
+            [photoUrl]="ctrl['photoUrl'].value"
+            (photoUrlChange)="ctrl['photoUrl'].setValue($event)"
+            label="Ajouter une photo"
+            hint="JPG, PNG (max 5MB)"
+            uploadType="photos/teachers"
+          />
+        </div>
+
+      </app-form-body>
+    </app-page-form-body>
+
+    <div class="flex items-center justify-between gap-3 pt-2">
+      <app-button type="button" variant="ghost" (click)="cancel()">Annuler</app-button>
+      <app-button type="submit" [disabled]="form.invalid || isSubmitting()" variant="primary">
+        @if (isSubmitting()) {
+          <span>Enregistrement...</span>
+        } @else {
+          <span>{{ isEditMode() ? 'Mettre à jour' : 'Créer' }}</span>
+        }
+      </app-button>
+    </div>
+  </form>
+</app-page-layout>

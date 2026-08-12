@@ -1,0 +1,37 @@
+﻿<div class='flex flex-col gap-1.5'>
+  @if (label) {
+    <label [for]='id' class='form-label'>
+      {{ label }}@if (required) { <span class='ml-0.5 text-red-500'>*</span> }
+    </label>
+  }
+
+  <select
+    [id]='id'
+    [disabled]='isDisabled'
+    [required]='required'
+    (change)='handleChange($event)'
+    [class]='selectClasses'
+    [appAutoFocus]='autoFocus'
+    [attr.aria-describedby]='describedBy'
+    [attr.aria-invalid]='hasError'
+    [attr.aria-required]='required'
+  >
+    @if (placeholder) {
+      <option value='' [disabled]='required' [selected]='selectedIndex === null'>
+        {{ placeholder }}
+      </option>
+    }
+    @for (opt of options; track opt.value; let i = $index) {
+      <option [value]='i' [selected]='i === selectedIndex'>{{ opt.label }}</option>
+    }
+  </select>
+
+  @if (hint && !hasError) {
+    <p [id]='hintId' class='form-hint'>{{ hint }}</p>
+  }
+
+  @if (hasError) {
+    <p [id]='errorId' class='form-error' role='alert'><span aria-hidden='true'>!</span> {{ errorMessage }}</p>
+  }
+</div>
+

@@ -1,0 +1,105 @@
+<app-page-layout>
+  <app-page-header [title]="(isEditMode ? 'paymentPage.editTitle' : 'paymentPage.createTitle') | translate" />
+
+  <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()" class="mt-6 space-y-6" novalidate>
+    <app-page-form-body>
+      <app-form-body>
+
+        <app-select
+          [label]="'paymentPage.student' | translate"
+          id="studentId"
+          formControlName="studentId"
+          [options]="studentOptions"
+          [required]="true"
+          [placeholder]="'paymentPage.selectStudent' | translate"
+        />
+
+        <app-select
+          [label]="'paymentPage.paymentType' | translate"
+          id="type"
+          formControlName="type"
+          [options]="typeOptions"
+          [required]="true"
+          [placeholder]="'paymentPage.selectType' | translate"
+        />
+
+        <app-input
+          [label]="'paymentPage.amount' | translate"
+          id="amount"
+          type="number"
+          formControlName="amount"
+          [control]="paymentForm.get('amount')"
+          [required]="true"
+          placeholder="0"
+          [min]="0"
+        />
+
+        <app-input
+          [label]="'paymentPage.paymentDate' | translate"
+          id="paymentDate"
+          type="date"
+          formControlName="paymentDate"
+          [control]="paymentForm.get('paymentDate')"
+          [required]="true"
+        />
+
+        <app-input
+          [label]="'paymentPage.dueDate' | translate"
+          id="dueDate"
+          type="date"
+          formControlName="dueDate"
+          [control]="paymentForm.get('dueDate')"
+          [required]="true"
+        />
+
+        <app-select
+          [label]="'paymentPage.status' | translate"
+          id="status"
+          formControlName="status"
+          [options]="statusOptions"
+          [placeholder]="'paymentPage.selectStatus' | translate"
+        />
+
+        <app-select
+          [label]="'paymentPage.paymentMethod' | translate"
+          id="paymentMethod"
+          formControlName="paymentMethod"
+          [options]="paymentMethodOptions"
+          [placeholder]="'paymentPage.selectMethod' | translate"
+        />
+
+        <app-input
+          [label]="'paymentPage.receiptNumber' | translate"
+          id="receiptNumber"
+          type="text"
+          formControlName="receiptNumber"
+          [control]="paymentForm.get('receiptNumber')"
+        />
+
+        <div class="sm:col-span-2">
+          <app-textarea
+            [label]="'paymentPage.description' | translate"
+            id="description"
+            formControlName="description"
+            [control]="paymentForm.get('description')"
+            [rows]="3"
+          />
+        </div>
+
+      </app-form-body>
+    </app-page-form-body>
+
+    <div class="flex items-center justify-between gap-3 pt-2">
+      <app-button type="button" variant="ghost" (clicked)="cancel()">
+        {{ 'common.cancel' | translate }}
+      </app-button>
+      <app-button type="submit" variant="primary" [disabled]="paymentForm.invalid || isSubmitting">
+        @if (isSubmitting) {
+          <span>{{ 'paymentPage.saving' | translate }}</span>
+        } @else {
+          <span>{{ (isEditMode ? 'common.update' : 'common.create') | translate }}</span>
+        }
+      </app-button>
+    </div>
+  </form>
+</app-page-layout>

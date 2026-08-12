@@ -1,0 +1,86 @@
+﻿<app-table
+  [empty]="students.length === 0"
+  [emptyColspan]="6"
+  [emptyMessage]="'studentPage.noStudent' | translate"
+>
+  <th
+    table-head
+    scope="col"
+    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase"
+  >
+    {{ 'studentPage.number' | translate }}
+  </th>
+  <th
+    table-head
+    scope="col"
+    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase"
+  >
+    {{ 'students.lastName' | translate }}
+  </th>
+  <th
+    table-head
+    scope="col"
+    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase"
+  >
+    {{ 'studentPage.firstName' | translate }}
+  </th>
+  <th
+    table-head
+    scope="col"
+    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase"
+  >
+    {{ 'studentPage.birthDate' | translate }}
+  </th>
+  <th
+    table-head
+    scope="col"
+    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase"
+  >
+    {{ 'studentPage.class' | translate }}
+  </th>
+  <th
+    table-head
+    scope="col"
+    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 flex justify-center uppercase"
+  >
+    {{ 'studentPage.actions' | translate }}
+  </th>
+
+  @for (student of students; track trackStudent($index, student)) {
+    <tr
+      table-body
+      class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+    >
+      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+        {{ student.id }}
+      </td>
+      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+        {{ student.lastNameStudent }}
+      </td>
+      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+        {{ student.firstNameStudent }}
+      </td>
+      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+        {{ student.dateOfBirth | date: 'dd/MM/yyyy' }}
+      </td>
+      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+        <app-badge
+          [variant]="studentClass(student) === 'studentPage.notEnrolled' ? 'neutral' : 'info'"
+        >
+          {{ studentClass(student) | translate }}
+        </app-badge>
+      </td>
+      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+        <div class="flex justify-center gap-3">
+          <app-button *hasPermission="permissions.STUDENTS_WRITE" type="button" variant="secondary" (clicked)="requestEdit(student)">
+            {{ 'common.edit' | translate }}
+          </app-button>
+          <app-button *hasPermission="permissions.STUDENTS_WRITE" type="button" variant="danger" (clicked)="requestDelete(student)">
+            {{ 'common.delete' | translate }}
+          </app-button>
+        </div>
+      </td>
+    </tr>
+  }
+</app-table>
+

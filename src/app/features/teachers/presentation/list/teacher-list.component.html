@@ -1,0 +1,100 @@
+<app-page-layout>
+  <app-page-header [title]="'teacherPage.listTitle' | translate">
+    <div class="flex items-center gap-3">
+      <app-badge variant="info" size="sm">
+        {{ useCase.teachers().length }} {{ 'teachers.title' | translate | lowercase }}
+      </app-badge>
+      <app-button type="button" routerLink="new" variant="primary">
+        {{ 'teacherPage.addTeacher' | translate }}
+      </app-button>
+    </div>
+  </app-page-header>
+
+  <app-table
+    [empty]="useCase.teachers().length === 0"
+    [emptyColspan]="6"
+    [emptyMessage]="'teacherPage.noTeacher' | translate"
+  >
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+      {{ 'teachers.lastName' | translate }}
+    </th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+      {{ 'teachers.firstName' | translate }}
+    </th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100">
+      {{ 'auth.email' | translate }}
+    </th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100">
+      {{ 'teachers.specialty' | translate }}
+    </th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+      {{ 'teacherPage.phone' | translate }}
+    </th>
+    <th table-head scope="col" class="flex justify-center py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+      {{ 'common.actions' | translate }}
+    </th>
+
+    @for (teacher of useCase.teachers(); track teacher.id) {
+      <tr table-body class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+          {{ teacher.lastnameTeacher }}
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+          {{ teacher.firstnameTeacher }}
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          {{ teacher.email }}
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          <app-badge variant="neutral" size="xs">
+            {{ teacher.speciality || ('teacherPage.notSpecified' | translate) }}
+          </app-badge>
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+          {{ teacher.phoneNumber }}
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+          <div class="flex justify-center gap-3">
+            <app-button [routerLink]="[teacher.id || '']" variant="secondary">
+              {{ 'common.edit' | translate }}
+            </app-button>
+            <app-button type="button" variant="danger" (clicked)="requestDelete(teacher)">
+              {{ 'common.delete' | translate }}
+            </app-button>
+          </div>
+        </td>
+      </tr>
+    }
+  </app-table>
+
+  @if (useCase.error()) {
+    <div class="mt-4 rounded-md border border-red-200 bg-red-50 p-4">
+      <p class="text-sm text-red-700">{{ useCase.error() }}</p>
+    </div>
+  }
+
+  <app-modal
+    [open]="!!teacherPendingDeletion()"
+    [title]="'teacherPage.deleteTitle' | translate"
+    size="md"
+    [showFooter]="true"
+    (closed)="closeDeleteModal()"
+  >
+    <p class="text-sm text-gray-600 dark:text-gray-300">
+      {{ 'teacherPage.deleteConfirm' | translate }}
+      <span class="font-semibold text-gray-900 dark:text-gray-100">
+        {{ teacherPendingDeletion()?.lastnameTeacher }}
+        {{ teacherPendingDeletion()?.firstnameTeacher }}
+      </span> ?
+    </p>
+
+    <div modal-footer class="flex justify-end gap-3">
+      <app-button type="button" variant="ghost" (clicked)="closeDeleteModal()">
+        {{ 'common.cancel' | translate }}
+      </app-button>
+      <app-button type="button" variant="danger" (clicked)="confirmDelete()">
+        {{ 'common.delete' | translate }}
+      </app-button>
+    </div>
+  </app-modal>
+</app-page-layout>

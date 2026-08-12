@@ -1,0 +1,68 @@
+<app-page-layout>
+  <app-page-header [title]="'classPage.listTitle' | translate">
+    <app-button type="button" variant="primary" prefixIcon="+" routerLink="form">
+      {{ 'classPage.addClass' | translate }}
+    </app-button>
+  </app-page-header>
+
+  @if (error()) {
+    <div class="mt-4 rounded-md bg-red-50 p-4">
+      <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <app-table
+    [empty]="classes().length === 0"
+    [emptyColspan]="6"
+    [emptyMessage]="'classPage.noClass' | translate"
+  >
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+      {{ 'common.name' | translate }}
+    </th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+      {{ 'classPage.level' | translate }}
+    </th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+      {{ 'classPage.teacher' | translate }}
+    </th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+      {{ 'classPage.capacity' | translate }}
+    </th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+      {{ 'classPage.schoolYear' | translate }}
+    </th>
+    <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase flex justify-center">
+      {{ 'common.actions' | translate }}
+    </th>
+
+    @for (classe of classes(); track classe.id) {
+      <tr table-body class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+          {{ classe.nameClasse }}
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+          {{ classe.level }}
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+          {{ classe.teacher?.firstnameTeacher }} {{ classe.teacher?.lastnameTeacher }}
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          {{ classe.capacity }}
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          {{ classe.anneeScolaire.libelleAnneeScolaire }}
+        </td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+          <div class="flex justify-center gap-3">
+            <app-button variant="secondary" [routerLink]="[classe.id!]">
+              {{ 'common.edit' | translate }}
+            </app-button>
+            <app-button variant="danger" (click)="deleteClass(classe.id!)">
+              {{ 'common.delete' | translate }}
+            </app-button>
+          </div>
+        </td>
+      </tr>
+    }
+  </app-table>
+</app-page-layout>
