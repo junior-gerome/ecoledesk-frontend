@@ -44,7 +44,7 @@ export class GestionAnneesComponent implements OnInit {
     private fb: FormBuilder,
   ) {
     this.anneeForm = this.fb.group({
-      libelleAnneeScolaire: ["", Validators.required],
+      libelleAcademicYear: ["", Validators.required],
       dateDebut: ["", Validators.required],
       dateFin: ["", Validators.required],
     });

@@ -1,9 +1,11 @@
 import { HttpClient } from "@angular/common/http";
+import { HttpContext } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { AnneeScolaire } from "@app/features/gestion-annees/domain/models";
 import { Trimestre } from "@app/features/trimestre/domain/models";
 import { environment } from "@environments/environment";
 import { Observable } from "rxjs";
+import { SILENT_REQUEST } from "@app/core/interceptors/http-context-tokens";
 
 @Injectable({
   providedIn: "root",
@@ -35,7 +37,8 @@ export class TrimestreService {
   }
   getAnneeScolaireActive(): Observable<AnneeScolaire> {
     return this.http.get<AnneeScolaire>(
-      `${environment.apiUrl}/annees-scolaires/active`,
+      `${environment.apiUrl}/academic-year/active`,
+      { context: new HttpContext().set(SILENT_REQUEST, true) },
     );
   }
 }

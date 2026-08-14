@@ -1,8 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { AnneeScolaire } from '@app/features/gestion-annees/domain/models';
+import { SILENT_REQUEST } from '@app/core/interceptors/http-context-tokens';
 import { Class } from '@app/features/classes/domain/models';
-import { Inscription } from '@app/features/inscriptionstudent/domain/models';
 import { Montant } from '@app/features/montant/domain/models';
 import { Section } from '@app/features/section/domain/models';
 import { environment } from '@environments/environment';
@@ -20,25 +20,38 @@ import { SectionEntity } from '../domain/models/section.entity';
 import { StudentEntity } from '../domain/models/student.entity';
 import { EnrollmentRepository } from '../domain/repositories/enrollment.repository';
 
-interface EnrollmentPayload {
-  student: Omit<StudentApi, 'registrationDate'>;
-  dateInscription: Inscription['dateInscription'];
-  statutPreinscription?: Inscription['statutPreinscription'];
-  datePreinscription?: Inscription['datePreinscription'];
-  studentId?: number;
-  classeRoomId?: number;
-  sectionId?: number;
-  montantId?: number;
-  anneeScolaireId?: number;
+// ─── Request / Response shapes aligned with backend DTOs ──────────────────────
+
+/** POST /pre-enrollments — CreatePreEnrollmentRequest */
+interface CreatePreEnrollmentPayload {
+  firstName: string;
+  lastName: string;
+  birthDate: string | null;
+  gender: string | null;
+  birthPlace: string | null;
+  academicYearId: number | null;
+  requestedLevel: string | null;
+  requiredFee: number | null;
 }
 
-interface PreinscriptionStatusResponse {
+/** Response from POST /pre-enrollments and workflow actions — PreEnrollmentResponse */
+interface PreEnrollmentResponse {
   id?: number | string | null;
-  studentId?: number | string | null;
+  number?: string | null;
   status?: string | null;
-  reason?: string | null;
-  changedBy?: number | string | null;
-  changedAt?: string | Date | null;
+  academicYearId?: number | string | null;
+  requestedLevel?: string | null;
+  submittedAt?: string | null;
+}
+
+/** Response from enrollment workflow actions — EnrollmentResponse */
+interface EnrollmentCommandResponse {
+  id?: number | string | null;
+  number?: string | null;
+  preEnrollmentId?: number | string | null;
+  studentId?: number | string | null;
+  classroomId?: number | string | null;
+  status?: string | null;
 }
 
 @Injectable()
@@ -57,10 +70,14 @@ export class StudentEnrollmentRepository implements EnrollmentRepository {
       .pipe(map((student) => StudentMapper.fromApi(student)));
   }
 
+  /**
+   * The legacy /preinscription endpoint no longer exists.
+   * The enrollment query API (GET /enrollments, GET /pre-enrollments) exposes
+   * only command operations — no list GET endpoint is available yet.
+   * Returns empty until a dedicated query endpoint is added on the backend.
+   */
   getEnrollments(): Observable<EnrollmentEntity[]> {
-    return this.http
-      .get<Inscription[]>(`${environment.apiUrl}/preinscription`)
-      .pipe(map((enrollments) => (enrollments ?? []).map((enrollment) => EnrollmentMapper.fromApi(enrollment))));
+    return of([]);
   }
 
   getSections(): Observable<SectionEntity[]> {
@@ -83,7 +100,10 @@ export class StudentEnrollmentRepository implements EnrollmentRepository {
 
   getActiveSchoolYear(): Observable<SchoolYearEntity | null> {
     return this.http
-      .get<AnneeScolaire>(`${environment.apiUrl}/annees-scolaires/active`)
+      .get<AnneeScolaire>(`${environment.apiUrl}/academic-year/active`, {
+        // Use HttpContext (client-side only) — avoids CORS preflight for custom headers
+        context: new HttpContext().set(SILENT_REQUEST, true),
+      })
       .pipe(
         map((schoolYear) => EnrollmentMapper.schoolYearFromApi(schoolYear)),
         catchError(() => of(null)),
@@ -99,63 +119,84 @@ export class StudentEnrollmentRepository implements EnrollmentRepository {
       );
   }
 
+  /**
+   * Creates a pre-enrollment draft via POST /pre-enrollments.
+   * Maps EnrollmentEntity → CreatePreEnrollmentRequest.
+   */
   createEnrollment(enrollment: EnrollmentEntity): Observable<EnrollmentEntity> {
+    const payload = this.toCreatePreEnrollmentPayload(enrollment);
     return this.http
-      .post<Inscription>(
-        `${environment.apiUrl}/preinscription`,
-        this.toEnrollmentPayload(enrollment),
-      )
-      .pipe(map((created) => EnrollmentMapper.fromApi(created)));
+      .post<PreEnrollmentResponse>(`${environment.apiUrl}/pre-enrollments`, payload)
+      .pipe(map((response) => this.fromPreEnrollmentResponse(response, enrollment)));
   }
 
+  /**
+   * Submits a pre-enrollment for review via POST /pre-enrollments/{id}/submit.
+   * The legacy PUT /preinscription/{id} (update) has no equivalent on the new backend.
+   */
   updateEnrollment(
     enrollmentId: string,
     enrollment: EnrollmentEntity,
   ): Observable<EnrollmentEntity> {
     return this.http
-      .put<Inscription>(
-        `${environment.apiUrl}/preinscription/${enrollmentId}`,
-        this.toEnrollmentPayload(enrollment),
+      .post<PreEnrollmentResponse>(
+        `${environment.apiUrl}/pre-enrollments/${enrollmentId}/submit`,
+        {},
       )
-      .pipe(map((updated) => EnrollmentMapper.fromApi(updated)));
+      .pipe(map((response) => this.fromPreEnrollmentResponse(response, enrollment)));
   }
 
+  /**
+   * Approves a pre-enrollment via POST /pre-enrollments/{id}/approve.
+   * Maps to the backend DecisionRequest (reviewedBy extracted from context — defaults to 0).
+   */
   validatePreinscription(
     enrollmentId: string,
   ): Observable<EnrollmentStatusDecisionEntity> {
     return this.http
-      .post<PreinscriptionStatusResponse>(
-        `${environment.apiUrl}/preinscription/${enrollmentId}/validate`,
-        null,
+      .post<PreEnrollmentResponse>(
+        `${environment.apiUrl}/pre-enrollments/${enrollmentId}/approve`,
+        { reviewedBy: null },
       )
-      .pipe(map((response) => EnrollmentMapper.statusDecisionFromApi(response)));
+      .pipe(map((response) => this.toStatusDecisionFromPreEnrollment(response)));
   }
 
+  /**
+   * Rejects a pre-enrollment via POST /pre-enrollments/{id}/reject.
+   */
   rejectPreinscription(
     enrollmentId: string,
     justification: string,
   ): Observable<EnrollmentStatusDecisionEntity> {
-    return this.submitPreinscriptionDecision(
-      enrollmentId,
-      'reject',
-      justification,
-    );
+    return this.http
+      .post<PreEnrollmentResponse>(
+        `${environment.apiUrl}/pre-enrollments/${enrollmentId}/reject`,
+        { reviewedBy: null, reason: justification },
+      )
+      .pipe(map((response) => this.toStatusDecisionFromPreEnrollment(response)));
   }
 
+  /**
+   * Cancels an enrollment via POST /enrollments/{id}/cancel.
+   */
   cancelPreinscription(
     enrollmentId: string,
     justification: string,
   ): Observable<EnrollmentStatusDecisionEntity> {
-    return this.submitPreinscriptionDecision(
-      enrollmentId,
-      'cancel',
-      justification,
-    );
+    return this.http
+      .post<EnrollmentCommandResponse>(
+        `${environment.apiUrl}/enrollments/${enrollmentId}/cancel?reason=${encodeURIComponent(justification)}`,
+        {},
+      )
+      .pipe(map((response) => this.toStatusDecisionFromEnrollment(response)));
   }
 
   updateStudent(studentId: string, student: StudentEntity): Observable<StudentEntity> {
     return this.http
-      .put<BackendStudentApi>(`${environment.apiUrl}/students/${studentId}`, StudentMapper.toBackendApi(student))
+      .put<BackendStudentApi>(
+        `${environment.apiUrl}/students/${studentId}`,
+        StudentMapper.toBackendApi(student),
+      )
       .pipe(map((updated) => StudentMapper.fromApi(updated)));
   }
 
@@ -163,67 +204,86 @@ export class StudentEnrollmentRepository implements EnrollmentRepository {
     return this.http.delete<void>(`${environment.apiUrl}/students/${studentId}`);
   }
 
-  private submitPreinscriptionDecision(
-    enrollmentId: string,
-    action: 'reject' | 'cancel',
-    justification: string,
-  ): Observable<EnrollmentStatusDecisionEntity> {
-    return this.http
-      .post<PreinscriptionStatusResponse>(
-        `${environment.apiUrl}/preinscription/${enrollmentId}/${action}`,
-        { justification },
-      )
-      .pipe(map((response) => EnrollmentMapper.statusDecisionFromApi(response)));
+  // ─── Private mapping helpers ──────────────────────────────────────────────
+
+  private toCreatePreEnrollmentPayload(enrollment: EnrollmentEntity): CreatePreEnrollmentPayload {
+    const student = enrollment.student;
+    return {
+      firstName: student?.firstNameStudent ?? '',
+      lastName: student?.lastNameStudent ?? '',
+      birthDate: student?.dateOfBirth
+        ? String(student.dateOfBirth).substring(0, 10)
+        : null,
+      gender: student?.gender ?? null,
+      birthPlace: null,
+      academicYearId: this.toApiId(enrollment.anneeScolaireId),
+      requestedLevel: enrollment.classeRoom?.level ?? null,
+      requiredFee: null,
+    };
   }
 
-  private toEnrollmentPayload(enrollment: EnrollmentEntity): EnrollmentPayload {
-    const mapped = EnrollmentMapper.toApi(enrollment);
-    const { registrationDate: _registrationDate, ...student } = mapped.student;
-    const payload: EnrollmentPayload = {
-      student,
-      dateInscription: mapped.dateInscription,
-      statutPreinscription: mapped.statutPreinscription,
-      datePreinscription: mapped.datePreinscription,
+  private fromPreEnrollmentResponse(
+    response: PreEnrollmentResponse,
+    original: EnrollmentEntity,
+  ): EnrollmentEntity {
+    return {
+      ...original,
+      id: response.id != null ? String(response.id) : original.id,
+      statutPreinscription: this.mapPreEnrollmentStatus(response.status),
     };
+  }
 
-    const studentId = this.toApiId(enrollment.studentId);
-    if (studentId) {
-      payload.studentId = studentId;
-    }
+  private toStatusDecisionFromPreEnrollment(
+    response: PreEnrollmentResponse,
+  ): EnrollmentStatusDecisionEntity {
+    return {
+      id: response.id != null ? String(response.id) : '',
+      studentId: null,
+      status: this.mapPreEnrollmentStatus(response.status) ?? 'EN_ATTENTE',
+      reason: null,
+      changedBy: null,
+      changedAt: response.submittedAt ?? null,
+    };
+  }
 
-    const classId = this.toApiId(enrollment.classeRoomId);
-    if (classId) {
-      payload.classeRoomId = classId;
-    }
+  private toStatusDecisionFromEnrollment(
+    response: EnrollmentCommandResponse,
+  ): EnrollmentStatusDecisionEntity {
+    return {
+      id: response.id != null ? String(response.id) : '',
+      studentId: response.studentId != null ? String(response.studentId) : null,
+      status: this.mapEnrollmentStatus(response.status) ?? 'ANNULEE',
+      reason: null,
+      changedBy: null,
+      changedAt: null,
+    };
+  }
 
-    const sectionId = this.toApiId(enrollment.sectionId);
-    if (sectionId) {
-      payload.sectionId = sectionId;
-    }
+  private mapPreEnrollmentStatus(status: string | null | undefined): import('../domain/models/enrollment.entity').EnrollmentPreRegistrationStatus | null {
+    const map: Record<string, import('../domain/models/enrollment.entity').EnrollmentPreRegistrationStatus> = {
+      DRAFT: 'BROUILLON',
+      SUBMITTED: 'EN_ATTENTE',
+      UNDER_REVIEW: 'EN_ATTENTE',
+      APPROVED: 'VALIDEE',
+      REJECTED: 'REFUSEE',
+      REJETEE: 'REFUSEE',
+    };
+    return (status && map[status]) ? map[status] : null;
+  }
 
-    const montantId = this.toApiId(enrollment.montantId);
-    if (montantId) {
-      payload.montantId = montantId;
-    }
-
-    const schoolYearId = this.toApiId(enrollment.anneeScolaireId);
-    if (schoolYearId) {
-      payload.anneeScolaireId = schoolYearId;
-    }
-
-    return payload;
+  private mapEnrollmentStatus(status: string | null | undefined): import('../domain/models/enrollment.entity').EnrollmentPreRegistrationStatus | null {
+    const map: Record<string, import('../domain/models/enrollment.entity').EnrollmentPreRegistrationStatus> = {
+      PENDING: 'EN_ATTENTE',
+      CONFIRMED: 'VALIDEE',
+      CANCELLED: 'ANNULEE',
+      WITHDRAWN: 'ANNULEE',
+    };
+    return (status && map[status]) ? map[status] : null;
   }
 
   private toApiId(id: string | null | undefined): number | null {
-    if (!id) {
-      return null;
-    }
-
+    if (!id) return null;
     const parsed = Number(id);
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-      return null;
-    }
-
-    return parsed;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }
 }

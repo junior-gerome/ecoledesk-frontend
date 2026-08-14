@@ -1,7 +1,8 @@
 // src/app/core/services/classe/classRoom.service.ts
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpContext } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
+import { SILENT_REQUEST } from "@app/core/interceptors/http-context-tokens";
 
 import { AnneeScolaire } from "@app/features/gestion-annees/domain/models";
 import { Class } from "@app/features/classes/domain/models";
@@ -37,7 +38,8 @@ export class ClassRoomService {
 
   getAnneeScolaireActive(): Observable<AnneeScolaire> {
     return this.http.get<AnneeScolaire>(
-      `${environment.apiUrl}/annees-scolaires/active`,
+      `${environment.apiUrl}/academic-year/active`,
+      { context: new HttpContext().set(SILENT_REQUEST, true) },
     );
   }
 

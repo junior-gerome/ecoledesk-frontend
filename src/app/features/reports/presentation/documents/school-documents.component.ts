@@ -206,7 +206,7 @@ export class SchoolDocumentsComponent implements OnInit {
         this.recipients.set(recipients);
         this.classes.set(classList);
         this.activeSchoolYearLabel.set(
-          this.normalizeText(activeSchoolYear?.libelleAnneeScolaire) ||
+          this.normalizeText(activeSchoolYear?.libelleAcademicYear ?? activeSchoolYear?.libelleAnneeScolaire) ||
             recipients[0]?.schoolYearLabel ||
             "Annee scolaire non definie",
         );
@@ -364,9 +364,9 @@ export class SchoolDocumentsComponent implements OnInit {
       this.normalizeText(enrollmentClass?.nameClasse) ||
       "Non affecte";
     const schoolYearLabel =
-      this.normalizeText(enrollment?.anneescolaire?.libelleAnneeScolaire) ||
-      this.normalizeText(enrollmentClass?.anneeScolaire?.libelleAnneeScolaire) ||
-      this.normalizeText(activeSchoolYear?.libelleAnneeScolaire) ||
+      this.normalizeText(enrollment?.anneescolaire?.libelleAcademicYear ?? enrollment?.anneescolaire?.libelleAnneeScolaire) ||
+      this.normalizeText(enrollmentClass?.academicYear?.libelleAcademicYear ?? enrollmentClass?.anneeScolaire?.libelleAcademicYear ?? enrollmentClass?.anneeScolaire?.libelleAnneeScolaire) ||
+      this.normalizeText(activeSchoolYear?.libelleAcademicYear ?? activeSchoolYear?.libelleAnneeScolaire) ||
       "Annee scolaire non definie";
 
     return {

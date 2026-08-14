@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
   SchoolClassApi,
@@ -10,6 +10,7 @@ import {
 import { SchoolDocumentsRepository } from '@app/features/reports/domain/repositories/school-documents.repository';
 import { environment } from '@environments/environment';
 import { catchError, forkJoin, Observable, of } from 'rxjs';
+import { SILENT_REQUEST } from '@app/core/interceptors/http-context-tokens';
 
 @Injectable()
 export class SchoolDocumentsRepositoryAdapter
@@ -22,14 +23,16 @@ export class SchoolDocumentsRepositoryAdapter
       students: this.http
         .get<SchoolStudentApi[]>(`${environment.apiUrl}/students`)
         .pipe(catchError(() => of<SchoolStudentApi[]>([]))),
-      enrollments: this.http
-        .get<SchoolEnrollmentApi[]>(`${environment.apiUrl}/inscription`)
-        .pipe(catchError(() => of<SchoolEnrollmentApi[]>([]))),
+      // The legacy /inscription endpoint no longer exists. The pre-enrollment
+      // query API has not been exposed yet, so we fall back to an empty list.
+      enrollments: of<SchoolEnrollmentApi[]>([]),
       classes: this.http
         .get<SchoolClassApi[]>(`${environment.apiUrl}/classes`)
         .pipe(catchError(() => of<SchoolClassApi[]>([]))),
       activeSchoolYear: this.http
-        .get<SchoolYearApi>(`${environment.apiUrl}/annees-scolaires/active`)
+        .get<SchoolYearApi>(`${environment.apiUrl}/academic-year/active`, {
+          context: new HttpContext().set(SILENT_REQUEST, true),
+        })
         .pipe(catchError(() => of<SchoolYearApi | null>(null))),
     });
   }

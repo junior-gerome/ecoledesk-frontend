@@ -1,4 +1,4 @@
-﻿<nav
+<nav
   id="primary-sidebar"
   class="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-slate-900 text-white shadow-xl transition-transform duration-300 md:z-auto"
   [class.translate-x-0]="layoutService.sidebarOpen()"
@@ -45,7 +45,7 @@
               class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-700/60 hover:text-white"
               (click)="layoutService.closeSidebarMobile()"
             >
-              <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="item.iconSvg"></span>
+              <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="safeIcon(item.iconSvg)"></span>
               <span class="text-sm font-medium">{{ item.label | translate }}</span>
             </a>
           }
@@ -93,7 +93,7 @@
                     class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-700/60 hover:text-white"
                     (click)="layoutService.closeSidebarMobile()"
                   >
-                    <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="item.iconSvg"></span>
+                    <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="safeIcon(item.iconSvg)"></span>
                     <span class="text-sm">{{ item.label | translate }}</span>
                     @if (item.comingSoon) {
                       <app-badge variant="warning" size="xs">{{ 'common.comingSoon' | translate }}</app-badge>
@@ -113,7 +113,7 @@
                       [class.text-slate-300]="!isMenuExpanded(item) && !isMenuActive(item)"
                     >
                       <div class="flex items-center gap-3">
-                        <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="item.iconSvg"></span>
+                        <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="safeIcon(item.iconSvg)"></span>
                         <span class="text-sm">{{ item.label | translate }}</span>
                         @if (item.comingSoon) {
                           <app-badge variant="warning" size="xs">{{ 'common.comingSoon' | translate }}</app-badge>

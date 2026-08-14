@@ -126,7 +126,9 @@ export class EnrollmentMapper {
   ): SchoolYearEntity {
     return {
       id: this.asId(schoolYear?.id),
-      libelleAnneeScolaire: schoolYear?.libelleAnneeScolaire ?? null,
+      // Backend AcademicYearDTO uses libelleAcademicYear; legacy alias libelleAnneeScolaire kept for compat
+      libelleAcademicYear: schoolYear?.libelleAcademicYear ?? schoolYear?.libelleAnneeScolaire ?? null,
+      libelleAnneeScolaire: schoolYear?.libelleAnneeScolaire ?? schoolYear?.libelleAcademicYear ?? null,
       dateDebut: schoolYear?.dateDebut ?? null,
       dateFin: schoolYear?.dateFin ?? null,
       statutCode: schoolYear?.statutCode ?? null,

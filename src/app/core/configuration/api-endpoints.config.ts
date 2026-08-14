@@ -29,13 +29,24 @@ export const API_ENDPOINTS = {
     bySection: (sectionId: string | number) => `${environment.apiUrl}/classes/by-section/${segment(sectionId)}`,
   },
   schoolYear: {
-    list: `${environment.apiUrl}/annees-scolaires`,
-    active: `${environment.apiUrl}/annees-scolaires/active`,
-    details: (id: string | number) => `${environment.apiUrl}/annees-scolaires/${segment(id)}`,
+    list: `${environment.apiUrl}/academic-year`,
+    active: `${environment.apiUrl}/academic-year/active`,
+    details: (id: string | number) => `${environment.apiUrl}/academic-year/${segment(id)}`,
   },
-  inscription: {
-    list: `${environment.apiUrl}/inscription`,
-    byClass: (classId: string | number) => `${environment.apiUrl}/inscription/by-class/${segment(classId)}`,
+  enrollments: {
+    // POST /enrollments/from-pre-enrollment/{id} — create enrollment from pre-enrollment
+    fromPreEnrollment: (id: string | number) => `${environment.apiUrl}/enrollments/from-pre-enrollment/${segment(id)}`,
+    confirm: (id: string | number) => `${environment.apiUrl}/enrollments/${segment(id)}/confirm`,
+    cancel: (id: string | number) => `${environment.apiUrl}/enrollments/${segment(id)}/cancel`,
+    withdraw: (id: string | number) => `${environment.apiUrl}/enrollments/${segment(id)}/withdraw`,
+    // Pre-enrollment workflow
+    preEnrollments: `${environment.apiUrl}/pre-enrollments`,
+    preEnrollmentSubmit: (id: string | number) => `${environment.apiUrl}/pre-enrollments/${segment(id)}/submit`,
+    preEnrollmentApprove: (id: string | number) => `${environment.apiUrl}/pre-enrollments/${segment(id)}/approve`,
+    preEnrollmentReject: (id: string | number) => `${environment.apiUrl}/pre-enrollments/${segment(id)}/reject`,
+    preEnrollmentStartReview: (id: string | number) => `${environment.apiUrl}/pre-enrollments/${segment(id)}/start-review`,
+    preEnrollmentGuardians: (id: string | number) => `${environment.apiUrl}/pre-enrollments/${segment(id)}/guardians`,
+    preEnrollmentDocuments: (id: string | number) => `${environment.apiUrl}/pre-enrollments/${segment(id)}/documents`,
   },
   attendance: {
     records: `${environment.attendanceApiUrl}/attendance/records`,

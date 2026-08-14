@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { AnneeScolaire } from '@app/features/gestion-annees/domain/models';
 import { Class } from '@app/features/classes/domain/models';
@@ -6,6 +6,7 @@ import { Section } from '@app/features/section/domain/models';
 import { Teacher } from '@app/features/teachers/domain/models';
 import { environment } from '@environments/environment';
 import { ClassFormRepository } from '../domain/repositories/class-form.repository';
+import { SILENT_REQUEST } from '@app/core/interceptors/http-context-tokens';
 
 @Injectable()
 export class ClassFormRepositoryAdapter extends ClassFormRepository {
@@ -21,7 +22,10 @@ export class ClassFormRepositoryAdapter extends ClassFormRepository {
   }
 
   override getActiveAcademicYear() {
-    return this.http.get<AnneeScolaire>(`${environment.apiUrl}/annees-scolaires/active`);
+    return this.http.get<AnneeScolaire>(
+      `${environment.apiUrl}/academic-year/active`,
+      { context: new HttpContext().set(SILENT_REQUEST, true) },
+    );
   }
 
   override getClassById(id: number) {

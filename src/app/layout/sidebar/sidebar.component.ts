@@ -1,5 +1,6 @@
-﻿import { CommonModule } from "@angular/common";
+import { CommonModule } from "@angular/common";
 import { Component, inject, signal } from "@angular/core";
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
 import { Router, RouterModule } from "@angular/router";
 import { SidebarCategory, SidebarItems } from "@app/layout/sidebarItems";
 import { LayoutService } from "@app/layout/layout.service";
@@ -37,6 +38,7 @@ export class SidebarComponent {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly rbac = inject(RbacService);
+  private readonly sanitizer = inject(DomSanitizer);
   readonly accessPolicies = ACCESS_POLICIES;
   readonly menuState = signal<Record<string, boolean>>({});
   readonly categoryState = signal<Record<string, boolean>>({});
@@ -296,6 +298,8 @@ export class SidebarComponent {
   private isMenuExpandedByState(menuId: string): boolean {
     return this.menuState()[menuId] ?? false;
   }
+
+  safeIcon(svg: string | undefined): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(svg ?? ''); }
 
   logout(): void {
     this.authService.logout();

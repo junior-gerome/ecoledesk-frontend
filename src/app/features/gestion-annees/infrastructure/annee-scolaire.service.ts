@@ -8,7 +8,7 @@ import { Observable } from "rxjs";
   providedIn: "root",
 })
 export class AnneeScolaireService {
-  private readonly apiUrl = `${environment.apiUrl}/annees-scolaires`;
+  private readonly apiUrl = `${environment.apiUrl}/academic-year`;
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<AnneeScolaire[]> {

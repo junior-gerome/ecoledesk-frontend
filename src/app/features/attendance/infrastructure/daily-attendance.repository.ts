@@ -7,7 +7,7 @@ import { AnneeScolaire } from "@app/features/gestion-annees/domain/models";
 import { Inscription } from "@app/features/inscriptionstudent/domain/models";
 import { Section } from "@app/features/section/domain/models";
 
-import { map } from "rxjs";
+import { Observable, map, of } from "rxjs";
 import { DailyAttendanceRepository } from "../domain/repositories/daily-attendance.repository";
 import { mapAttendanceRecords } from "./attendance-api.mapper";
 
@@ -36,17 +36,11 @@ export class DailyAttendanceRepositoryAdapter extends DailyAttendanceRepository 
   override getInscriptionsByClass(
     classId: number,
     schoolYearId?: number | null,
-  ) {
-    let params = new HttpParams();
-    const yearId = Number(schoolYearId);
-    if (yearId) {
-      params = params.set("anneeScolaireId", String(yearId));
-    }
-
-    return this.http.get<Inscription[]>(
-      API_ENDPOINTS.inscription.byClass(classId),
-      { params },
-    );
+  ): Observable<Inscription[]> {
+    // The legacy /inscription endpoint no longer exists in the backend.
+    // The enrollment query API (GET /enrollments?classId=) has not been exposed yet.
+    // Return an empty list so the attendance roster falls back to existing records.
+    return of([] as Inscription[]);
   }
 
   override getDailyRecords(
@@ -56,7 +50,8 @@ export class DailyAttendanceRepositoryAdapter extends DailyAttendanceRepository 
   ) {
     let params = new HttpParams().set("classId", String(classId)).set("date", date);
     if (schoolYearId) {
-      params = params.set("anneeScolaireId", String(schoolYearId));
+      // Backend AttendanceController expects 'academicYearId' (not 'anneeScolaireId')
+      params = params.set("academicYearId", String(schoolYearId));
     }
     return this.http
       .get<unknown>(API_ENDPOINTS.attendance.records, { params })

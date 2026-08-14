@@ -7,6 +7,9 @@ export type SchoolDocumentApiDateValue =
 
 export interface SchoolYearApi {
   id?: number | string | null;
+  /** Canonical backend field (AcademicYearDTO) */
+  libelleAcademicYear?: string | null;
+  /** Legacy alias — kept for backward compat with older API responses */
   libelleAnneeScolaire?: string | null;
 }
 
@@ -16,6 +19,9 @@ export interface SchoolClassApi {
   section?: {
     libelle?: string | null;
   } | null;
+  /** Canonical backend field name (ClasseRoomDTO.academicYear) */
+  academicYear?: SchoolYearApi | null;
+  /** Legacy alias kept for compat */
   anneeScolaire?: SchoolYearApi | null;
 }
 

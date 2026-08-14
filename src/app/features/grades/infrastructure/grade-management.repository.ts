@@ -1,9 +1,8 @@
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient, HttpContext, HttpParams } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
 import { Class } from "@app/features/classes/domain/models";
 import { CreateGradeRequest } from "@app/features/grades/domain/models";
 import { GradeResponse } from "@app/features/grades/domain/models";
-import { Inscription } from "@app/features/inscriptionstudent/domain/models";
 import { PageResponse } from "@app/shared/domains/value-objects";
 import { Sequence } from "@app/features/sequence/domain/models";
 import { StudentRankingItem } from "@app/features/grades/domain/models";
@@ -11,7 +10,8 @@ import { subject } from "@app/features/subjects/domain/models";
 import { environment } from "@environments/environment";
 import { StudentMapper } from "@features/students/domain/mappers/student.mapper";
 import { StudentEntity } from "@features/students/domain/models/student.entity";
-import { forkJoin, map, Observable, of, switchMap } from "rxjs";
+import { catchError, forkJoin, map, Observable, of, switchMap } from "rxjs";
+import { SILENT_REQUEST } from "@app/core/interceptors/http-context-tokens";
 import { Bulletin, GradeRow, StudentGradeHeader } from "../domain/entities";
 import {
   GradeManagementRepository,
@@ -23,7 +23,6 @@ import {
   Score,
 } from "../domain/value-objects";
 
-type InscriptionWithClassFallback = Inscription & { classeRoomId?: number };
 type GradePrimitive = number | string | null | undefined;
 type ApiDateValue = string | ReadonlyArray<number | string> | null | undefined;
 type GradeApiStudent = {
@@ -67,7 +66,7 @@ type GradeApiResponse = {
 };
 type GradePageResponse = PageResponse<GradeApiResponse>;
 type ActiveSchoolYearResponse = {
-  libelleAnneeScolaire?: string | null;
+  libelleAcademicYear?: string | null;
 };
 
 @Injectable()
@@ -87,9 +86,10 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
   }
 
   getStudentsByClass(classId: number): Observable<StudentEntity[]> {
-    return this.http
-      .get<Inscription[]>(`${environment.apiUrl}/inscription`)
-      .pipe(map((inscriptions) => this.mapStudentsByClass(inscriptions ?? [], classId)));
+    // No backend endpoint for listing students by class via enrollment query.
+    // The grades feature relies on grade data which already contains student info.
+    // Returns empty so the grade management UI uses grade-based student discovery.
+    return of([]);
   }
 
   getGradeById(id: number): Observable<GradeResponse> {
@@ -136,7 +136,7 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
 
   getStudentById(studentId: number): Observable<StudentEntity> {
     return this.http
-      .get<InscriptionWithClassFallback["student"]>(`${environment.apiUrl}/students/${studentId}`)
+      .get<Record<string, unknown>>(`${environment.apiUrl}/students/${studentId}`)
       .pipe(map((student) => StudentMapper.fromApi(student ?? undefined)));
   }
 
@@ -257,8 +257,13 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
 
   getActiveAcademicYearLabel(): Observable<string> {
     return this.http
-      .get<ActiveSchoolYearResponse>(`${environment.apiUrl}/annees-scolaires/active`)
-      .pipe(map((activeYear) => activeYear?.libelleAnneeScolaire || "N/A"));
+      .get<ActiveSchoolYearResponse>(`${environment.apiUrl}/academic-year/active`, {
+        context: new HttpContext().set(SILENT_REQUEST, true),
+      })
+      .pipe(
+        map((activeYear) => activeYear?.libelleAcademicYear || "N/A"),
+        catchError(() => of("N/A")),
+      );
   }
 
   generateReportCard(studentId: number, period?: string): Observable<Blob> {
@@ -382,32 +387,6 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
         first.comments,
       );
     });
-  }
-
-  private mapStudentsByClass(
-    inscriptions: InscriptionWithClassFallback[],
-    classId: number,
-  ): StudentEntity[] {
-    const byId = new Map<string, StudentEntity>();
-
-    (inscriptions ?? []).forEach((inscription) => {
-      const inscriptionClassId = Number(inscription.classeRoom?.id ?? inscription.classeRoomId);
-      const studentId = String(inscription.student?.id ?? "");
-
-      if (!inscriptionClassId || inscriptionClassId !== classId || !studentId) {
-        return;
-      }
-
-      if (inscription.student && !byId.has(studentId)) {
-        byId.set(studentId, StudentMapper.fromApi(inscription.student));
-      }
-    });
-
-    return Array.from(byId.values()).sort((left, right) =>
-      `${left.lastNameStudent ?? ""} ${left.firstNameStudent ?? ""}`.localeCompare(
-        `${right.lastNameStudent ?? ""} ${right.firstNameStudent ?? ""}`,
-      ),
-    );
   }
 
   private mapGradeResponse(raw: GradeApiResponse): GradeResponse {

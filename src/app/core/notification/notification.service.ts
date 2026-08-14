@@ -51,8 +51,7 @@ export class NotificationService {
       const [{ Stomp }, sockJSImport] = await Promise.all([import('@stomp/stompjs'), import('sockjs-client')]);
       const SockJS = (sockJSImport as SockJsModule).default;
       if (!SockJS) throw new Error('SockJS unavailable');
-      const ws = new SockJS(`${environment.apiUrl}/ws`);
-      this.stompClient = Stomp.over(ws as never) as NotificationSocketClient;
+      this.stompClient = Stomp.over(() => new SockJS(`${environment.apiUrl}/ws`) as never) as NotificationSocketClient;
       this.stompClient.connect({ Authorization: `Bearer ${token}` }, () => {
         this.connected = true;
         this.connectionState.set('connected');
