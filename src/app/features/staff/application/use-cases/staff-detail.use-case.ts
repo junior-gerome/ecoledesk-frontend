@@ -1,6 +1,12 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { NotificationService } from '@app/core/notification/notification.service';
-import { StaffAssignmentCreateRequest, StaffAssignmentFull, StaffMemberFull, StaffPositionOption } from '../../domain/models/staff.model';
+import {
+  STAFF_POSITIONS,
+  StaffAssignmentCreateRequest,
+  StaffAssignmentFull,
+  StaffMemberFull,
+  StaffPositionOption,
+} from '../../domain/models/staff.model';
 import { STAFF_REPOSITORY } from '../../domain/repositories/staff.repository';
 
 @Injectable()
@@ -10,7 +16,7 @@ export class StaffDetailUseCase {
 
   readonly member = signal<StaffMemberFull | null>(null);
   readonly assignments = signal<StaffAssignmentFull[]>([]);
-  readonly positions = signal<StaffPositionOption[]>([]);
+  readonly positions = signal<StaffPositionOption[]>(STAFF_POSITIONS);
   readonly error = signal<string | null>(null);
   readonly isLoading = signal(false);
 
@@ -27,31 +33,54 @@ export class StaffDetailUseCase {
         this.isLoading.set(false);
       },
     });
+
     this.repository.getAssignmentsByMember(id).subscribe({
       next: (list) => this.assignments.set(list as unknown as StaffAssignmentFull[]),
       error: () => {},
     });
+
     this.repository.getPositions().subscribe({
-      next: (pos) => this.positions.set(pos),
-      error: () => {},
+      next: (serverPositions) => {
+        if (serverPositions && serverPositions.length > 0) {
+          const mapped = serverPositions.map((sp) => {
+            const local = STAFF_POSITIONS.find((lp) => lp.code === sp.code);
+            return {
+              code: sp.code,
+              label: local?.label ?? sp.label ?? sp.code,
+            };
+          });
+          this.positions.set(mapped);
+        }
+      },
+      error: () => {
+        this.positions.set(STAFF_POSITIONS);
+      },
     });
   }
 
   createAssignment(request: StaffAssignmentCreateRequest, onSuccess: () => void): void {
     this.repository.createAssignment(request).subscribe({
-      next: (a) => {
-        this.assignments.update((list) => [...list, a]);
-        this.notificationService.success('Affectation créée avec succès.', 0);
+      next: () => {
+        this.repository.getAssignmentsByMember(request.staffMemberId).subscribe({
+          next: (list) => this.assignments.set(list as unknown as StaffAssignmentFull[]),
+        });
+        this.notificationService.success('Affectation enregistrée avec succès.', 0);
         onSuccess();
       },
-      error: () => this.notificationService.error("Impossible de créer l'affectation.", 0),
+      error: () => this.notificationService.error("Impossible d'enregistrer l'affectation.", 0),
     });
   }
 
-  closeAssignment(id: number): void {
+  closeAssignment(id: number, memberId?: number): void {
     this.repository.closeAssignment(id).subscribe({
       next: (updated) => {
-        this.assignments.update((list) => list.map((a) => (a.id === updated.id ? updated : a)));
+        if (memberId) {
+          this.repository.getAssignmentsByMember(memberId).subscribe({
+            next: (list) => this.assignments.set(list as unknown as StaffAssignmentFull[]),
+          });
+        } else {
+          this.assignments.update((list) => list.map((a) => (a.id === updated.id ? updated : a)));
+        }
         this.notificationService.success('Affectation clôturée.', 0);
       },
       error: () => this.notificationService.error("Impossible de clôturer l'affectation.", 0),

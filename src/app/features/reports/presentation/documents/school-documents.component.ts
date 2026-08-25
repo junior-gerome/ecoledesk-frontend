@@ -22,6 +22,7 @@ import {
   SchoolDocumentsRepository,
 } from "@features/reports/domain/repositories/school-documents.repository";
 import { SchoolDocumentsRepositoryAdapter } from "@features/reports/infrastructure/school-documents.repository";
+import { PreferencesService, AppPreferences } from "@app/features/settings/infrastructure/preferences.service";
 
 type SchoolDocumentType = "school-card" | "identity-card" | "certificate";
 type SchoolDocumentScope = "student" | "class";
@@ -85,6 +86,10 @@ export class SchoolDocumentsComponent implements OnInit {
     SCHOOL_DOCUMENTS_REPOSITORY,
   );
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly preferencesService = inject(PreferencesService);
+
+  /** School preferences loaded from GET /settings/preferences */
+  readonly schoolPreferences = signal<AppPreferences | null>(null);
 
   readonly loading = signal(false);
   readonly generating = signal(false);
@@ -185,6 +190,11 @@ export class SchoolDocumentsComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Load school preferences (name, code, address) from backend
+    this.preferencesService.get().subscribe({
+      next: (prefs) => this.schoolPreferences.set(prefs),
+      error: () => { /* non-fatal — documents will use fallback labels */ },
+    });
     this.loadData();
   }
 
@@ -206,7 +216,7 @@ export class SchoolDocumentsComponent implements OnInit {
         this.recipients.set(recipients);
         this.classes.set(classList);
         this.activeSchoolYearLabel.set(
-          this.normalizeText(activeSchoolYear?.libelleAcademicYear ?? activeSchoolYear?.libelleAnneeScolaire) ||
+          this.normalizeText(activeSchoolYear?.libelleAcademicYear) ||
             recipients[0]?.schoolYearLabel ||
             "Annee scolaire non definie",
         );
@@ -366,7 +376,7 @@ export class SchoolDocumentsComponent implements OnInit {
     const schoolYearLabel =
       this.normalizeText(enrollment?.anneescolaire?.libelleAcademicYear ?? enrollment?.anneescolaire?.libelleAnneeScolaire) ||
       this.normalizeText(enrollmentClass?.academicYear?.libelleAcademicYear ?? enrollmentClass?.anneeScolaire?.libelleAcademicYear ?? enrollmentClass?.anneeScolaire?.libelleAnneeScolaire) ||
-      this.normalizeText(activeSchoolYear?.libelleAcademicYear ?? activeSchoolYear?.libelleAnneeScolaire) ||
+      this.normalizeText(activeSchoolYear?.libelleAcademicYear) ||
       "Annee scolaire non definie";
 
     return {
@@ -383,7 +393,8 @@ export class SchoolDocumentsComponent implements OnInit {
         "-",
       schoolYearLabel,
       enrollmentDate: this.toDisplayDate(enrollment?.dateInscription),
-      registrationNumber: `GSBP-${studentId.padStart(5, "0")}`,
+      // Utilise le vrai matricule backend (studentNumber) ; fallback sur GSBP-XXXXX si absent
+      registrationNumber: student.studentNumber ?? `GSBP-${studentId.padStart(5, "0")}`,
     };
   }
 
@@ -504,6 +515,9 @@ export class SchoolDocumentsComponent implements OnInit {
     title: string,
     recipient: SchoolDocumentRecipient,
   ): void {
+    const prefs = this.schoolPreferences();
+    const schoolCode = prefs?.schoolCode ?? 'GSBP';
+
     doc.setDrawColor(31, 41, 55);
     doc.setFillColor(248, 250, 252);
     doc.rect(x, y, width, height, "FD");
@@ -513,7 +527,7 @@ export class SchoolDocumentsComponent implements OnInit {
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.text("GSBP", x + 4, y + 6.5);
+    doc.text(schoolCode, x + 4, y + 6.5);
     doc.text(title, x + width - 4, y + 6.5, { align: "right" });
 
     doc.setTextColor(31, 41, 55);
@@ -551,6 +565,10 @@ export class SchoolDocumentsComponent implements OnInit {
     doc: jsPDF,
     recipients: SchoolDocumentRecipient[],
   ): void {
+    const prefs = this.schoolPreferences();
+    const schoolName = prefs?.schoolName ?? 'Groupe Scolaire Bilingue';
+    const schoolCode = prefs?.schoolCode ?? 'GSBP';
+
     recipients.forEach((recipient, index) => {
       if (index > 0) {
         doc.addPage();
@@ -559,11 +577,11 @@ export class SchoolDocumentsComponent implements OnInit {
       doc.setTextColor(17, 24, 39);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
-      doc.text("GROUPE SCOLAIRE BILINGUE PRIMAIRE", 105, 24, {
+      doc.text(schoolName.toUpperCase(), 105, 24, {
         align: "center",
       });
       doc.setFontSize(10);
-      doc.text("GSBP", 105, 32, { align: "center" });
+      doc.text(schoolCode, 105, 32, { align: "center" });
 
       doc.setDrawColor(31, 41, 55);
       doc.line(35, 40, 175, 40);

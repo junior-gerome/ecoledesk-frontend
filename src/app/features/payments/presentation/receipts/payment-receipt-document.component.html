@@ -79,7 +79,7 @@
         <dl>
           <div>
             <dt>Matricule eleve</dt>
-            <dd>{{ receipt.studentId }}</dd>
+            <dd>{{ receipt.studentNumber ?? ('ID ' + receipt.studentId) }}</dd>
           </div>
           <div>
             <dt>Type de reglement</dt>

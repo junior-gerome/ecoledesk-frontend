@@ -89,7 +89,7 @@ export function createClassroomEntity(
     level: "PRIMARY",
     capacity: 30,
     section: createSectionEntity(),
-    anneeScolaire: createSchoolYearEntity(),
+    academicYear: createSchoolYearEntity(),
     description: "Classe principale",
     ...overrides,
   };
@@ -192,7 +192,7 @@ export function createApiSchoolYear(
 ): AnneeScolaire {
   return {
     id: 3,
-    libelleAnneeScolaire: "2026-2027",
+    libelleAcademicYear: "2026-2027",
     dateDebut: "2026-09-01",
     dateFin: "2027-06-30",
     statutCode: true,
@@ -201,13 +201,14 @@ export function createApiSchoolYear(
 }
 
 export function createApiClass(overrides: Partial<Class> = {}): Class {
+  const yr = createApiSchoolYear();
   return {
     id: 5,
     nameClasse: "CM1",
     level: "PRIMARY",
     capacity: 30,
     section: createApiSection(),
-    anneeScolaire: createApiSchoolYear(),
+    academicYear: yr,
     description: "Classe principale",
     ...overrides,
   };

@@ -41,7 +41,7 @@
       <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
         <p class="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Statut</p>
         <div class="mt-1">
-          <app-badge [variant]="member.active ? 'success' : 'danger'" size="xs">
+          <app-badge [variant]="member.active ? 'success' : 'danger'" size='sm'>
             {{ member.active ? 'Actif' : 'Inactif' }}
           </app-badge>
         </div>
@@ -64,17 +64,19 @@
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             @for (a of useCase.assignments(); track a.id) {
               <tr>
-                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ a.position }}</td>
+                <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <app-badge variant="info" size="xs">{{ getPositionLabel(a.position) }}</app-badge>
+                </td>
                 <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ a.startDate | date:'dd/MM/yyyy' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ a.endDate ? (a.endDate | date:'dd/MM/yyyy') : '—' }}</td>
                 <td class="px-4 py-3 text-sm">
-                  <app-badge [variant]="!a.endDate ? 'success' : 'neutral'" size="xs">
+                  <app-badge [variant]="!a.endDate ? 'success' : 'neutral'" size='sm'>
                     {{ !a.endDate ? 'Active' : 'Clôturée' }}
                   </app-badge>
                 </td>
                 <td class="px-4 py-3 text-sm">
                   @if (!a.endDate) {
-                    <app-button type="button" variant="danger" size="xs" (clicked)="useCase.closeAssignment(a.id!)">
+                    <app-button type="button" variant="danger" size='sm' (clicked)="useCase.closeAssignment(a.id!, memberId())">
                       Clôturer
                     </app-button>
                   }
@@ -102,12 +104,22 @@
   >
     <form [formGroup]="assignmentForm" class="space-y-4">
       <app-select
-        label="Position"
+        label="Position / Rôle"
         id="position"
         formControlName="position"
         [options]="positionOptions"
         [control]="assignmentForm.controls['position']"
+        [required]="true"
         placeholder="Sélectionner une position"
+      />
+      <app-select
+        label="Statut de l'affectation"
+        id="assignmentStatus"
+        formControlName="assignmentStatus"
+        [options]="assignmentStatusOptions"
+        [control]="assignmentForm.controls['assignmentStatus']"
+        [required]="true"
+        placeholder="Sélectionner le statut"
       />
       <app-input
         label="Date de début"

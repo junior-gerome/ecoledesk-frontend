@@ -2,12 +2,14 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Class } from '@app/features/classes/domain/models';
 import { NotificationService } from '@app/core/notification/notification.service';
+import { SchoolContextService } from '@app/core/context/school-context.service';
 import { CLASS_LIST_REPOSITORY } from '../../domain/repositories/class-list.repository';
 
 @Injectable()
 export class ClassListUseCase {
   private readonly repository = inject(CLASS_LIST_REPOSITORY);
   private readonly notificationService = inject(NotificationService);
+  private readonly schoolContext = inject(SchoolContextService);
   private readonly router = inject(Router);
 
   readonly classes = signal<Class[]>([]);
@@ -18,7 +20,7 @@ export class ClassListUseCase {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.repository.getAll().subscribe({
+    this.repository.getAll(this.schoolContext.selectedSchoolYear()?.id).subscribe({
       next: (classes) => {
         this.classes.set(classes ?? []);
         this.isLoading.set(false);

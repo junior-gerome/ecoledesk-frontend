@@ -68,6 +68,7 @@ export class PaymentReceiptService implements PaymentReceiptRepository {
     return {
       id: Number(payment.id ?? 0),
       studentId: Number(payment.studentId),
+      studentNumber: payment.studentNumber ?? null,
       studentName,
       paymentDate: payment.paymentDate,
       dueDate: payment.dueDate,
@@ -106,7 +107,9 @@ export class PaymentReceiptService implements PaymentReceiptRepository {
       const matchesSearch =
         !normalizedSearch ||
         receipt.studentName.toLowerCase().includes(normalizedSearch) ||
-        String(receipt.studentId).includes(normalizedSearch);
+        String(receipt.studentId).includes(normalizedSearch) ||
+        // Also search by matricule (studentNumber)
+        (receipt.studentNumber ?? '').toLowerCase().includes(normalizedSearch);
 
       const matchesReceipt =
         !normalizedReceipt ||

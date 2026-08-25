@@ -3,7 +3,7 @@ import { Class } from '@app/features/classes/domain/models';
 import { Observable } from 'rxjs';
 
 export interface ClassListRepository {
-  getAll(): Observable<Class[]>;
+  getAll(academicYearId?: number): Observable<Class[]>;
   delete(id: number): Observable<void>;
 }
 

@@ -23,6 +23,7 @@ export interface StaffRepository {
   createAssignment(request: StaffAssignmentCreateRequest): Observable<StaffAssignmentFull>;
   closeAssignment(id: number): Observable<StaffAssignmentFull>;
   getPositions(): Observable<StaffPositionOption[]>;
+  getTeachers(): Observable<StaffMemberBasic[]>;
 }
 
 export const STAFF_REPOSITORY = new InjectionToken<StaffRepository>('STAFF_REPOSITORY');

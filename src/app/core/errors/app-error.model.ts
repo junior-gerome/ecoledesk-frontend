@@ -101,12 +101,13 @@ function statusMessage(status: number): string | undefined {
   if (status === 0) {
     return 'Impossible de joindre le serveur. Verifiez que les services backend sont demarres.';
   }
-  if (status === 400) return 'La requete est invalide.';
+  if (status === 400) return 'La requete est invalide. Verifiez les donnees saisies.';
   if (status === 401) return 'Session expiree. Connectez-vous a nouveau.';
   if (status === 403) return "Vous n'avez pas les droits necessaires pour cette action.";
-  if (status === 429) return 'Trop de tentatives de connexion. Reessayez dans quelques minutes.';
   if (status === 404) return 'Ressource introuvable.';
-  if (status === 409) return 'Conflit de donnees detecte.';
+  if (status === 409) return 'Conflit de donnees : cet element existe deja ou une contrainte est violee.';
+  if (status === 422) return 'Donnees invalides. Verifiez les champs du formulaire.';
+  if (status === 429) return 'Trop de tentatives. Reessayez dans quelques minutes.';
   if (status >= 500) return 'Erreur serveur. Reessayez plus tard ou contactez un administrateur.';
   return undefined;
 }

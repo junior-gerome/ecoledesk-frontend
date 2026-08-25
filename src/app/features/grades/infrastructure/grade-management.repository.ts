@@ -69,6 +69,19 @@ type ActiveSchoolYearResponse = {
   libelleAcademicYear?: string | null;
 };
 
+/**
+ * EnrollmentBasicDTO shape from GET /enrollments/by-class/{classroomId}
+ * Used to populate the student list in the grade form.
+ */
+type EnrollmentBasicApiItem = {
+  id?: number | string | null;
+  studentId?: number | string | null;
+  studentName?: string | null;
+  classroomId?: number | string | null;
+  classroomName?: string | null;
+  status?: string | null;
+};
+
 @Injectable()
 export class GradeManagementRepositoryAdapter implements GradeManagementRepository {
   private readonly http = inject(HttpClient);
@@ -86,10 +99,25 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
   }
 
   getStudentsByClass(classId: number): Observable<StudentEntity[]> {
-    // No backend endpoint for listing students by class via enrollment query.
-    // The grades feature relies on grade data which already contains student info.
-    // Returns empty so the grade management UI uses grade-based student discovery.
-    return of([]);
+    // GET /enrollments/by-class/{classroomId}?status=CONFIRMED (now exposed by EnrollmentQueryController)
+    // EnrollmentBasicDTO has: id, number, status, studentId, studentName, classroomId, classroomName
+    return this.http
+      .get<EnrollmentBasicApiItem[]>(
+        `${environment.apiUrl}/enrollments/by-class/${classId}?status=CONFIRMED`,
+      )
+      .pipe(
+        map((items) =>
+          (items ?? []).map((item) => ({
+            id: item.studentId != null ? String(item.studentId) : null,
+            studentNumber: null,
+            firstNameStudent: this.firstNameFromStudentName(item.studentName),
+            lastNameStudent: this.lastNameFromStudentName(item.studentName),
+            dateOfBirth: null,
+            ecolePrecedente: '',
+          } as StudentEntity)),
+        ),
+        catchError(() => of([] as StudentEntity[])),
+      );
   }
 
   getGradeById(id: number): Observable<GradeResponse> {
@@ -328,7 +356,8 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
       classId,
       className,
       params.academicYear,
-      `MAT-${String(params.studentId).padStart(4, "0")}`,
+      // Use real studentNumber from backend if available; fallback only if null
+      params.student?.studentNumber ?? `MAT-${String(params.studentId).padStart(4, "0")}`,
     );
 
     const academicContext = new AcademicContext(
@@ -420,6 +449,18 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
     }
 
     return `${student.lastNameStudent ?? ""} ${student.firstNameStudent ?? ""}`.trim();
+  }
+
+  /** EnrollmentBasicDTO.studentName = "LASTNAME FIRSTNAME" — extract last name */
+  private lastNameFromStudentName(fullName: string | null | undefined): string {
+    const parts = (fullName ?? '').trim().split(/\s+/).filter(Boolean);
+    return parts[0] ?? '';
+  }
+
+  /** EnrollmentBasicDTO.studentName = "LASTNAME FIRSTNAME" — extract first name */
+  private firstNameFromStudentName(fullName: string | null | undefined): string {
+    const parts = (fullName ?? '').trim().split(/\s+/).filter(Boolean);
+    return parts.slice(1).join(' ');
   }
 
   private splitStudentName(fullName: string): { lastName: string; firstName: string } {

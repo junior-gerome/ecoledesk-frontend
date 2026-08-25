@@ -162,7 +162,7 @@
             {{ receipt.studentName }}
           </div>
           <div class="text-xs text-gray-400 dark:text-gray-500">
-            ID {{ receipt.studentId }}
+            {{ receipt.studentNumber ?? ('ID ' + receipt.studentId) }}
           </div>
         </td>
 

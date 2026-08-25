@@ -154,7 +154,9 @@ export class EnrollmentStore {
     }
 
     try {
-      const classes = await firstValueFrom(this.repository.getClassesBySection(sectionId));
+      const classes = await firstValueFrom(
+        this.repository.getClassesBySection(sectionId, this._activeAnneeScolaire()?.id),
+      );
       this._classes.set(classes);
     } catch (error) {
       console.error("Erreur lors du chargement des classes", error);

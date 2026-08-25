@@ -4,9 +4,40 @@
   />
 
   @if (error()) {
-    <div class="mt-4 p-4 bg-red-100 text-red-700 rounded-md">{{ error() }}</div>
+    <div class="mt-4 p-4 bg-red-100 text-red-700 rounded-md border border-red-200">{{ error() }}</div>
   }
 
+  <!-- Notice Nouvelle Architecture Staff -->
+  <div class="mt-6 p-6 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950/40 dark:border-blue-800">
+    <div class="flex items-start gap-4">
+      <div class="flex-shrink-0 text-blue-600 dark:text-blue-400 mt-0.5">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold text-blue-900 dark:text-blue-200">
+          Création et gestion des enseignants dans le module Personnel (Staff)
+        </h3>
+        <p class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+          Conformément à la nouvelle architecture unifiée, les enseignants sont désormais créés et gérés directement depuis le module <strong>Personnel (Staff)</strong> avec l'attribution de la position <em>Enseignant(e)</em>.
+        </p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <app-button routerLink="/staff/new" variant="primary">
+            Créer un enseignant dans le Personnel
+          </app-button>
+          <app-button routerLink="/teachers" variant="ghost">
+            Consulter la liste des enseignants
+          </app-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--
+  ================================================================================
+  ANCIEN FORMULAIRE DE CRÉATION DE TEACHER (MIS EN COMMENTAIRE — NOUVELLE ARCHITECTURE STAFF)
+  ================================================================================
   <form [formGroup]="teacherForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
     <app-page-form-body>
       <app-form-body>
@@ -105,7 +136,7 @@
     </app-page-form-body>
 
     <div class="flex items-center justify-between gap-3 pt-2">
-      <app-button type="button" variant="ghost" (click)="cancel()">
+      <app-button type="button" variant="ghost" (clicked)="cancel()">
         {{ 'common.cancel' | translate }}
       </app-button>
       <app-button type="submit" [disabled]="teacherForm.invalid || isSubmitting()" variant="primary">
@@ -117,4 +148,6 @@
       </app-button>
     </div>
   </form>
+  ================================================================================
+  -->
 </app-page-layout>

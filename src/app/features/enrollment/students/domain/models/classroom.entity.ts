@@ -7,6 +7,6 @@ export interface ClassroomEntity {
   level?: string | null;
   capacity?: number | null;
   section?: SectionEntity | null;
-  anneeScolaire?: SchoolYearEntity | null;
+  academicYear?: SchoolYearEntity | null;
   description?: string | null;
 }

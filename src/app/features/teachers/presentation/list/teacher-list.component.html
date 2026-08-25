@@ -4,7 +4,7 @@
       <app-badge variant="info" size="sm">
         {{ useCase.teachers().length }} {{ 'teachers.title' | translate | lowercase }}
       </app-badge>
-      <app-button type="button" routerLink="new" variant="primary">
+      <app-button type="button" routerLink="/staff/new" variant="primary">
         {{ 'teacherPage.addTeacher' | translate }}
       </app-button>
     </div>
@@ -43,19 +43,22 @@
           {{ teacher.firstnameTeacher }}
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
-          {{ teacher.email }}
+          {{ teacher.email || '—' }}
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
           <app-badge variant="neutral" size="xs">
             {{ teacher.speciality || ('teacherPage.notSpecified' | translate) }}
           </app-badge>
         </td>
-        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
-          {{ teacher.phoneNumber }}
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+          {{ teacher.phoneNumber || '—' }}
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
           <div class="flex justify-center gap-3">
-            <app-button [routerLink]="[teacher.id || '']" variant="secondary">
+            <app-button [routerLink]="['/staff', teacher.id]" variant="ghost">
+              Détail
+            </app-button>
+            <app-button [routerLink]="['/staff', teacher.id, 'edit']" variant="secondary">
               {{ 'common.edit' | translate }}
             </app-button>
             <app-button type="button" variant="danger" (clicked)="requestDelete(teacher)">

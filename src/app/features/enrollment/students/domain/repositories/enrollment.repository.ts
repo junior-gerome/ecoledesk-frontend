@@ -16,7 +16,7 @@ export interface EnrollmentRepository {
   getEnrollments(): Observable<EnrollmentEntity[]>;
   getSections(): Observable<SectionEntity[]>;
   getAllClasses(): Observable<ClassroomEntity[]>;
-  getClassesBySection(sectionId: string): Observable<ClassroomEntity[]>;
+  getClassesBySection(sectionId: string, academicYearId?: string | null): Observable<ClassroomEntity[]>;
   getActiveSchoolYear(): Observable<SchoolYearEntity | null>;
   getRegistrationPayment(classId: string): Observable<PaymentEntity | null>;
   createEnrollment(enrollment: EnrollmentEntity): Observable<EnrollmentEntity>;

@@ -1,5 +1,5 @@
 // src/app/core/services/classe/classRoom.service.ts
-import { HttpClient, HttpContext } from "@angular/common/http";
+import { HttpClient, HttpContext, HttpParams } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 import { SILENT_REQUEST } from "@app/core/interceptors/http-context-tokens";
@@ -7,7 +7,7 @@ import { SILENT_REQUEST } from "@app/core/interceptors/http-context-tokens";
 import { AnneeScolaire } from "@app/features/gestion-annees/domain/models";
 import { Class } from "@app/features/classes/domain/models";
 import { Section } from "@app/features/section/domain/models";
-import { Teacher } from "@app/features/teachers/domain/models";
+import { StaffMemberBasic } from "@app/features/staff/domain/models/staff.model";
 import { environment } from "@environments/environment";
 
 // import { Student } from '@app/models/student/student.interface';
@@ -28,8 +28,8 @@ export class ClassRoomService {
     return this.http.get<Section[]>(`${environment.apiUrl}/section`);
   }
 
-  getTeachers(): Observable<Teacher[]> {
-    return this.http.get<Teacher[]>(`${environment.apiUrl}/teachers`);
+  getTeachers(): Observable<StaffMemberBasic[]> {
+    return this.http.get<StaffMemberBasic[]>(`${this.baseUrl}/teachers`);
   }
 
   getTotalClass(): Observable<number> {
@@ -43,8 +43,9 @@ export class ClassRoomService {
     );
   }
 
-  getAll(): Observable<Class[]> {
-    return this.http.get<Class[]>(this.baseUrl);
+  getAll(academicYearId?: number): Observable<Class[]> {
+    const params = academicYearId ? new HttpParams().set("academicYearId", academicYearId) : undefined;
+    return this.http.get<Class[]>(this.baseUrl, { params });
   }
 
   getById(id: number): Observable<Class> {
@@ -64,8 +65,8 @@ export class ClassRoomService {
     return this.http.get<number>(`${this.baseUrl}/count`);
   }
 
-  getAvailableTeachers(): Observable<Teacher[]> {
-    return this.http.get<Teacher[]>(`${environment.apiUrl}/teachers/available`);
+  getAvailableTeachers(): Observable<StaffMemberBasic[]> {
+    return this.http.get<StaffMemberBasic[]>(`${this.baseUrl}/teachers/available`);
   }
 
   assignTeacher(classId: number, teacherId: number): Observable<void> {
@@ -79,7 +80,8 @@ export class ClassRoomService {
     return this.http.delete<void>(`${this.baseUrl}/${classId}/teacher`);
   }
 
-  getClassesBySection(sectionId: number): Observable<Class[]> {
-    return this.http.get<Class[]>(`${this.baseUrl}/by-section/${sectionId}`);
+  getClassesBySection(sectionId: number, academicYearId?: number): Observable<Class[]> {
+    const params = academicYearId ? new HttpParams().set("academicYearId", academicYearId) : undefined;
+    return this.http.get<Class[]>(`${this.baseUrl}/by-section/${sectionId}`, { params });
   }
 }

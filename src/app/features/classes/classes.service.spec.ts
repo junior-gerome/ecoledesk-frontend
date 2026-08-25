@@ -20,7 +20,7 @@ describe('ClassRoomService', () => {
 
   const mockSchoolYear: AnneeScolaire = {
     id: 1,
-    libelleAnneeScolaire: '2024-2025',
+    libelleAcademicYear: '2024-2025',
     dateDebut: '2024-09-01',
     dateFin: '2025-06-30',
     statutCode: true,
@@ -32,7 +32,7 @@ describe('ClassRoomService', () => {
     level: 'Primaire',
     capacity: 30,
     section: mockSection,
-    anneeScolaire: mockSchoolYear,
+    academicYear: mockSchoolYear,
   };
 
   beforeEach(() => {
@@ -71,6 +71,17 @@ describe('ClassRoomService', () => {
     const req = httpMock.expectOne(`${environment.apiUrl}/classes/1`);
     expect(req.request.method).toBe('GET');
     req.flush(mockClass);
+  });
+
+  it('should scope section classes to the requested academic year', () => {
+    service.getClassesBySection(1, 2).subscribe();
+
+    const req = httpMock.expectOne((request) =>
+      request.url === `${environment.apiUrl}/classes/by-section/1` &&
+      request.params.get('academicYearId') === '2',
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush([mockClass]);
   });
 
   it('should create a new class', () => {

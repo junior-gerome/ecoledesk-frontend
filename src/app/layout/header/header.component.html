@@ -16,7 +16,7 @@
         <select id="header-school-year" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs dark:border-slate-600 dark:bg-slate-800" [value]="schoolContext.selectionState().schoolYearId ?? ''" (change)="schoolContext.selectSchoolYear($any($event.target).value)">
           <option value="">{{ 'schoolContext.schoolYear' | translate }}</option>
           @for (year of schoolContext.years(); track year.id) {
-            <option [value]="year.id">{{ year.libelleAnneeScolaire }}{{ year.statutCode ? ' · ' + ('schoolContext.active' | translate) : '' }}</option>
+            <option [value]="year.id">{{ year.libelleAcademicYear }}{{ year.statutCode ? ' · ' + ('schoolContext.active' | translate) : '' }}</option>
           }
         </select>
         @if (schoolContext.trimestres().length) {

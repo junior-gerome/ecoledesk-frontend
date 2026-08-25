@@ -59,7 +59,12 @@ export class StaffRepositoryAdapter implements StaffRepository {
     return this.http.patch<StaffAssignmentFull>(`${this.baseUrl}/assignments/${id}/close`, {});
   }
 
-  getPositions(): Observable<StaffPositionOption[]> {
+  getPositions(): Observable<StaffPositionOption[]>{
     return this.http.get<StaffPositionOption[]>(`${this.baseUrl}/assignments/positions`);
   }
+
+  getTeachers(): Observable<StaffMemberBasic[]> {
+    return this.http.get<StaffMemberBasic[]>(`${this.baseUrl}/members/teachers`);
+  }
 }
+

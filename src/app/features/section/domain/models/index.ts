@@ -1,2 +1,2 @@
-export * from './section.interface';
+export * from './section';
 export * from './Subsection';

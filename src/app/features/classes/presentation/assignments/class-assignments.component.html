@@ -1,10 +1,35 @@
 ﻿<app-page-layout>
-  <app-page-header [title]="'classAssignments.title' | translate"><app-button type="button" variant="secondary" (clicked)="back()">{{ 'common.back' | translate }}</app-button></app-page-header>
-  @if (loading()) { <app-skeleton [count]="4" height="4rem" /> } @else if (error()) { <app-alert type="error" [message]="error()! | translate" /><app-button type="button" variant="secondary" (clicked)="load()">{{ 'common.retry' | translate }}</app-button> } @else { @if (classroom(); as currentClass) {
-    <app-card padding="lg" class="block space-y-6"><div><h2 class="text-xl font-semibold">{{ currentClass.nameClasse }}</h2><p class="text-sm text-slate-500">{{ currentClass.section.libelle }} Â· {{ currentClass.anneeScolaire.libelleAnneeScolaire }}</p></div>
-      <section aria-labelledby="teacher-assignment-title" class="space-y-4"><h3 id="teacher-assignment-title" class="text-lg font-semibold">{{ 'classAssignments.mainTeacher' | translate }}</h3>@if (currentClass.teacher) { <p>{{ currentClass.teacher.firstnameTeacher }} {{ currentClass.teacher.lastnameTeacher }}</p> } @else { <app-empty-state [title]="'classAssignments.noTeacher' | translate" /> }
-        <div *hasPermission="permissions.CLASSES_WRITE" class="flex flex-col gap-3 sm:flex-row sm:items-end"><app-select class="min-w-0 flex-1" [label]="'classAssignments.teacher' | translate" [options]="teacherOptions" [placeholder]="'classAssignments.chooseTeacher' | translate" [ngModel]="selectedTeacherId()" (ngModelChange)="selectTeacher($event)" /><app-button type="button" variant="primary" [disabled]="saving() || selectedTeacherId() === null" (clicked)="save()">{{ saving() ? ('classAssignments.saving' | translate) : ('common.save' | translate) }}</app-button>@if (currentClass.teacher) { <app-button type="button" variant="danger" [disabled]="saving()" (clicked)="remove()">{{ 'common.delete' | translate }}</app-button> }</div>
-      </section>@if (saved()) { <app-alert type="success" [message]="'classAssignments.saved' | translate" /> } @if (saveError()) { <app-alert type="error" [message]="saveError()! | translate" /> }<section aria-labelledby="unsupported-assignment-title"><h3 id="unsupported-assignment-title" class="text-lg font-semibold">{{ 'classAssignments.subjectAssignments' | translate }}</h3><app-alert type="warning" [message]="'classAssignments.subjectsUnavailable' | translate" /></section>
+  <app-page-header [title]="'classAssignments.title' | translate">
+    <app-button type="button" variant="secondary" (clicked)="back()">{{ 'common.back' | translate }}</app-button>
+  </app-page-header>
+
+  @if (loading()) { 
+    <app-skeleton [count]="4" height="4rem" /> 
+  } @else if (error()) { 
+    <app-alert type="error" [message]="error()! | translate" />
+    <app-button type="button" variant="secondary" (clicked)="load()">{{ 'common.retry' | translate }}</app-button> 
+  } @else { @if (classroom(); as currentClass) {
+    <app-card padding="lg" class="block space-y-6">
+      <div><h2 class="text-xl font-semibold">{{ currentClass.nameClasse }}</h2><p class="text-sm text-slate-500">{{ currentClass.section.libelle }} Â· {{ currentClass.academicYear.libelleAcademicYear }}</p>
+      </div>
+        <section aria-labelledby="teacher-assignment-title" class="space-y-4"><h3 id="teacher-assignment-title"   class="text-lg font-semibold">{{ 'classAssignments.mainTeacher' | translate }}</h3>
+          @if (currentClass.teacher) { <p>{{ currentClass.teacher.firstName }} {{ currentClass.teacher.lastName }}</p> 
+        } @else { 
+          <app-empty-state [title]="'classAssignments.noTeacher' | translate" /> }
+          <div *hasPermission="permissions.CLASSES_WRITE" class="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <app-select class="min-w-0 flex-1" [label]="'classAssignments.teacher' | translate" [options]="teacherOptions" [placeholder]="'classAssignments.chooseTeacher' | translate" [ngModel]="selectedTeacherId()" (ngModelChange)="selectTeacher($event)" />
+            <app-button type="button" variant="primary" [disabled]="saving() || selectedTeacherId() === null" (clicked)="save()">{{ saving() ? ('classAssignments.saving' | translate) : ('common.save' | translate) }}</app-button>
+            @if (currentClass.teacher) { 
+              <app-button type="button" variant="danger" [disabled]="saving()" (clicked)="remove()">{{ 'common.delete' | translate }}</app-button> }
+          </div>
+        </section>
+        @if (saved()) { 
+          <app-alert type="success" [message]="'classAssignments.saved' | translate" /> 
+        } @if (saveError()) { 
+          <app-alert type="error" [message]="saveError()! | translate" /> 
+        }<section aria-labelledby="unsupported-assignment-title"><h3 id="unsupported-assignment-title" class="text-lg font-semibold">{{ 'classAssignments.subjectAssignments' | translate }}</h3>
+          <app-alert type="warning" [message]="'classAssignments.subjectsUnavailable' | translate" />
+        </section>
     </app-card>
     }
   }

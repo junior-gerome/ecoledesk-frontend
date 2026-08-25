@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   FormBuilder,
@@ -20,6 +20,7 @@ import { PageLayoutComponent } from '@app/shared/page-layout/page-layout.compone
 import { PageHeaderComponent } from '@app/shared/page-header/page-header.component';
 import { PaymentFormUseCase } from '@features/payments/application/use-cases/payment-form.use-case';
 import { PaymentFormRepository } from '@features/payments/infrastructure/payment-form.repository';
+import { SchoolContextService } from '@app/core/context/school-context.service';
 
 @Component({
   selector: 'app-payment-form',
@@ -46,6 +47,8 @@ export class PaymentFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly useCase = inject(PaymentFormUseCase);
+  /** Contexte scolaire global — donne accès à l'année scolaire active */
+  readonly schoolContext = inject(SchoolContextService);
 
   readonly paymentForm: FormGroup = this.fb.group({
     studentId: ['', Validators.required],
@@ -61,6 +64,14 @@ export class PaymentFormComponent implements OnInit {
 
   isEditMode = false;
   paymentId: number | null = null;
+
+  /** Année scolaire active — affichée à titre informatif dans le formulaire */
+  readonly activeSchoolYearLabel = computed(() => {
+    const year = this.schoolContext.selectedSchoolYear();
+    return year
+      ? year.libelleAcademicYear
+      : null;
+  });
 
   get isSubmitting(): boolean {
     return this.useCase.isSubmitting();
@@ -85,12 +96,15 @@ export class PaymentFormComponent implements OnInit {
     { label: 'Mobile Money', value: 'MOBILE_MONEY' },
   ];
 
-  get studentOptions(): SelectOption<number>[] {
-    return this.useCase.studentsSignal().map((student) => ({
-      value: student.id,
-      label: `${student.lastName} ${student.firstName}`.trim(),
-    }));
-  }
+  /** Dropdown étudiants — affiche matricule + nom complet. Valeur en string pour compatibilité FormControl. */
+  readonly studentOptions = computed<SelectOption<string>[]>(() =>
+    this.useCase.studentsSignal().map((student) => ({
+      value: String(student.id),
+      label: student.studentNumber
+        ? `${student.studentNumber} — ${student.lastName} ${student.firstName}`.trim()
+        : `${student.lastName} ${student.firstName}`.trim(),
+    })),
+  );
 
   ngOnInit(): void {
     this.useCase.loadStudents();
@@ -115,6 +129,10 @@ export class PaymentFormComponent implements OnInit {
         });
       }
     }
+  }
+
+  onStudentSearch(keyword: string): void {
+    this.useCase.searchStudentsByKeyword(keyword);
   }
 
   onSubmit(): void {
@@ -146,9 +164,7 @@ export class PaymentFormComponent implements OnInit {
       paymentDate: String(raw.paymentDate ?? ''),
       dueDate: String(raw.dueDate ?? ''),
       status: String(raw.status ?? 'PENDING') as Payment['status'],
-      paymentMethod: String(raw.paymentMethod ?? 'CASH') as NonNullable<
-        Payment['paymentMethod']
-      >,
+      paymentMethod: String(raw.paymentMethod ?? 'CASH') as NonNullable<Payment['paymentMethod']>,
       receiptNumber: String(raw.receiptNumber ?? '').trim() || undefined,
       description: String(raw.description ?? '').trim() || undefined,
     };

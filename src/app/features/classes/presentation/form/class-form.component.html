@@ -15,7 +15,7 @@
         />
 
         <app-input
-          [label]="'classPage.className' | translate"
+          [label]="'classPage.nameClasse' | translate"
           type="text"
           formControlName="nameClasse"
           [control]="ctrl['nameClasse']"
@@ -43,14 +43,13 @@
           formControlName="teacherId"
           [options]="teacherOptions()"
           [control]="ctrl['teacherId']"
-          [required]="true"
           [placeholder]="'classPage.selectTeacher' | translate"
         />
 
         <app-input
           [label]="'classPage.schoolYear' | translate"
           type="text"
-          [value]="statutCode()?.libelleAnneeScolaire || ('common.loading' | translate)"
+          [value]="statutCode()?.libelleAcademicYear || ('common.loading' | translate)"
           [readonly]="true"
         />
 

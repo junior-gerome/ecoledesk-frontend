@@ -17,8 +17,8 @@ describe('SchoolContextService', () => {
   let sequences: jasmine.SpyObj<SequenceService>;
 
   const user = { id: 11, firstName: 'A', lastName: 'B', roleType: 'AGENT' as const };
-  const year = { id: 2, libelleAnneeScolaire: '2025-2026', dateDebut: '', dateFin: '', statutCode: true };
-  const oldYear = { id: 1, libelleAnneeScolaire: '2024-2025', dateDebut: '', dateFin: '', statutCode: false };
+  const year = { id: 2, libelleAcademicYear: '2025-2026', dateDebut: '', dateFin: '', statutCode: true };
+  const oldYear = { id: 1, libelleAcademicYear: '2024-2025', dateDebut: '', dateFin: '', statutCode: false };
   const term = { id: 20, libelleTrimestre: 'Trimestre 1', anneeScolaire: year };
   const sequence = { id: 30, libelleSequence: 'SÃ©quence 1', trimestre: term };
 

@@ -1,58 +1,40 @@
 <app-page-layout>
-  <app-page-header [title]="isEditMode() ? 'Modifier le membre' : 'Nouveau membre du personnel'" />
+  <app-page-header [title]="isEditMode() ? 'Modifier le membre du personnel' : 'Nouveau membre du personnel'" />
 
   @if (error()) {
-    <div class="mt-4 p-4 bg-red-100 text-red-700 rounded-md">{{ error() }}</div>
+    <div class="mt-4 p-4 bg-red-100 text-red-700 rounded-md border border-red-200">{{ error() }}</div>
   }
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+    <!-- Section 1: Informations Personnelles -->
     <app-page-form-body>
+      <div class="mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Informations Personnelles</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Identité et état civil du membre du personnel</p>
+      </div>
+
       <app-form-body>
-
         <app-input label="N° Employé" id="employeeNumber" type="text"
-          formControlName="employeeNumber" [control]="ctrl['employeeNumber']" [required]="true" />
-
-        <app-input label="Nom" id="lastName" type="text"
-          formControlName="lastName" [control]="ctrl['lastName']" [required]="true" />
-
-        <app-input label="Prénom" id="firstName" type="text"
-          formControlName="firstName" [control]="ctrl['firstName']" [required]="true" />
+          formControlName="employeeNumber" [control]="ctrl['employeeNumber']" [required]="true"
+          placeholder="Ex: EMP-001" />
 
         <app-select label="Genre" id="gender" formControlName="gender"
-          [options]="genderOptions" [control]="ctrl['gender']" placeholder="Sélectionner le genre" />
+          [options]="genderOptions" [control]="ctrl['gender']" [required]="true"
+          placeholder="Sélectionner le genre" />
 
-        <app-input label="Email" id="email" type="email"
-          formControlName="email" [control]="ctrl['email']" />
+        <app-input label="Nom" id="lastName" type="text"
+          formControlName="lastName" [control]="ctrl['lastName']" [required]="true"
+          placeholder="Nom de famille" />
 
-        <app-input label="Téléphone" id="phone" type="tel"
-          formControlName="phone" [control]="ctrl['phone']" />
-
-        <app-input label="Date d'embauche" id="employmentDate" type="date"
-          formControlName="employmentDate" [control]="ctrl['employmentDate']" [required]="true" />
+        <app-input label="Prénom" id="firstName" type="text"
+          formControlName="firstName" [control]="ctrl['firstName']" [required]="true"
+          placeholder="Prénom(s)" />
 
         <app-input label="Date de naissance" id="birthDate" type="date"
           formControlName="birthDate" [control]="ctrl['birthDate']" />
 
-        <app-input label="Spécialité" id="speciality" type="text"
-          formControlName="speciality" [control]="ctrl['speciality']" />
-
-        <app-input label="Niveau" id="level" type="text"
-          formControlName="level" [control]="ctrl['level']" />
-
-        <app-input label="Adresse" id="address" type="text"
-          formControlName="address" [control]="ctrl['address']" />
-
-        <app-input label="Ville" id="city" type="text"
-          formControlName="city" [control]="ctrl['city']" />
-
-        <app-input label="Pays" id="country" type="text"
-          formControlName="country" [control]="ctrl['country']" />
-
-        <app-input label="N° CNI" id="cniNumber" type="text"
-          formControlName="cniNumber" [control]="ctrl['cniNumber']" />
-
-        <div class="flex flex-col gap-1.5">
-          <label class="form-label">Photo</label>
+        <div class="flex flex-col gap-1.5 sm:col-span-2">
+          <label class="form-label font-medium text-sm text-gray-700 dark:text-gray-300">Photo de profil</label>
           <app-photo-upload
             [photoUrl]="ctrl['photoUrl'].value"
             (photoUrlChange)="ctrl['photoUrl'].setValue($event)"
@@ -61,17 +43,118 @@
             uploadType="photos/teachers"
           />
         </div>
-
       </app-form-body>
     </app-page-form-body>
 
-    <div class="flex items-center justify-between gap-3 pt-2">
-      <app-button type="button" variant="ghost" (click)="cancel()">Annuler</app-button>
+    <!-- Section 2: Position, Affectation & Statut -->
+    <app-page-form-body>
+      <div class="mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Position & Affectation</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Rôle au sein de l'établissement, période d'affectation et statut</p>
+      </div>
+
+      <app-form-body>
+        <app-select
+          label="Position / Rôle"
+          id="position"
+          formControlName="position"
+          [options]="positionOptions"
+          [control]="ctrl['position']"
+          [required]="true"
+          placeholder="Sélectionner une position (Enseignant, Directeur...)"
+        />
+
+        <app-select
+          label="Statut de l'affectation"
+          id="assignmentStatus"
+          formControlName="assignmentStatus"
+          [options]="assignmentStatusOptions"
+          [control]="ctrl['assignmentStatus']"
+          placeholder="Statut de l'affectation"
+        />
+
+        <app-input
+          label="Date de début de l'affectation"
+          id="startDate"
+          type="date"
+          formControlName="startDate"
+          [control]="ctrl['startDate']"
+          [required]="true"
+        />
+
+        <app-input
+          label="Date de fin de l'affectation (optionnel)"
+          id="endDate"
+          type="date"
+          formControlName="endDate"
+          [control]="ctrl['endDate']"
+        />
+      </app-form-body>
+    </app-page-form-body>
+
+    <!-- Section 3: Informations Professionnelles & Administratives -->
+    <app-page-form-body>
+      <div class="mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Informations Professionnelles</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Détails administratifs et qualifications</p>
+      </div>
+
+      <app-form-body>
+        <app-input label="Date d'embauche" id="employmentDate" type="date"
+          formControlName="employmentDate" [control]="ctrl['employmentDate']" [required]="true" />
+
+        <app-input label="Spécialité" id="speciality" type="text"
+          formControlName="speciality" [control]="ctrl['speciality']"
+          placeholder="Ex: Mathématiques, Administration..." />
+
+        <app-input label="Niveau d'études / Qualification" id="level" type="text"
+          formControlName="level" [control]="ctrl['level']"
+          placeholder="Ex: Master, Licence, Bac..." />
+
+        <app-input label="N° CNI / Pièce d'identité" id="cniNumber" type="text"
+          formControlName="cniNumber" [control]="ctrl['cniNumber']"
+          placeholder="Numéro de pièce d'identité" />
+      </app-form-body>
+    </app-page-form-body>
+
+    <!-- Section 4: Coordonnées & Contact -->
+    <app-page-form-body>
+      <div class="mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Coordonnées & Contact</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Moyens de contact et adresse de résidence</p>
+      </div>
+
+      <app-form-body>
+        <app-input label="Email" id="email" type="email"
+          formControlName="email" [control]="ctrl['email']"
+          placeholder="exemple@domaine.com" />
+
+        <app-input label="Téléphone" id="phone" type="tel"
+          formControlName="phone" [control]="ctrl['phone']"
+          placeholder="+237 ..." />
+
+        <app-input label="Adresse" id="address" type="text"
+          formControlName="address" [control]="ctrl['address']"
+          placeholder="Adresse du domicile" />
+
+        <app-input label="Ville" id="city" type="text"
+          formControlName="city" [control]="ctrl['city']"
+          placeholder="Ville" />
+
+        <app-input label="Pays" id="country" type="text"
+          formControlName="country" [control]="ctrl['country']"
+          placeholder="Pays" />
+      </app-form-body>
+    </app-page-form-body>
+
+    <!-- Actions du formulaire -->
+    <div class="flex items-center justify-between gap-3 pt-4">
+      <app-button type="button" variant="ghost" (clicked)="cancel()">Annuler</app-button>
       <app-button type="submit" [disabled]="form.invalid || isSubmitting()" variant="primary">
         @if (isSubmitting()) {
-          <span>Enregistrement...</span>
+          <span>Enregistrement en cours...</span>
         } @else {
-          <span>{{ isEditMode() ? 'Mettre à jour' : 'Créer' }}</span>
+          <span>{{ isEditMode() ? 'Mettre à jour le membre' : 'Créer le membre' }}</span>
         }
       </app-button>
     </div>

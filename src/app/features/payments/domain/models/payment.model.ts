@@ -7,6 +7,8 @@ export type PaymentType = TypePaiement;
 export interface Payment {
   id?: number;
   studentId: number;
+  /** Matricule de l'étudiant (ex: GSBP-000001) — renvoyé par le backend dans studentNumber */
+  studentNumber?: string | null;
   studentName?: string;
   amount: number;
   paymentDate: string;

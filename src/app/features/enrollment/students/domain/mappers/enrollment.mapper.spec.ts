@@ -31,6 +31,6 @@ describe('EnrollmentMapper', () => {
     expect(payload.student?.lastNameStudent).toBe('Doe');
     expect(payload.classeRoom?.nameClasse).toBe('CM1');
     expect(payload.montant?.count).toBe(15000);
-    expect(payload.anneescolaire?.libelleAnneeScolaire).toBe('2026-2027');
+    expect(payload.anneescolaire?.libelleAcademicYear).toBe('2026-2027');
   });
 });

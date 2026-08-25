@@ -29,6 +29,8 @@ export interface SchoolStudentApi {
   id?: number | string | null;
   firstNameStudent?: string | null;
   lastNameStudent?: string | null;
+  /** Matricule de l'étudiant renvoyé par le backend */
+  studentNumber?: string | null;
   dateOfBirth?: SchoolDocumentApiDateValue;
   registrationDate?: SchoolDocumentApiDateValue;
 }

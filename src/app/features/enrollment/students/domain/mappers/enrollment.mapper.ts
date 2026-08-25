@@ -107,7 +107,7 @@ export class EnrollmentMapper {
       level: classroom?.level ?? null,
       capacity: classroom?.capacity ?? null,
       section: this.sectionFromApi(classroom?.section),
-      anneeScolaire: this.schoolYearFromApi(classroom?.anneeScolaire),
+      academicYear: this.schoolYearFromApi(classroom?.academicYear),
       description: classroom?.description ?? null,
     };
   }
@@ -126,9 +126,8 @@ export class EnrollmentMapper {
   ): SchoolYearEntity {
     return {
       id: this.asId(schoolYear?.id),
-      // Backend AcademicYearDTO uses libelleAcademicYear; legacy alias libelleAnneeScolaire kept for compat
-      libelleAcademicYear: schoolYear?.libelleAcademicYear ?? schoolYear?.libelleAnneeScolaire ?? null,
-      libelleAnneeScolaire: schoolYear?.libelleAnneeScolaire ?? schoolYear?.libelleAcademicYear ?? null,
+      libelleAcademicYear: schoolYear?.libelleAcademicYear ?? null,
+      libelleAnneeScolaire: schoolYear?.libelleAcademicYear ?? null,
       dateDebut: schoolYear?.dateDebut ?? null,
       dateFin: schoolYear?.dateFin ?? null,
       statutCode: schoolYear?.statutCode ?? null,
@@ -143,13 +142,14 @@ export class EnrollmentMapper {
   }
 
   static classroomToApi(classroom?: ClassroomEntity | null): Class {
+    const schoolYear = this.schoolYearToApi(classroom?.academicYear);
     return {
       id: this.asNumber(classroom?.id) ?? undefined,
       nameClasse: classroom?.nameClasse ?? "",
       level: classroom?.level ?? "",
       capacity: classroom?.capacity ?? 0,
       section: this.sectionToApi(classroom?.section),
-      anneeScolaire: this.schoolYearToApi(classroom?.anneeScolaire),
+      academicYear: schoolYear,
       description: classroom?.description ?? undefined,
     };
   }
@@ -166,7 +166,7 @@ export class EnrollmentMapper {
   static schoolYearToApi(schoolYear?: SchoolYearEntity | null): AnneeScolaire {
     return {
       id: this.asNumber(schoolYear?.id) ?? undefined,
-      libelleAnneeScolaire: schoolYear?.libelleAnneeScolaire ?? "",
+      libelleAcademicYear: schoolYear?.libelleAcademicYear ?? "",
       dateDebut: schoolYear?.dateDebut ?? "",
       dateFin: schoolYear?.dateFin ?? "",
       statutCode: schoolYear?.statutCode ?? false,

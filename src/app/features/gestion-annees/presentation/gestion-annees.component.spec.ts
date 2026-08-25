@@ -15,7 +15,7 @@ describe('GestionAnneesComponent', () => {
             create: () =>
               of({
                 id: 1,
-                libelleAnneeScolaire: '2024-2025',
+                libelleAcademicYear: '2024-2025',
                 dateDebut: '2024-09-01',
                 dateFin: '2025-06-30',
                 statutCode: true,

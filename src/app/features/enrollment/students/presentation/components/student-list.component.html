@@ -52,7 +52,7 @@
       class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
     >
       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
-        {{ student.id }}
+        {{ student.studentNumber ?? ('studentPage.noMatricule' | translate) }}
       </td>
       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
         {{ student.lastNameStudent }}

@@ -85,6 +85,23 @@ export interface StaffPositionOption {
   label: string;
 }
 
+export const STAFF_POSITIONS: StaffPositionOption[] = [
+  { code: 'TEACHER', label: 'Enseignant(e)' },
+  { code: 'DIRECTOR', label: 'Directeur / Directrice' },
+  { code: 'SECRETARY', label: 'Secrétaire' },
+  { code: 'ACCOUNTANT', label: 'Comptable' },
+  { code: 'CLEANER', label: "Agent d'entretien" },
+  { code: 'SECURITY_GUARD', label: 'Agent de sécurité' },
+];
+
+export function getPositionLabel(position?: StaffPosition | string | null): string {
+  if (!position) return 'Non assigné';
+  const found = STAFF_POSITIONS.find((p) => p.code === position);
+  return found ? found.label : position;
+}
+
+export type AssignmentStatus = 'ACTIVE' | 'INACTIVE';
+
 export interface StaffMemberCreateRequest {
   employeeNumber: string;
   firstName: string;
@@ -110,3 +127,12 @@ export interface StaffAssignmentCreateRequest {
   startDate: string;
   endDate?: string;
 }
+
+export interface StaffMemberFormData extends StaffMemberCreateRequest {
+  position?: StaffPosition;
+  startDate?: string;
+  endDate?: string;
+  assignmentStatus?: AssignmentStatus;
+  active?: boolean;
+}
+

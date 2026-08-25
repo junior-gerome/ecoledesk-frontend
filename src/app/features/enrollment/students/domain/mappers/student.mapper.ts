@@ -21,10 +21,11 @@ export interface BackendStudentApi {
 
 export class StudentMapper {
   static fromApi(
-    student: (Partial<StudentRecord> & { guardian?: GuardianApi | null; photoUrl?: string }) | null | undefined,
+    student: (Partial<StudentRecord> & { studentNumber?: string | null; guardian?: GuardianApi | null; photoUrl?: string }) | null | undefined,
   ): StudentEntity {
     return {
       id: this.asId(student?.id),
+      studentNumber: student?.studentNumber ?? null,
       lastNameStudent: student?.lastNameStudent ?? '',
       firstNameStudent: student?.firstNameStudent ?? '',
       dateOfBirth: this.normalizeDate(student?.dateOfBirth),

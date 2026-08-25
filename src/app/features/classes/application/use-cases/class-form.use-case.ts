@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { AnneeScolaire } from "@app/features/gestion-annees/domain/models";
 import { Section } from "@app/features/section/domain/models";
-import { Teacher } from "@app/features/teachers/domain/models";
+import { StaffMemberBasic } from "@app/features/staff/domain/models/staff.model";
 import { NotificationService } from "@app/core/notification/notification.service";
 import { SelectOption } from "@app/shared/ui/select/select.component";
 import { finalize, forkJoin, of } from "rxjs";
@@ -30,27 +30,29 @@ export class ClassFormUseCase {
   readonly activeAcademicYear = signal<AnneeScolaire | null>(null);
   readonly classId = signal<number | null>(null);
   readonly sections = signal<Section[]>([]);
-  readonly teachers = signal<Teacher[]>([]);
+  readonly teachers = signal<StaffMemberBasic[]>([]);
   readonly error = signal<string | null>(null);
 
-  readonly sectionOptions = computed<SelectOption<number>[]>(() =>
+  readonly sectionOptions = computed<SelectOption<string>[]>(() =>
     this.sections()
-      .filter((section) => Number(section.id))
+      .filter((section) => !!section.libelle)
       .map((section) => ({
-        value: Number(section.id),
-        label: section.libelle ?? `Section ${section.id}`,
+        value: section.libelle,
+        label: section.libelle,
       })),
   );
 
   readonly teacherOptions = computed<SelectOption<number>[]>(() =>
     this.teachers()
       .filter((teacher) => Number(teacher.id))
-      .map((teacher) => ({
-        value: Number(teacher.id),
-        label: `${teacher.firstnameTeacher ?? ""} ${
-          teacher.lastnameTeacher ?? ""
-        }`.trim(),
-      })),
+      .map((teacher) => {
+        const name = `${teacher.firstName ?? ''} ${teacher.lastName ?? ''}`.trim();
+        const matricule = teacher.employeeNumber ? ` (${teacher.employeeNumber})` : '';
+        return {
+          value: Number(teacher.id),
+          label: `${name}${matricule}`.trim() || `Enseignant #${teacher.id}`,
+        };
+      }),
   );
 
   readonly classForm: FormGroup = this.fb.group({
@@ -58,7 +60,7 @@ export class ClassFormUseCase {
     level: ["", Validators.required],
     capacity: ["", [Validators.required, Validators.min(1)]],
     sectionId: [null, Validators.required],
-    teacherId: [null, Validators.required],
+    teacherId: [null],
     anneeScolaireId: [null],
     description: [""],
   });
@@ -81,6 +83,9 @@ export class ClassFormUseCase {
       classId: this.classId(),
       isEditMode: this.isEditMode(),
       formValue: this.classForm.getRawValue() as ClassFormValue,
+      sections: this.sections(),
+      teachers: this.teachers(),
+      activeAcademicYear: this.activeAcademicYear(),
     });
 
     const request$ =
@@ -103,8 +108,11 @@ export class ClassFormUseCase {
           );
           void this.router.navigate(["/classes"]);
         },
-        error: (error: { status?: number }) => {
-          const message = this.domain.createSaveErrorMessage(error?.status);
+        error: (error: { status?: number; error?: unknown }) => {
+          const message = this.domain.createSaveErrorMessage(
+            error?.status,
+            error?.error,
+          );
           this.error.set(message);
           this.notificationService.error(message, 0);
         },
@@ -147,9 +155,21 @@ export class ClassFormUseCase {
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(({ sections, teachers, academicYear }) => {
-        this.sections.set(sections);
-        this.teachers.set(teachers);
+        this.sections.set(sections || []);
+        this.teachers.set(teachers || []);
         this.activeAcademicYear.set(academicYear);
+
+        if (sections && sections.length > 0 && !this.classForm.value.sectionId) {
+          const francophoneSection = sections.find(
+            (section) =>
+              (section.libelle ?? "").trim().toLocaleLowerCase("fr-FR") ===
+              "francophone",
+          );
+          const defaultSection = francophoneSection || sections[0];
+          if (defaultSection?.libelle) {
+            this.classForm.patchValue({ sectionId: defaultSection.libelle });
+          }
+        }
 
         if (academicYear && !this.classForm.value.anneeScolaireId) {
           this.classForm.patchValue({
@@ -186,8 +206,8 @@ export class ClassFormUseCase {
       .subscribe({
         next: (classroom) => {
           this.classForm.patchValue(this.domain.toFormValue(classroom));
-          if (classroom.anneeScolaire) {
-            this.activeAcademicYear.set(classroom.anneeScolaire);
+          if (classroom.academicYear) {
+            this.activeAcademicYear.set(classroom.academicYear);
           }
         },
         error: (error) => {

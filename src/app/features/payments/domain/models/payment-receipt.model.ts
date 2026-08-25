@@ -13,6 +13,8 @@ export interface PaymentReceiptFilters {
 export interface PaymentReceiptViewModel {
   id: number;
   studentId: number;
+  /** Matricule de l'étudiant (ex: GSBP-000001 ou STU-XXXXXXXX) */
+  studentNumber?: string | null;
   studentName: string;
   paymentDate: string;
   dueDate: string;
@@ -30,6 +32,8 @@ export interface PaymentReceiptViewModel {
 export interface PaymentReceiptDocumentViewModel {
   id: number;
   studentId: number;
+  /** Matricule de l'étudiant */
+  studentNumber?: string | null;
   studentName: string;
   paymentDate: string;
   dueDate: string;

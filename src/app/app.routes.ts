@@ -169,6 +169,19 @@ loadChildren: () =>
           ),
       },
       {
+        path: 'staff',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          accessPolicy: ACCESS_POLICIES.settingsRead,
+          roles: ROLE_GROUPS.ADMIN_ONLY,
+          permissions: [APP_PERMISSIONS.SETTINGS_READ],
+        },
+        loadChildren: () =>
+          import('./features/staff/staff.routes').then(
+            (m) => m.STAFF_ROUTES,
+          ),
+      },
+      {
         path: 'settings',
         canActivate: [roleGuard, permissionGuard],
         data: {

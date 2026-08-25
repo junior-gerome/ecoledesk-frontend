@@ -1,4 +1,4 @@
-import { HttpClient, HttpContext } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { AnneeScolaire } from '@app/features/gestion-annees/domain/models';
 import { SILENT_REQUEST } from '@app/core/interceptors/http-context-tokens';
@@ -54,6 +54,34 @@ interface EnrollmentCommandResponse {
   status?: string | null;
 }
 
+/**
+ * EnrollmentMediumDTO shape from GET /enrollments (EnrollmentQueryController).
+ * Maps to EnrollmentEntity for use in the student page store.
+ */
+interface EnrollmentMediumApiResponse {
+  id?: number | string | null;
+  number?: string | null;
+  status?: string | null;
+  type?: string | null;
+  enrollmentDate?: string | null;
+  confirmationDate?: string | null;
+  student?: {
+    id?: number | string | null;
+    studentNumber?: string | null;
+    person?: {
+      firstName?: string | null;
+      lastName?: string | null;
+    } | null;
+    /** Legacy fields still present on some endpoints */
+    firstNameStudent?: string | null;
+    lastNameStudent?: string | null;
+  } | null;
+  classroomId?: number | string | null;
+  classroomName?: string | null;
+  academicYearId?: number | string | null;
+  academicYearLabel?: string | null;
+}
+
 @Injectable()
 export class StudentEnrollmentRepository implements EnrollmentRepository {
   private readonly http = inject(HttpClient);
@@ -71,13 +99,16 @@ export class StudentEnrollmentRepository implements EnrollmentRepository {
   }
 
   /**
-   * The legacy /preinscription endpoint no longer exists.
-   * The enrollment query API (GET /enrollments, GET /pre-enrollments) exposes
-   * only command operations — no list GET endpoint is available yet.
-   * Returns empty until a dedicated query endpoint is added on the backend.
+   * Returns the list of enrollments via GET /enrollments (now exposed by EnrollmentQueryController).
+   * Maps EnrollmentMediumDTO → EnrollmentEntity for use in the student page store.
    */
   getEnrollments(): Observable<EnrollmentEntity[]> {
-    return of([]);
+    return this.http
+      .get<{ content?: EnrollmentMediumApiResponse[] }>(`${environment.apiUrl}/enrollments?size=500`)
+      .pipe(
+        map((response) => (response?.content ?? []).map((item) => this.fromEnrollmentMedium(item))),
+        catchError(() => of([] as EnrollmentEntity[])),
+      );
   }
 
   getSections(): Observable<SectionEntity[]> {
@@ -92,9 +123,10 @@ export class StudentEnrollmentRepository implements EnrollmentRepository {
       .pipe(map((classes) => (classes ?? []).map((classroom) => EnrollmentMapper.classroomFromApi(classroom))));
   }
 
-  getClassesBySection(sectionId: string): Observable<ClassroomEntity[]> {
+  getClassesBySection(sectionId: string, academicYearId?: string | null): Observable<ClassroomEntity[]> {
+    const params = academicYearId ? new HttpParams().set('academicYearId', academicYearId) : undefined;
     return this.http
-      .get<Class[]>(`${environment.apiUrl}/classes/by-section/${sectionId}`)
+      .get<Class[]>(`${environment.apiUrl}/classes/by-section/${sectionId}`, { params })
       .pipe(map((classes) => (classes ?? []).map((classroom) => EnrollmentMapper.classroomFromApi(classroom))));
   }
 
@@ -205,6 +237,47 @@ export class StudentEnrollmentRepository implements EnrollmentRepository {
   }
 
   // ─── Private mapping helpers ──────────────────────────────────────────────
+
+  /**
+   * Maps EnrollmentMediumApiResponse → EnrollmentEntity.
+   * EnrollmentMediumDTO (backend) uses a StudentBasicDTO which embeds PersonBasicDTO.
+   */
+  private fromEnrollmentMedium(item: EnrollmentMediumApiResponse): EnrollmentEntity {
+    const studentId = item.student?.id != null ? String(item.student.id) : null;
+    // PersonBasicDTO nests name in person.firstName/lastName; legacy StudentDTO uses firstNameStudent/lastNameStudent
+    const firstName = item.student?.person?.firstName ?? item.student?.firstNameStudent ?? '';
+    const lastName = item.student?.person?.lastName ?? item.student?.lastNameStudent ?? '';
+    const studentNumber = item.student?.studentNumber ?? null;
+
+    return {
+      id: item.id != null ? String(item.id) : null,
+      studentId,
+      student: studentId
+        ? {
+            id: studentId,
+            studentNumber,
+            firstNameStudent: firstName,
+            lastNameStudent: lastName,
+            dateOfBirth: null,
+            ecolePrecedente: '',
+          }
+        : null,
+      classeRoomId: item.classroomId != null ? String(item.classroomId) : null,
+      classeRoom: item.classroomId != null
+        ? { id: String(item.classroomId), nameClasse: item.classroomName ?? null }
+        : null,
+      anneeScolaireId: item.academicYearId != null ? String(item.academicYearId) : null,
+      anneescolaire: item.academicYearId != null
+        ? {
+            id: String(item.academicYearId),
+            libelleAcademicYear: item.academicYearLabel ?? null,
+            libelleAnneeScolaire: item.academicYearLabel ?? null,
+          }
+        : null,
+      dateInscription: item.enrollmentDate ?? null,
+      statutPreinscription: this.mapEnrollmentStatus(item.status),
+    };
+  }
 
   private toCreatePreEnrollmentPayload(enrollment: EnrollmentEntity): CreatePreEnrollmentPayload {
     const student = enrollment.student;

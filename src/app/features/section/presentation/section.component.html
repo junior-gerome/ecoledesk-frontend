@@ -1,8 +1,16 @@
 <app-page-layout>
-  <app-page-header [title]="isEditMode() ? ('sectionPage.editTitle' | translate) : ('sectionPage.createTitle' | translate)">
+  <app-page-header
+    [title]="isEditMode() ? ('sectionPage.editTitle' | translate) : ('sectionPage.createTitle' | translate)"
+  >
+    <div class="flex items-center gap-3">
+      <app-badge variant="info" size="sm">
+        {{ sections().length }} {{ 'sectionPage.title' | translate | lowercase }}
+      </app-badge>
+    </div>
   </app-page-header>
 
-  <form [formGroup]="sectionForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+  <!-- Formulaire de création / modification -->
+  <form [formGroup]="sectionForm" (ngSubmit)="onSubmit()" class="mt-6 space-y-6">
     <app-page-form-body>
       <app-form-body>
         <app-input
@@ -11,31 +19,37 @@
           formControlName="libelle"
           [control]="ctrl['libelle']"
           [required]="true"
+          placeholder="Ex: Section Francophone, Section Anglophone"
         />
 
         <app-input
           [label]="'sectionPage.schoolYear' | translate"
           id="anneeScolaire"
           type="text"
-          [value]="activeSchoolYear()?.libelleAnneeScolaire || ('sectionPage.loading' | translate)"
+          [value]="activeSchoolYear()?.libelleAcademicYear || ('sectionPage.loading' | translate)"
           [readonly]="true"
         />
 
-        <div class="mb-6">
+        <div class="sm:col-span-2">
           <app-textarea
             [label]="'common.description' | translate"
             formControlName="description"
             [control]="ctrl['description']"
             [rows]="2"
+            placeholder="Description optionnelle de la section..."
           />
         </div>
       </app-form-body>
     </app-page-form-body>
 
-    <div class="flex justify-between space-x-4">
-      <app-button type="button" variant="ghost" (clicked)="cancel()">
-        {{ 'common.cancel' | translate }}
-      </app-button>
+    <div class="flex items-center justify-between gap-4">
+      @if (isEditMode()) {
+        <app-button type="button" variant="ghost" (clicked)="cancel()">
+          {{ 'common.cancel' | translate }}
+        </app-button>
+      } @else {
+        <div></div>
+      }
       <app-button
         type="submit"
         variant="primary"
@@ -46,9 +60,108 @@
     </div>
 
     @if (error()) {
-      <div class="mt-4 rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200">
+      <div class="mt-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200">
         {{ error() }}
       </div>
     }
   </form>
+
+  <!-- Liste des Sections affichée en dessous -->
+  <div class="mt-12 space-y-4">
+    <div class="flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          Liste des Sections
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Toutes les sections configurées pour l'établissement
+        </p>
+      </div>
+      <app-badge variant="neutral" size="sm">
+        {{ sections().length }} section(s)
+      </app-badge>
+    </div>
+
+    <app-table
+      [empty]="sections().length === 0"
+      [emptyColspan]="4"
+      emptyMessage="Aucune section enregistrée pour le moment."
+    >
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+        N°
+      </th>
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+        Nom de la Section
+      </th>
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+        Description
+      </th>
+      <th table-head scope="col" class="flex justify-center py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
+        {{ 'common.actions' | translate }}
+      </th>
+
+      @for (section of sections(); track section.id; let idx = $index) {
+        <tr table-body class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50" [class.bg-primary-50]="editingSectionId() === section.id">
+          <td class="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900 sm:pl-6 dark:text-gray-100">
+            {{ idx + 1 }}
+          </td>
+          <td class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {{ section.libelle }}
+          </td>
+          <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-300 max-w-md truncate">
+            {{ section.description || '—' }}
+          </td>
+          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
+            <div class="flex justify-center gap-3">
+              <app-button
+                type="button"
+                variant="secondary"
+                size="sm"
+                (clicked)="editSection(section)"
+              >
+                {{ 'common.edit' | translate }}
+              </app-button>
+              <app-button
+                type="button"
+                variant="danger"
+                size="sm"
+                (clicked)="requestDelete(section)"
+              >
+                {{ 'common.delete' | translate }}
+              </app-button>
+            </div>
+          </td>
+        </tr>
+      }
+    </app-table>
+  </div>
+
+  <!-- Modal de confirmation de suppression -->
+  <app-modal
+    [open]="!!sectionPendingDeletion()"
+    title="Supprimer la Section"
+    size="md"
+    [showFooter]="true"
+    (closed)="closeDeleteModal()"
+  >
+    <p class="text-sm text-gray-600 dark:text-gray-300">
+      Êtes-vous sûr de vouloir supprimer la section
+      <span class="font-semibold text-gray-900 dark:text-gray-100">
+        "{{ sectionPendingDeletion()?.libelle }}"
+      </span> ?
+      <br />
+      <span class="text-xs text-red-500 mt-2 block">
+        Attention : cette action échouera si des classes sont rattachées à cette section.
+      </span>
+    </p>
+
+    <div modal-footer class="flex justify-end gap-3">
+      <app-button type="button" variant="ghost" (clicked)="closeDeleteModal()">
+        {{ 'common.cancel' | translate }}
+      </app-button>
+      <app-button type="button" variant="danger" (clicked)="confirmDelete()">
+        {{ 'common.delete' | translate }}
+      </app-button>
+    </div>
+  </app-modal>
 </app-page-layout>

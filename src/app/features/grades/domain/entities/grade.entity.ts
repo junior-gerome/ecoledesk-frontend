@@ -1,6 +1,6 @@
 import { GradeResponse } from "@app/features/grades/domain/models";
-import { CoefficientValueObject } from "../value-objects/coefficient.value-object";
-import { ScoreValueObject } from "../value-objects/score.value-object";
+import { Coefficient } from "../value-objects/coefficient.value-object";
+import { Score } from "../value-objects/score.value-object";
 
 export interface GradeEntityProps {
   id: number;
@@ -13,8 +13,8 @@ export interface GradeEntityProps {
   period: string;
   comments: string;
   assessmentDate: string;
-  score: ScoreValueObject;
-  coefficient: CoefficientValueObject;
+  score: Score;
+  coefficient: Coefficient;
 }
 
 export class GradeEntity {
@@ -28,8 +28,8 @@ export class GradeEntity {
   readonly period: string;
   readonly comments: string;
   readonly assessmentDate: string;
-  readonly score: ScoreValueObject;
-  readonly coefficient: CoefficientValueObject;
+  readonly score: Score;
+  readonly coefficient: Coefficient;
 
   constructor(props: GradeEntityProps) {
     this.id = props.id;
@@ -58,8 +58,8 @@ export class GradeEntity {
       period: response.period ?? "",
       comments: response.comments ?? "",
       assessmentDate: response.assessmentDate ?? "",
-      score: ScoreValueObject.fromUnsafe(response.score, 0),
-      coefficient: CoefficientValueObject.fromUnsafe(response.coefficient, 1),
+      score: Score.fromUnsafe(response.score, 0),
+      coefficient: Coefficient.fromUnsafe(response.coefficient, 1),
     });
   }
 

@@ -1,4 +1,4 @@
-import { Teacher } from "@app/features/teachers/domain/models";
+import { StaffMemberBasic } from "@app/features/staff/domain/models/staff.model";
 import { AnneeScolaire } from "@app/features/gestion-annees/domain/models";
 import { Section } from "@app/features/section/domain/models";
 
@@ -7,9 +7,8 @@ export interface Class {
   nameClasse: string;
   level: string;
   capacity: number;
-  teacher?: Teacher;
+  teacher?: StaffMemberBasic;
   section: Section;
-  //actif: boolean;
-  anneeScolaire: AnneeScolaire;
+  academicYear: AnneeScolaire;
   description?: string;
 }

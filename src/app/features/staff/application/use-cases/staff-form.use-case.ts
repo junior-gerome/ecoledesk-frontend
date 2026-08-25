@@ -1,7 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
+import { of, switchMap } from 'rxjs';
 import { NotificationService } from '@app/core/notification/notification.service';
-import { StaffMemberCreateRequest, StaffMemberFull } from '../../domain/models/staff.model';
+import {
+  STAFF_POSITIONS,
+  StaffAssignmentBasic,
+  StaffAssignmentCreateRequest,
+  StaffMemberFormData,
+  StaffMemberFull,
+  StaffPositionOption,
+} from '../../domain/models/staff.model';
 import { STAFF_REPOSITORY } from '../../domain/repositories/staff.repository';
 
 @Injectable()
@@ -11,10 +19,55 @@ export class StaffFormUseCase {
 
   readonly isSubmitting = signal(false);
   readonly error = signal<string | null>(null);
+  readonly positions = signal<StaffPositionOption[]>(STAFF_POSITIONS);
 
-  getById(id: number, onSuccess: (member: StaffMemberFull) => void): void {
+  loadPositions(): void {
+    this.repository.getPositions().subscribe({
+      next: (serverPositions) => {
+        if (serverPositions && serverPositions.length > 0) {
+          // Merge labels from STAFF_POSITIONS if server position labels are raw keys
+          const mapped = serverPositions.map((sp) => {
+            const local = STAFF_POSITIONS.find((lp) => lp.code === sp.code);
+            return {
+              code: sp.code,
+              label: local?.label ?? sp.label ?? sp.code,
+            };
+          });
+          this.positions.set(mapped);
+        }
+      },
+      error: () => {
+        // Fallback to local STAFF_POSITIONS
+        this.positions.set(STAFF_POSITIONS);
+      },
+    });
+  }
+
+  getById(
+    id: number,
+    onSuccess: (member: StaffMemberFull, activeAssignment?: StaffAssignmentBasic) => void,
+  ): void {
     this.repository.getById(id).subscribe({
-      next: onSuccess,
+      next: (member) => {
+        // Find active assignment if available
+        let activeAssignment: StaffAssignmentBasic | undefined = member.assignments?.find(
+          (a) => !a.endDate || a.active !== false,
+        );
+
+        if (!activeAssignment && (!member.assignments || member.assignments.length === 0)) {
+          this.repository.getAssignmentsByMember(id).subscribe({
+            next: (assignments) => {
+              activeAssignment = assignments.find((a) => !a.endDate || a.active !== false);
+              onSuccess(member, activeAssignment);
+            },
+            error: () => {
+              onSuccess(member, undefined);
+            },
+          });
+        } else {
+          onSuccess(member, activeAssignment);
+        }
+      },
       error: () => {
         this.error.set('Impossible de charger le membre du personnel.');
         this.notificationService.error('Impossible de charger le membre du personnel.', 0);
@@ -22,30 +75,80 @@ export class StaffFormUseCase {
     });
   }
 
-  save(id: number | undefined, request: StaffMemberCreateRequest, onSuccess: () => void): void {
+  save(
+    id: number | undefined,
+    formData: StaffMemberFormData,
+    onSuccess: () => void,
+  ): void {
     this.isSubmitting.set(true);
     this.error.set(null);
 
-    const request$ = id
-      ? this.repository.update(id, request)
-      : this.repository.create(request);
+    const { position, startDate, endDate, assignmentStatus, ...memberRequest } = formData;
 
-    request$.subscribe({
-      next: () => {
-        this.notificationService.success(
-          id ? 'Membre mis à jour avec succès.' : 'Membre créé avec succès.',
-          0,
-        );
-        this.isSubmitting.set(false);
-        onSuccess();
-      },
-      error: (err: unknown) => {
-        const message = this.extractError(err);
-        this.error.set(message);
-        this.notificationService.error(message, 0);
-        this.isSubmitting.set(false);
-      },
-    });
+    if (id) {
+      // Update existing member
+      this.repository.update(id, memberRequest).pipe(
+        switchMap((updatedMember) => {
+          if (position && startDate) {
+            const assignmentReq: StaffAssignmentCreateRequest = {
+              staffMemberId: id,
+              position,
+              startDate,
+              endDate: endDate || undefined,
+            };
+            return this.repository.createAssignment(assignmentReq).pipe(
+              switchMap(() => of(updatedMember)),
+            );
+          }
+          return of(updatedMember);
+        }),
+      ).subscribe({
+        next: () => {
+          this.notificationService.success('Membre du personnel mis à jour avec succès.', 0);
+          this.isSubmitting.set(false);
+          onSuccess();
+        },
+        error: (err: unknown) => {
+          const message = this.extractError(err);
+          this.error.set(message);
+          this.notificationService.error(message, 0);
+          this.isSubmitting.set(false);
+        },
+      });
+    } else {
+      // Create new member + initial assignment
+      this.repository.create(memberRequest).pipe(
+        switchMap((newMember: StaffMemberFull) => {
+          if (newMember.id && position && startDate) {
+            const assignmentReq: StaffAssignmentCreateRequest = {
+              staffMemberId: newMember.id,
+              position,
+              startDate,
+              endDate: endDate || undefined,
+            };
+            return this.repository.createAssignment(assignmentReq).pipe(
+              switchMap(() => of(newMember)),
+            );
+          }
+          return of(newMember);
+        }),
+      ).subscribe({
+        next: () => {
+          this.notificationService.success(
+            'Membre du personnel et affectation créés avec succès.',
+            0,
+          );
+          this.isSubmitting.set(false);
+          onSuccess();
+        },
+        error: (err: unknown) => {
+          const message = this.extractError(err);
+          this.error.set(message);
+          this.notificationService.error(message, 0);
+          this.isSubmitting.set(false);
+        },
+      });
+    }
   }
 
   private extractError(err: unknown): string {
