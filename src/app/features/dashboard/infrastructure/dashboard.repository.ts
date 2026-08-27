@@ -26,7 +26,7 @@ export class DashboardRepositoryAdapter implements DashboardRepository {
   }
 
   getTotalTeachers(): Observable<number> {
-    return this.http.get<number>(`${environment.apiUrl}/teachers/count`);
+    return this.http.get<number>(`${environment.apiUrl}/staff/members/teachers/count`);
   }
 
   getTotalClasses(): Observable<number> {
