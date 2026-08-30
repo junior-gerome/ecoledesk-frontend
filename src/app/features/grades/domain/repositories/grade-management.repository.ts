@@ -4,14 +4,14 @@ import { CreateGradeRequest } from "@app/features/grades/domain/models";
 import { GradeResponse } from "@app/features/grades/domain/models";
 import { Sequence } from "@app/features/sequence/domain/models";
 import { StudentRankingItem } from "@app/features/grades/domain/models";
-import { subject } from "@app/features/subjects/domain/models";
+import { SubjectReponse } from "@app/features/subjects/domain/models";
 import { StudentEntity } from "@features/students/domain/models/student.entity";
 import { Observable } from "rxjs";
 import { Bulletin } from "../entities";
 
 export interface GradeManagementRepository {
   getClasses(): Observable<Class[]>;
-  getSubjects(): Observable<subject[]>;
+  getSubjects(): Observable<SubjectReponse[]>;
   getSequences(): Observable<Sequence[]>;
   getStudentsByClass(classId: number): Observable<StudentEntity[]>;
 

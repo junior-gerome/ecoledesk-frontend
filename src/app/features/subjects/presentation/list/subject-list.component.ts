@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, inject, signal } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
-import { subject } from "@app/features/subjects/domain/models";
+import { SubjectReponse } from "@app/features/subjects/domain/models";
 import { SubjectService } from "@app/features/subjects/infrastructure/subject.service";
 import { first } from "rxjs";
 import { TranslateModule } from '@ngx-translate/core';
@@ -16,7 +16,7 @@ import { TableComponent } from "@app/shared/ui/table/table.component";
   styleUrls: ["./subject-list.component.scss"],
 })
 export class SubjectListComponent implements OnInit {
-  readonly subjects = signal<subject[]>([]);
+  readonly subjects = signal<SubjectReponse[]>([]);
   readonly isLoading = signal(false);
 
   private subjectService = inject(SubjectService);
@@ -35,6 +35,7 @@ export class SubjectListComponent implements OnInit {
         next: (data) => {
           this.subjects.set(data ?? []);
           this.isLoading.set(false);
+          console.log('Subjects:', this.subjects());
         },
         error: (err) => {
           console.error("Erreur lors du chargement des matières :", err);

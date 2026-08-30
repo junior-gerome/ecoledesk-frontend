@@ -35,6 +35,14 @@
           }"
         />
 
+        <!-- le code devient non modifiable -->
+
+        @if (isGeneratingCode()) {
+          <p class="form-hint mt-1">
+            Génération du code...
+          </p>
+        }
+
         <app-input
           [label]="'subjectPage.coefficient' | translate"
           id="coefficient"
@@ -53,9 +61,9 @@
 
         <app-select
           [label]="'subjectPage.status' | translate"
-          id="actif"
-          formControlName="actif"
-          [control]="ctrl['actif']"
+          id="active"
+          formControlName="active"
+          [control]="ctrl['active']"
           [options]="actifOptions"
         />
 

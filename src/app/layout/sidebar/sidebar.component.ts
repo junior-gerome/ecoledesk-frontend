@@ -72,7 +72,7 @@ export class SidebarComponent {
     {
       id: 'eleves',
       label: 'nav.categories.students',
-      defaultOpen: true,
+      defaultOpen: false,
       items: [
         {
           id: "students",
@@ -138,7 +138,9 @@ export class SidebarComponent {
             { label: "subjects.list", routerLink: "/subjects" },
             { label: "subjects.create", routerLink: "/subjects/new" },
             { label: "subjects.trimestres", routerLink: "/trimestre" },
+            { label: "new", routerLink: "/trimestre/new" },
             { label: "subjects.sequences", routerLink: "/sequence" },
+            { label: "new", routerLink: "/sequence/new" },
           ],
         },
       ],
@@ -227,25 +229,26 @@ export class SidebarComponent {
       label: 'nav.categories.administration',
       defaultOpen: false,
       items: [
-        {
-          id: "staff",
-          label: "nav.staff",
-          iconSvg: ICON.staff,
-          routerLink: "/staff",
-          accessPolicy: ACCESS_POLICIES.settingsRead,
-          children: [
-            { label: "staff.list",   routerLink: "/staff" },
-            { label: "staff.new",    routerLink: "/staff/new" },
-          ],
-        },
+        // {
+        //   id: "staff",
+        //   label: "staff",
+        //   iconSvg: ICON.staff,
+        //   routerLink: "/staff",
+        //   accessPolicy: ACCESS_POLICIES.settingsRead,
+        //   children: [
+        //     { label: "list",   routerLink: "/staff" },
+        //     { label: "new",    routerLink: "/staff/new" },
+        //   ],
+        // },
         {
           id: "settings",
           label: "nav.settings",
           iconSvg: ICON.settings,
-          routerLink: "/settings/staff",
+          routerLink: "/settings",
           accessPolicy: ACCESS_POLICIES.settingsRead,
           children: [
-            { label: "settings.staff",       routerLink: "/settings/staff" },
+            { label: "staff",       routerLink: "/staff/new" },
+            {label: "list",         routerLink: "staff"},
             { label: "settings.users",       routerLink: "/settings/users" },
             { label: "settings.preferences", routerLink: "/settings/preferences" },
             { label: "settings.audit",       routerLink: "/settings/audit" },

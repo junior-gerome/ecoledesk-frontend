@@ -51,7 +51,7 @@
         {{ 'common.actions' | translate }}
       </th>
 
-      @for(subject of subjects(); track subject.id) {
+      @for(subject of subjects(); track subject.code) {
         <tr table-body class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
           <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-white">
             {{ subject.nameSubject }}
@@ -65,9 +65,9 @@
           <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
             <span
               class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-              [ngClass]="subject.actif ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+              [ngClass]="subject.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
             >
-              {{ (subject.actif ? 'subjectPage.active' : 'subjectPage.inactive') | translate }}
+              {{ (subject.active ? 'subjectPage.active' : 'subjectPage.inactive') | translate }}
             </span>
           </td>
           <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

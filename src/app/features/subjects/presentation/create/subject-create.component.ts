@@ -7,10 +7,13 @@ import {
   ReactiveFormsModule,
   Validators,
 } from "@angular/forms";
-import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { subject } from "@app/features/subjects/domain/models";
+import { ActivatedRoute, Router } from "@angular/router";
+import { SubjectReponse, SubjectRequest } from "@app/features/subjects/domain/models";
 import { SubjectService } from "@app/features/subjects/infrastructure/subject.service";
-import { finalize, first, tap } from "rxjs";
+import { debounceTime,
+  distinctUntilChanged,
+  finalize,
+  first } from "rxjs";
 import { TranslateModule } from '@ngx-translate/core';
 import { ButtonComponent } from "@app/shared/ui/button/button.component";
 import { InputComponent } from "@app/shared/ui/input/input.component";
@@ -44,7 +47,8 @@ export class SubjectCreateComponent implements OnInit {
   /** Signals */
   readonly isEditMode = signal(false);
   readonly isSubmitting = signal(false);
-  readonly subjectId = signal<number | null>(null);
+  readonly isGeneratingCode = signal(false);
+  readonly subjectReponseId = signal<number | null>(null);
 
   private readonly subjectService = inject(SubjectService);
   private readonly fb = inject(FormBuilder);
@@ -73,41 +77,102 @@ export class SubjectCreateComponent implements OnInit {
           Validators.maxLength(100),
         ],
       ],
-      code: [
-        "",
-        [
-          Validators.required,
-          Validators.minLength(2),
-          Validators.maxLength(20),
-          Validators.pattern(/^[A-Z0-9]+$/),
-        ],
-      ],
+       // Code généré automatiquement par le backend
+      code: [""],
       coefficient: [
         1,
         [Validators.required, Validators.min(1), Validators.max(10)],
       ],
       description: ["", [Validators.maxLength(500)]],
-      actif: [true],
+      active: [true],
       createdAt: [""],
       updatedAt: [""],
     });
 
+    // this.subjectForm
+    //   .get("code")
+    //   ?.valueChanges.pipe(
+    //     tap((value) => {
+    //       if (value) {
+    //         this.subjectForm
+    //           .get("code")
+    //           ?.setValue(value.toUpperCase(), { emitEvent: false });
+    //       }
+    //     }),
+    //     takeUntilDestroyed(this.destroyRef),
+    //   )
+    //   .subscribe();
+
     this.subjectForm
-      .get("code")
-      ?.valueChanges.pipe(
-        tap((value) => {
-          if (value) {
-            this.subjectForm
-              .get("code")
-              ?.setValue(value.toUpperCase(), { emitEvent: false });
-          }
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+  .get("nameSubject")
+  ?.valueChanges
+  .pipe(
+    debounceTime(500),
+    distinctUntilChanged(),
+    takeUntilDestroyed(this.destroyRef)
+  )
+  .subscribe((value: string) => {
+
+    if (!this.isEditMode()) {
+      this.generateSubjectCode(value);
+    }
+
+  });
   }
 
   get ctrl(){return this.subjectForm.controls}
+
+ private generateSubjectCode(nameSubject: string): void {
+
+  if (!nameSubject || nameSubject.trim().length < 2) {
+
+    this.subjectForm
+      .get("code")
+      ?.setValue("");
+
+    this.isGeneratingCode.set(false);
+
+    return;
+  }
+
+  this.isGeneratingCode.set(true);
+
+  this.subjectService
+    .generateSubjectCode(nameSubject.trim())
+    .pipe(
+      first(),
+      finalize(() => {
+        this.isGeneratingCode.set(false);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe({
+
+      next: (code: string) => {
+
+        this.subjectForm
+          .get("code")
+          ?.setValue(code, {
+            emitEvent: false
+          });
+
+      },
+
+      error: (error: unknown) => {
+
+        console.error(
+          "Erreur lors de la génération du code :",
+          error
+        );
+
+        this.subjectForm
+          .get("code")
+          ?.setValue("");
+
+      }
+
+    });
+}
 
   private checkEditMode(): void {
     this.route.paramMap
@@ -117,7 +182,7 @@ export class SubjectCreateComponent implements OnInit {
         if (idParam && idParam !== "new") {
           const id = Number(idParam);
           this.isEditMode.set(true);
-          this.subjectId.set(id);
+          this.subjectReponseId.set(id);
           this.loadSubject(id);
         }
       });
@@ -151,17 +216,17 @@ export class SubjectCreateComponent implements OnInit {
     this.isSubmitting.set(true);
 
     const formValue = this.subjectForm.getRawValue();
-    const subjectData: subject = {
+    const subjectData: SubjectRequest = {
       nameSubject: formValue.nameSubject,
       code: formValue.code,
       coefficient: formValue.coefficient,
       description: formValue.description || "",
-      actif: formValue.actif,
+      active: formValue.active,
     };
 
     const operation$ =
-      this.isEditMode() && this.subjectId()
-        ? this.subjectService.updateSubject(this.subjectId()!, subjectData)
+      this.isEditMode() && this.subjectReponseId()
+        ? this.subjectService.updateSubject(this.subjectReponseId()!, subjectData)
         : this.subjectService.createSubject(subjectData);
 
     operation$

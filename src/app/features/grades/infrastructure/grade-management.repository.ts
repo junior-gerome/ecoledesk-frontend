@@ -6,7 +6,7 @@ import { GradeResponse } from "@app/features/grades/domain/models";
 import { PageResponse } from "@app/shared/domains/value-objects";
 import { Sequence } from "@app/features/sequence/domain/models";
 import { StudentRankingItem } from "@app/features/grades/domain/models";
-import { subject } from "@app/features/subjects/domain/models";
+import { SubjectRequest } from "@app/features/subjects/domain/models";
 import { environment } from "@environments/environment";
 import { StudentMapper } from "@features/students/domain/mappers/student.mapper";
 import { StudentEntity } from "@features/students/domain/models/student.entity";
@@ -90,8 +90,8 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
     return this.http.get<Class[]>(`${environment.apiUrl}/classes`);
   }
 
-  getSubjects(): Observable<subject[]> {
-    return this.http.get<subject[]>(`${environment.apiUrl}/subject`);
+  getSubjects(): Observable<SubjectRequest[]> {
+    return this.http.get<SubjectRequest[]>(`${environment.apiUrl}/subject`);
   }
 
   getSequences(): Observable<Sequence[]> {
