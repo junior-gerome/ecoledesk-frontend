@@ -75,6 +75,17 @@ export class SidebarComponent {
       defaultOpen: false,
       items: [
         {
+          id: "pre-enrollments",
+          label: "Préinscriptions",
+          iconSvg: ICON.students,
+          routerLink: "/pre-enrollments",
+          accessPolicy: ACCESS_POLICIES.studentsRead,
+          children: [
+            { label: "Dossiers de préinscription", routerLink: "/pre-enrollments" },
+            { label: "Nouvelle préinscription", routerLink: "/pre-enrollments/new" },
+          ],
+        },
+        {
           id: "students",
           label: "nav.students",
           iconSvg: ICON.students,
@@ -82,9 +93,7 @@ export class SidebarComponent {
           accessPolicy: ACCESS_POLICIES.studentsRead,
           children: [
             { label: "students.list", routerLink: "/students" },
-            { label: "students.new", routerLink: "/students/new" },
-            { label: "students.profile", routerLink: "/students",
-          accessPolicy: ACCESS_POLICIES.studentsRead, disabled: true },
+            { label: "students.new", routerLink: "/pre-enrollments/new" },
           ],
         },
         {

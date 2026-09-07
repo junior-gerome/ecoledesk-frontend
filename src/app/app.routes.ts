@@ -1,4 +1,4 @@
-﻿import { Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { APP_PERMISSIONS } from '@core/constants/permissions.constants';
 import { ROLE_GROUPS } from '@core/constants/roles.constants';
 import { authGuard } from '@core/guards/auth.guard';
@@ -47,6 +47,19 @@ loadComponent: () =>
         loadChildren: () =>
           import('./features/attendance/attendance.routes').then(
             (m) => m.ATTENDANCE_ROUTES,
+          ),
+      },
+      {
+        path: 'pre-enrollments',
+        canActivate: [roleGuard, permissionGuard],
+        data: {
+          accessPolicy: ACCESS_POLICIES.studentsRead,
+          roles: ROLE_GROUPS.STAFF,
+          permissions: [APP_PERMISSIONS.STUDENTS_READ],
+        },
+        loadChildren: () =>
+          import('./features/pre-enrollments/pre-enrollments.routes').then(
+            (m) => m.PRE_ENROLLMENTS_ROUTES,
           ),
       },
       {

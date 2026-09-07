@@ -1,0 +1,486 @@
+<app-page-layout>
+  <app-page-header
+    title="Nouvelle Préinscription"
+    subtitle="Création assistée d’un dossier de préinscription pour un élève"
+  >
+    <app-button
+      type="button"
+      variant="secondary"
+      routerLink="/pre-enrollments"
+    >
+      Retour à la liste
+    </app-button>
+  </app-page-header>
+
+  <!-- Stepper Indicator -->
+  <div class="mt-6 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="flex items-center justify-between max-w-2xl mx-auto">
+      <!-- Step 1 -->
+      <div class="flex items-center gap-2 cursor-pointer" (click)="goToStep(1)">
+        <div
+          [class]="currentStep() >= 1
+            ? 'w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-sm shadow'
+            : 'w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center font-bold text-sm'"
+        >
+          1
+        </div>
+        <span class="text-xs font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">Candidat</span>
+      </div>
+
+      <div class="flex-1 h-0.5 mx-2" [class]="currentStep() > 1 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
+
+      <!-- Step 2 -->
+      <div class="flex items-center gap-2 cursor-pointer" (click)="goToStep(2)">
+        <div
+          [class]="currentStep() >= 2
+            ? 'w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-sm shadow'
+            : 'w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center font-bold text-sm'"
+        >
+          2
+        </div>
+        <span class="text-xs font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">Responsables</span>
+      </div>
+
+      <div class="flex-1 h-0.5 mx-2" [class]="currentStep() > 2 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
+
+      <!-- Step 3 -->
+      <div class="flex items-center gap-2 cursor-pointer" (click)="goToStep(3)">
+        <div
+          [class]="currentStep() >= 3
+            ? 'w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-sm shadow'
+            : 'w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center font-bold text-sm'"
+        >
+          3
+        </div>
+        <span class="text-xs font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">Documents</span>
+      </div>
+
+      <div class="flex-1 h-0.5 mx-2" [class]="currentStep() >= 4 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
+
+      <!-- Step 4 -->
+      <div class="flex items-center gap-2 cursor-pointer" (click)="goToStep(4)">
+        <div
+          [class]="currentStep() === 4
+            ? 'w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-sm shadow'
+            : 'w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center font-bold text-sm'"
+        >
+          4
+        </div>
+        <span class="text-xs font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">Récapitulatif</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages d'erreur -->
+  @if (error()) {
+    <div class="mt-4 rounded-xl bg-red-50 dark:bg-red-900/30 p-4 border border-red-200 dark:border-red-800">
+      <p class="text-sm font-medium text-red-800 dark:text-red-300">{{ error() }}</p>
+    </div>
+  }
+
+  <!-- ÉTAPE 1 : IDENTITÉ DU CANDIDAT -->
+  @if (currentStep() === 1) {
+    <div class="mt-6 bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        1. Informations sur le candidat
+      </h3>
+
+      <form [formGroup]="candidateForm" (ngSubmit)="submitCandidateStep()" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Prénom *
+            </label>
+            <input
+              type="text"
+              formControlName="firstName"
+              placeholder="Ex: Jean"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Nom *
+            </label>
+            <input
+              type="text"
+              formControlName="lastName"
+              placeholder="Ex: Dupont"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Date de naissance *
+            </label>
+            <input
+              type="date"
+              formControlName="birthDate"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Genre *
+            </label>
+            <select
+              formControlName="gender"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            >
+              <option value="MASCULIN">Garçon (Masculin)</option>
+              <option value="FEMININ">Fille (Féminin)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Lieu de naissance
+            </label>
+            <input
+              type="text"
+              formControlName="birthPlace"
+              placeholder="Ex: Douala, Yaoundé, Paris..."
+              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Année scolaire *
+            </label>
+            <select
+              formControlName="academicYearId"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            >
+              @for (year of schoolContext.years(); track year.id) {
+                <option [value]="year.id">{{ year.libelleAcademicYear }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Niveau demandé *
+            </label>
+            <input
+              type="text"
+              formControlName="requestedLevel"
+              placeholder="Ex: 6ème, SIL, CP, CM2, Seconde C..."
+              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Frais de dossier requis
+            </label>
+            <input
+              type="number"
+              formControlName="requiredFee"
+              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+          <app-button
+            type="submit"
+            variant="primary"
+            [disabled]="isLoading() || candidateForm.invalid"
+          >
+            {{ isLoading() ? 'Création en cours...' : 'Créer le brouillon & Continuer' }}
+          </app-button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- ÉTAPE 2 : RESPONSABLES -->
+  @if (currentStep() === 2) {
+    <div class="mt-6 space-y-6">
+      <!-- Liste des responsables déjà ajoutés -->
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          2. Responsables légaux & contacts
+        </h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+          Dossier N° : <span class="font-bold text-primary-600">{{ preEnrollment()?.number }}</span>. Au moins un responsable principal joignable par téléphone est requis.
+        </p>
+
+        @if (preEnrollment()?.guardians && (preEnrollment()?.guardians)!.length > 0) {
+          <div class="space-y-3 mb-6">
+            @for (g of preEnrollment()?.guardians; track g.id) {
+              <div class="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30">
+                <div>
+                  <div class="font-medium text-sm text-gray-900 dark:text-white">
+                    {{ g.firstName }} {{ g.lastName }}
+                    <span class="ml-2 text-xs font-normal text-gray-500">({{ g.relationshipType }})</span>
+                    @if (g.primaryContact) {
+                      <span class="ml-2 px-2 py-0.5 rounded text-[10px] font-semibold bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">Contact principal</span>
+                    }
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                    Tél : {{ g.phoneNumber }} | Email : {{ g.email || 'N/A' }}
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="p-4 mb-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-xs font-medium">
+            Aucun responsable enregistré pour le moment. Veuillez en ajouter au moins un ci-dessous.
+          </div>
+        }
+
+        <!-- Formulaire d'ajout de responsable -->
+        <form [formGroup]="guardianForm" (ngSubmit)="addGuardian()" class="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+          <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Ajouter un responsable</h4>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Lien de parenté *
+              </label>
+              <select
+                formControlName="relationshipType"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              >
+                @for (t of relationshipTypes; track t.value) {
+                  <option [value]="t.value">{{ t.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Prénom *
+              </label>
+              <input
+                type="text"
+                formControlName="firstName"
+                placeholder="Ex: Pierre"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Nom *
+              </label>
+              <input
+                type="text"
+                formControlName="lastName"
+                placeholder="Ex: Dupont"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Téléphone *
+              </label>
+              <input
+                type="tel"
+                formControlName="phoneNumber"
+                placeholder="Ex: +237 6..."
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                formControlName="email"
+                placeholder="Ex: parent@email.com"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Adresse
+              </label>
+              <input
+                type="text"
+                formControlName="address"
+                placeholder="Ex: Quartier, Ville"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-4 pt-2">
+            <label class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
+              <input type="checkbox" formControlName="primaryContact" class="rounded text-primary-600" />
+              Contact principal
+            </label>
+            <label class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
+              <input type="checkbox" formControlName="financialResponsible" class="rounded text-primary-600" />
+              Responsable financier
+            </label>
+            <label class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
+              <input type="checkbox" formControlName="emergencyContact" class="rounded text-primary-600" />
+              Contact d'urgence
+            </label>
+          </div>
+
+          <div class="flex justify-end">
+            <app-button type="submit" variant="secondary" [disabled]="isLoading() || guardianForm.invalid">
+              + Ajouter ce responsable
+            </app-button>
+          </div>
+        </form>
+
+        <div class="mt-8 flex justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+          <app-button type="button" variant="secondary" (click)="goToStep(1)">
+            Précédent
+          </app-button>
+          <app-button
+            type="button"
+            variant="primary"
+            [disabled]="!preEnrollment()?.guardians?.length"
+            (click)="goToStep(3)"
+          >
+            Continuer vers les documents
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ÉTAPE 3 : DOCUMENTS -->
+  @if (currentStep() === 3) {
+    <div class="mt-6 space-y-6">
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          3. Documents justificatifs
+        </h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+          Déposez les pièces justificatives obligatoires du dossier.
+        </p>
+
+        @if (preEnrollment()?.documents && (preEnrollment()?.documents)!.length > 0) {
+          <div class="space-y-3 mb-6">
+            @for (doc of preEnrollment()?.documents; track doc.id) {
+              <div class="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30">
+                <div>
+                  <div class="font-medium text-sm text-gray-900 dark:text-white">
+                    {{ doc.documentType }}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                    Réf : {{ doc.storageReference }} | Statut : <span class="font-semibold">{{ doc.reviewStatus }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="p-4 mb-4 rounded-lg bg-gray-50 dark:bg-gray-700/30 text-gray-600 dark:text-gray-400 text-xs">
+            Aucun document déposé pour le moment.
+          </div>
+        }
+
+        <!-- Formulaire d'ajout de document -->
+        <form [formGroup]="documentForm" (ngSubmit)="addDocument()" class="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+          <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Ajouter un document</h4>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Type de pièce *
+              </label>
+              <select
+                formControlName="documentType"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              >
+                @for (d of documentTypes; track d.value) {
+                  <option [value]="d.value">{{ d.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Lien / Référence de stockage *
+              </label>
+              <input
+                type="text"
+                formControlName="storageReference"
+                placeholder="Ex: /uploads/pre-enrollments/acte.pdf"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <app-button type="submit" variant="secondary" [disabled]="isLoading() || documentForm.invalid">
+              + Ajouter cette pièce
+            </app-button>
+          </div>
+        </form>
+
+        <div class="mt-8 flex justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+          <app-button type="button" variant="secondary" (click)="goToStep(2)">
+            Précédent
+          </app-button>
+          <app-button type="button" variant="primary" (click)="goToStep(4)">
+            Passer au récapitulatif
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ÉTAPE 4 : RÉCAPITULATIF ET SOUMISSION -->
+  @if (currentStep() === 4) {
+    <div class="mt-6 bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        4. Récapitulatif et soumission du dossier
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-700">
+        <div>
+          <h4 class="text-xs uppercase tracking-wider font-bold text-gray-500 mb-2">Candidat</h4>
+          <p class="text-sm font-semibold text-gray-900 dark:text-white">
+            {{ preEnrollment()?.applicantLastName }} {{ preEnrollment()?.applicantFirstName }}
+          </p>
+          <p class="text-xs text-gray-600 dark:text-gray-300">
+            Né(e) le : {{ preEnrollment()?.applicantBirthDate }} | Genre : {{ preEnrollment()?.applicantGender }}
+          </p>
+          <p class="text-xs text-gray-600 dark:text-gray-300">
+            Niveau demandé : <span class="font-bold">{{ preEnrollment()?.requestedLevel }}</span>
+          </p>
+        </div>
+
+        <div>
+          <h4 class="text-xs uppercase tracking-wider font-bold text-gray-500 mb-2">Statut du dossier</h4>
+          <p class="text-sm font-bold text-primary-600">N° {{ preEnrollment()?.number }}</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300">Statut actuel : {{ preEnrollment()?.status }}</p>
+          <p class="text-xs text-gray-600 dark:text-gray-300">
+            Responsables : {{ preEnrollment()?.guardians?.length || 0 }} | Pièces justificatives : {{ preEnrollment()?.documents?.length || 0 }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+        <app-button type="button" variant="secondary" (click)="goToStep(3)">
+          Précédent
+        </app-button>
+        <app-button
+          type="button"
+          variant="primary"
+          [disabled]="isLoading()"
+          (click)="submitPreEnrollment()"
+        >
+          {{ isLoading() ? 'Soumission en cours...' : 'Soumettre définitivement le dossier' }}
+        </app-button>
+      </div>
+    </div>
+  }
+</app-page-layout>

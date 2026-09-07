@@ -1,0 +1,157 @@
+<app-page-layout>
+  <app-page-header
+    title="Gestion des Préinscriptions"
+    subtitle="Suivi, étude des dossiers et validation des candidatures"
+  >
+    <app-button
+      type="button"
+      variant="primary"
+      prefixIcon="+"
+      routerLink="/pre-enrollments/new"
+    >
+      Nouvelle Préinscription
+    </app-button>
+  </app-page-header>
+
+  <!-- Filtres et recherche -->
+  <div class="mt-6 flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+    <!-- Onglets de statut -->
+    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+      <button
+        type="button"
+        (click)="filterByStatus('ALL')"
+        [class]="selectedStatus() === 'ALL'
+          ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-600 text-white shadow-sm'
+          : 'px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+      >
+        Tous ({{ preEnrollments().length }})
+      </button>
+      <button
+        type="button"
+        (click)="filterByStatus('DRAFT')"
+        [class]="selectedStatus() === 'DRAFT'
+          ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-600 text-white shadow-sm'
+          : 'px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+      >
+        Brouillons
+      </button>
+      <button
+        type="button"
+        (click)="filterByStatus('SUBMITTED')"
+        [class]="selectedStatus() === 'SUBMITTED'
+          ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-600 text-white shadow-sm'
+          : 'px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+      >
+        Soumis
+      </button>
+      <button
+        type="button"
+        (click)="filterByStatus('UNDER_REVIEW')"
+        [class]="selectedStatus() === 'UNDER_REVIEW'
+          ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-600 text-white shadow-sm'
+          : 'px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+      >
+        En cours d'étude
+      </button>
+      <button
+        type="button"
+        (click)="filterByStatus('APPROVED')"
+        [class]="selectedStatus() === 'APPROVED'
+          ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-600 text-white shadow-sm'
+          : 'px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+      >
+        Approuvés
+      </button>
+      <button
+        type="button"
+        (click)="filterByStatus('REJECTED')"
+        [class]="selectedStatus() === 'REJECTED'
+          ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-600 text-white shadow-sm'
+          : 'px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+      >
+        Rejetés
+      </button>
+    </div>
+
+    <!-- Barre de recherche -->
+    <div class="w-full md:w-72">
+      <div class="relative">
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          placeholder="Rechercher (N°, nom, niveau)..."
+          class="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+        />
+        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="mt-4 rounded-xl bg-red-50 dark:bg-red-900/30 p-4 border border-red-200 dark:border-red-800">
+      <p class="text-sm font-medium text-red-800 dark:text-red-300">{{ error() }}</p>
+    </div>
+  }
+
+  <!-- Tableau des dossiers -->
+  <div class="mt-6">
+    <app-table
+      [empty]="filteredEnrollments().length === 0"
+      [emptyColspan]="6"
+      [emptyMessage]="isLoading() ? 'Chargement des dossiers...' : 'Aucun dossier de préinscription trouvé.'"
+    >
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+        N° Dossier
+      </th>
+      <th table-head scope="col" class="py-3.5 px-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+        Candidat
+      </th>
+      <th table-head scope="col" class="py-3.5 px-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+        Niveau demandé
+      </th>
+      <th table-head scope="col" class="py-3.5 px-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+        Année scolaire
+      </th>
+      <th table-head scope="col" class="py-3.5 px-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+        Statut
+      </th>
+      <th table-head scope="col" class="py-3.5 pl-3 pr-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+        Actions
+      </th>
+
+      @for (item of filteredEnrollments(); track item.id) {
+        <tr table-body class="hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-800">
+          <td class="whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-semibold text-primary-700 dark:text-primary-400">
+            {{ item.number }}
+          </td>
+          <td class="whitespace-nowrap px-3 py-3.5 text-sm text-gray-900 dark:text-white">
+            <div class="font-medium">{{ item.applicantLastName }} {{ item.applicantFirstName }}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">{{ item.applicantGender === 'FEMININ' || item.applicantGender === 'FEMALE' ? 'Fille' : 'Garçon' }}</div>
+          </td>
+          <td class="whitespace-nowrap px-3 py-3.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ item.requestedLevel }}
+          </td>
+          <td class="whitespace-nowrap px-3 py-3.5 text-sm text-gray-500 dark:text-gray-400">
+            {{ item.academicYearLabel || 'N/A' }}
+          </td>
+          <td class="whitespace-nowrap px-3 py-3.5 text-sm">
+            <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getStatusBadgeClass(item.status)">
+              {{ getStatusLabel(item.status) }}
+            </span>
+          </td>
+          <td class="whitespace-nowrap py-3.5 pl-3 pr-4 text-right text-sm">
+            <app-button
+              variant="secondary"
+              size="sm"
+              (click)="goToDetail(item.id)"
+            >
+              Consulter
+            </app-button>
+          </td>
+        </tr>
+      }
+    </app-table>
+  </div>
+</app-page-layout>

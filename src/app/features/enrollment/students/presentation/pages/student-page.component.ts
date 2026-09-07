@@ -1,4 +1,4 @@
-﻿import { CommonModule } from "@angular/common";
+import { CommonModule } from "@angular/common";
 import { Component, OnInit, computed, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -174,7 +174,7 @@ export class StudentPageComponent implements OnInit {
   }
 
   async goToCreate(): Promise<void> {
-    await this.router.navigate(["/students/new"]);
+    await this.router.navigate(["/pre-enrollments/new"]);
   }
 
   async goToEdit(studentId: string): Promise<void> {
