@@ -27,6 +27,7 @@ export class StudentListComponent {
   @Input({ required: true }) students: readonly StudentEntity[] = [];
   @Input() studentClasses: Readonly<Record<string, string>> = {};
 
+  @Output() viewProfile = new EventEmitter<string>();
   @Output() editRequested = new EventEmitter<string>();
   @Output() deleteRequested = new EventEmitter<string>();
 
@@ -42,6 +43,11 @@ export class StudentListComponent {
     }
 
     return this.studentClasses[studentId] ?? "studentPage.notEnrolled";
+  }
+
+  requestViewProfile(student: StudentEntity): void {
+    if (!student.id) return;
+    this.viewProfile.emit(student.id);
   }
 
   requestEdit(student: StudentEntity): void {

@@ -14,7 +14,7 @@
 
   <!-- Stepper Indicator -->
   <div class="mt-6 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-    <div class="flex items-center justify-between max-w-2xl mx-auto">
+    <div class="flex items-center justify-between max-w-3xl mx-auto">
       <!-- Step 1 -->
       <div class="flex items-center gap-2 cursor-pointer" (click)="goToStep(1)">
         <div
@@ -27,7 +27,7 @@
         <span class="text-xs font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">Candidat</span>
       </div>
 
-      <div class="flex-1 h-0.5 mx-2" [class]="currentStep() > 1 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
+      <div class="flex-1 h-0.5 mx-1" [class]="currentStep() > 1 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
 
       <!-- Step 2 -->
       <div class="flex items-center gap-2 cursor-pointer" (click)="goToStep(2)">
@@ -41,7 +41,7 @@
         <span class="text-xs font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">Responsables</span>
       </div>
 
-      <div class="flex-1 h-0.5 mx-2" [class]="currentStep() > 2 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
+      <div class="flex-1 h-0.5 mx-1" [class]="currentStep() > 2 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
 
       <!-- Step 3 -->
       <div class="flex items-center gap-2 cursor-pointer" (click)="goToStep(3)">
@@ -55,16 +55,30 @@
         <span class="text-xs font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">Documents</span>
       </div>
 
-      <div class="flex-1 h-0.5 mx-2" [class]="currentStep() >= 4 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
+      <div class="flex-1 h-0.5 mx-1" [class]="currentStep() > 3 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
 
       <!-- Step 4 -->
       <div class="flex items-center gap-2 cursor-pointer" (click)="goToStep(4)">
         <div
-          [class]="currentStep() === 4
+          [class]="currentStep() >= 4
             ? 'w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-sm shadow'
             : 'w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center font-bold text-sm'"
         >
           4
+        </div>
+        <span class="text-xs font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">Frais</span>
+      </div>
+
+      <div class="flex-1 h-0.5 mx-1" [class]="currentStep() > 4 ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700'"></div>
+
+      <!-- Step 5 -->
+      <div class="flex items-center gap-2 cursor-pointer" (click)="goToStep(5)">
+        <div
+          [class]="currentStep() === 5
+            ? 'w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-sm shadow'
+            : 'w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center font-bold text-sm'"
+        >
+          5
         </div>
         <span class="text-xs font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">Récapitulatif</span>
       </div>
@@ -153,6 +167,7 @@
             </label>
             <select
               formControlName="academicYearId"
+              (change)="onYearChanged($any($event.target).value)"
               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
             >
               @for (year of schoolContext.years(); track year.id) {
@@ -165,12 +180,29 @@
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Niveau demandé *
             </label>
-            <input
-              type="text"
-              formControlName="requestedLevel"
-              placeholder="Ex: 6ème, SIL, CP, CM2, Seconde C..."
-              class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
-            />
+            @if (isLevelLoading()) {
+              <div class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                Chargement des niveaux…
+              </div>
+            } @else if (availableLevels().length > 0) {
+              <select
+                formControlName="requestedLevel"
+                (change)="onLevelSelected($any($event.target).value)"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              >
+                <option value="" disabled>Sélectionnez une classe…</option>
+                @for (level of availableLevels(); track level.id) {
+                  <option [value]="level.nameClasse">{{ level.nameClasse }} — {{ level.level }}</option>
+                }
+              </select>
+            } @else {
+              <input
+                type="text"
+                formControlName="requestedLevel"
+                placeholder="Ex: 6ème, SIL, CP, CM2, Seconde C..."
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            }
           </div>
 
           <div>
@@ -430,18 +462,107 @@
             Précédent
           </app-button>
           <app-button type="button" variant="primary" (click)="goToStep(4)">
-            Passer au récapitulatif
+            Continuer vers les frais
           </app-button>
         </div>
       </div>
     </div>
   }
 
-  <!-- ÉTAPE 4 : RÉCAPITULATIF ET SOUMISSION -->
+  <!-- ÉTAPE 4 : FRAIS DE PRÉINSCRIPTION -->
   @if (currentStep() === 4) {
+    <div class="mt-6 space-y-6">
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          4. Frais de préinscription
+        </h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+          Le versement est rattaché au dossier (N° {{ preEnrollment()?.number }}), jamais à un élève qui n'est pas encore créé. Si des frais sont exigés, ils doivent être enregistrés et vérifiés avant soumission.
+        </p>
+
+        @if (feePayment()) {
+          <div class="p-4 mb-4 rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 space-y-1">
+            <p class="text-sm font-semibold text-green-800 dark:text-green-300">Versement enregistré</p>
+            <p class="text-xs text-green-700 dark:text-green-400">
+              Montant : {{ feePayment()?.amount }} | Réf : {{ feePayment()?.transactionReference || feePayment()?.receiptNumber || 'N/A' }} | Vérifié : {{ feePayment()?.verified ? 'oui' : 'non' }}
+            </p>
+          </div>
+        }
+
+        <form [formGroup]="feeForm" (ngSubmit)="submitFeeStep()" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Montant versé *
+              </label>
+              <input
+                type="number"
+                formControlName="amount"
+                min="0"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Date du versement *
+              </label>
+              <input
+                type="date"
+                formControlName="paymentDate"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Référence de transaction
+              </label>
+              <input
+                type="text"
+                formControlName="transactionReference"
+                placeholder="Ex: MTN-MOMO-XXXX"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                N° de reçu
+              </label>
+              <input
+                type="text"
+                formControlName="receiptNumber"
+                placeholder="Ex: REC-2026-001"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <app-button type="submit" variant="secondary" [disabled]="isLoading() || feeForm.invalid">
+              {{ isLoading() ? 'Enregistrement...' : 'Enregistrer le versement' }}
+            </app-button>
+          </div>
+        </form>
+
+        <div class="mt-8 flex justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+          <app-button type="button" variant="secondary" (click)="goToStep(3)">
+            Précédent
+          </app-button>
+          <app-button type="button" variant="primary" (click)="goToStep(5)">
+            Continuer vers le récapitulatif
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ÉTAPE 5 : RÉCAPITULATIF ET SOUMISSION -->
+  @if (currentStep() === 5) {
     <div class="mt-6 bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-6">
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-        4. Récapitulatif et soumission du dossier
+        5. Récapitulatif et soumission du dossier
       </h3>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-lg bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-700">
@@ -465,17 +586,42 @@
           <p class="text-xs text-gray-600 dark:text-gray-300">
             Responsables : {{ preEnrollment()?.guardians?.length || 0 }} | Pièces justificatives : {{ preEnrollment()?.documents?.length || 0 }}
           </p>
+          @if (feePayment()) {
+            <p class="text-xs text-green-700 dark:text-green-400 mt-1">
+              Frais : {{ feePayment()?.amount }} enregistré{{ feePayment()?.verified ? ' et vérifié' : '' }}
+            </p>
+          } @else if ((preEnrollment()?.requiredFee ?? 0) > 0) {
+            <p class="text-xs text-amber-700 dark:text-amber-400 mt-1">
+              Attention : {{ preEnrollment()?.requiredFee }} de frais attendus, aucun versement enregistré.
+            </p>
+          }
         </div>
       </div>
 
+      @if (missingRequiredDocuments().length) {
+        <div class="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-xs font-medium space-y-1">
+          <p class="font-bold">Pièces obligatoires manquantes avant soumission :</p>
+          <ul class="list-disc pl-5">
+            @for (docType of missingRequiredDocuments(); track docType) {
+              <li>{{ docType }}</li>
+            }
+          </ul>
+        </div>
+      }
+      @if (!feeIsSatisfied()) {
+        <div class="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-xs font-medium">
+          Les frais de préinscription ({{ preEnrollment()?.requiredFee }}) doivent être enregistrés et vérifiés avant soumission.
+        </div>
+      }
+
       <div class="flex justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-        <app-button type="button" variant="secondary" (click)="goToStep(3)">
+        <app-button type="button" variant="secondary" (click)="goToStep(4)">
           Précédent
         </app-button>
         <app-button
           type="button"
           variant="primary"
-          [disabled]="isLoading()"
+          [disabled]="isLoading() || missingRequiredDocuments().length > 0 || !feeIsSatisfied()"
           (click)="submitPreEnrollment()"
         >
           {{ isLoading() ? 'Soumission en cours...' : 'Soumettre définitivement le dossier' }}

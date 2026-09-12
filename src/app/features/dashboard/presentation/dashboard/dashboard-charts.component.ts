@@ -9,7 +9,8 @@ import { DashboardUseCase } from '@features/dashboard/application/use-cases/dash
   host: { class: 'block' },
   standalone: true,
   imports: [NgChartsModule, CardComponent, TranslateModule],
-  templateUrl: './dashboard-charts.component.html',
+templateUrl: './dashboard-charts.component.html',
+  styleUrls: ['./dashboard-charts.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardChartsComponent {

@@ -1,6 +1,8 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { BadgeVariant } from '@app/shared/ui/badge/badge.component';
 import { SelectOption } from '@app/shared/ui/select/select.component';
 import { GradeListDTO } from '../../application/dtos';
 import { GradeListFacade } from '../../application/facades/grade-list.facade';
@@ -16,6 +18,7 @@ export class GradeListStore {
   private readonly destroyRef = inject(DestroyRef);
   private readonly facade = inject(GradeListFacade);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   readonly grades = signal<GradeListDTO[]>([]);
   readonly filteredGrades = signal<GradeListDTO[]>([]);
@@ -50,7 +53,7 @@ export class GradeListStore {
       .subscribe({
         next: (classes) => {
           this.classOptions.set(
-            [{ label: 'Toutes les classes', value: 0 }].concat(
+            [{ label: this.translate.instant('gradePage.allClasses'), value: 0 }].concat(
               classes.map((entry) => ({ label: entry.name, value: entry.id })),
             ),
           );
@@ -64,7 +67,7 @@ export class GradeListStore {
       .subscribe({
         next: (subjects) => {
           this.subjectOptions.set(
-            [{ label: 'Toutes les matieres', value: 0 }].concat(
+            [{ label: this.translate.instant('gradePage.allSubjects'), value: 0 }].concat(
               subjects.map((entry) => ({ label: entry.name, value: entry.id })),
             ),
           );
@@ -78,7 +81,7 @@ export class GradeListStore {
       .subscribe({
         next: (periods) => {
           this.periodOptions.set(
-            [{ label: 'Toutes les periodes', value: '' }].concat(
+            [{ label: this.translate.instant('gradePage.allPeriods'), value: '' }].concat(
               periods.map((period) => ({ label: period, value: period })),
             ),
           );
@@ -95,7 +98,7 @@ export class GradeListStore {
     if (!classId) {
       this.grades.set([]);
       this.filteredGrades.set([]);
-      this.error.set('Selectionnez une classe');
+      this.error.set('gradePage.requireClass');
       this.loading.set(false);
       return;
     }
@@ -117,7 +120,7 @@ export class GradeListStore {
           this.loading.set(false);
         },
         error: (err) => {
-          this.error.set('Erreur au chargement des notes');
+          this.error.set('gradePage.loadError');
           this.loading.set(false);
           console.error(err);
         },
@@ -153,7 +156,7 @@ export class GradeListStore {
     this.grades.set([]);
     this.filteredGrades.set([]);
     this.currentPage.set(1);
-    this.error.set('Selectionnez une classe');
+    this.error.set('gradePage.requireClass');
   }
 
   setPage(page: number): void {
@@ -164,27 +167,18 @@ export class GradeListStore {
     void this.router.navigate(['/grades/form']);
   }
 
-  getMentionColor(mention: string): string {
-    const colors: Record<string, string> = {
-      Excellent:
-        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-      'Tres bien':
-        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
-      Bien: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-      'Assez bien':
-        'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400',
-      Passable:
-        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-      Faible:
-        'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-      'Tres faible':
-        'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  getMentionVariant(mention: string): BadgeVariant {
+    const bands: Record<string, BadgeVariant> = {
+      Excellent: 'success',
+      'Très bien': 'success',
+      Bien: 'info',
+      'Assez bien': 'info',
+      Passable: 'warning',
+      Faible: 'warning',
+      'Très faible': 'danger',
     };
 
-    return (
-      colors[mention] ||
-      'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
-    );
+    return bands[mention] ?? 'neutral';
   }
 
   private applySearchFilter(): void {

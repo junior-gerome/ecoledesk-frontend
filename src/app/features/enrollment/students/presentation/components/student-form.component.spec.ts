@@ -1,10 +1,31 @@
+import { EventEmitter } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideHttpClient } from "@angular/common/http";
+import { TranslateService } from "@ngx-translate/core";
+import { of } from "rxjs";
 import { Gender } from "@app/enums/gender";
 import { TypeParent } from "@app/features/parent/domain/enums/typeParent.enum";
 import { EnrollmentFormBuilder } from "../../infrastructure/enrollment-form.builder";
 import { createPaymentEntity } from "../../testing/students-test.fixtures";
 import { StudentFormComponent } from "./student-form.component";
+
+function createTranslateStub(): Partial<TranslateService> {
+  const translations: Record<string, string> = {
+    "studentPage.amountLoading": "Chargement du montant...",
+    "studentPage.amountSelectClass":
+      "Selectionnez une classe pour voir les frais de preinscription",
+  };
+  return {
+    currentLang: "fr",
+    instant: (key: string) => translations[key] ?? key,
+    get: (key: string) => of(translations[key] ?? key),
+    getParsedResult: (_translations: unknown, key: string) =>
+      translations[key] ?? key,
+    onLangChange: new EventEmitter(),
+    onTranslationChange: new EventEmitter(),
+    onDefaultLangChange: new EventEmitter(),
+  };
+}
 
 describe("StudentFormComponent", () => {
   let component: StudentFormComponent;
@@ -13,7 +34,10 @@ describe("StudentFormComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [StudentFormComponent],
-      providers: [provideHttpClient()],
+      providers: [
+        provideHttpClient(),
+        { provide: TranslateService, useValue: createTranslateStub() },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(StudentFormComponent);

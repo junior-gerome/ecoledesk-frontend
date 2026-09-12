@@ -5,13 +5,14 @@
 
 /** Maps to backend EnrollmentStatus enum */
 export type EnrollmentStatus =
-  | 'PENDING'
+  | 'PENDING_CONFIRMATION'
   | 'CONFIRMED'
   | 'CANCELLED'
-  | 'WITHDRAWN';
+  | 'WITHDRAWN'
+  | 'COMPLETED';
 
 /** Maps to backend EnrollmentType enum */
-export type EnrollmentType = 'NEW' | 'RENEWAL' | 'TRANSFER';
+export type EnrollmentType = 'NEW_ADMISSION' | 'REENROLLMENT' | 'TRANSFER';
 
 /**
  * Full enrollment — maps to backend EnrollmentFullDTO.

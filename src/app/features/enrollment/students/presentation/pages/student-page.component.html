@@ -119,6 +119,7 @@
     <app-students-list
       [students]="filteredStudents()"
       [studentClasses]="studentClasses()"
+      (viewProfile)="goToProfile($event)"
       (editRequested)="goToEdit($event)"
       (deleteRequested)="deleteStudent($event)"
     />

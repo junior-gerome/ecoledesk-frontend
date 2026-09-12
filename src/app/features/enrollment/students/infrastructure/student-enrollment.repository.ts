@@ -251,6 +251,7 @@ export class StudentEnrollmentRepository implements EnrollmentRepository {
 
     return {
       id: item.id != null ? String(item.id) : null,
+      number: item.number ?? null,
       studentId,
       student: studentId
         ? {
@@ -340,16 +341,20 @@ export class StudentEnrollmentRepository implements EnrollmentRepository {
       APPROVED: 'VALIDEE',
       REJECTED: 'REFUSEE',
       REJETEE: 'REFUSEE',
+      CANCELLED: 'ANNULEE',
+      EXPIRED: 'ANNULEE',
     };
     return (status && map[status]) ? map[status] : null;
   }
 
   private mapEnrollmentStatus(status: string | null | undefined): import('../domain/models/enrollment.entity').EnrollmentPreRegistrationStatus | null {
     const map: Record<string, import('../domain/models/enrollment.entity').EnrollmentPreRegistrationStatus> = {
+      PENDING_CONFIRMATION: 'EN_ATTENTE',
       PENDING: 'EN_ATTENTE',
       CONFIRMED: 'VALIDEE',
       CANCELLED: 'ANNULEE',
       WITHDRAWN: 'ANNULEE',
+      COMPLETED: 'INSCRITE',
     };
     return (status && map[status]) ? map[status] : null;
   }

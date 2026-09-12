@@ -14,6 +14,8 @@ export type EnrollmentPreRegistrationStatus =
 
 export interface EnrollmentEntity {
   id?: string | null;
+  /** Numéro d'inscription (ex: ENR-2024-0001) renvoyé par le backend */
+  number?: string | null;
   student?: StudentEntity | null;
   studentId?: string | null;
   classeRoom?: ClassroomEntity | null;

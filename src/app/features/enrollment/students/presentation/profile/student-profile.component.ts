@@ -67,7 +67,14 @@ export class StudentProfileComponent implements OnInit {
   readonly gradesLoaded = signal(false);
 
   readonly studentId = computed(() => this.route.snapshot.paramMap.get('id') ?? '');
-  readonly currentEnrollment = computed(() => this.enrollments()[0] ?? null);
+  readonly currentEnrollment = computed(() => {
+    const list = this.enrollments();
+    if (!list.length) return null;
+    const active = list.find(
+      (e) => e.statutPreinscription === 'VALIDEE' || e.statutPreinscription === 'INSCRITE',
+    );
+    return active ?? list[0];
+  });
   readonly currentEnrollmentStatus = computed(() => this.currentEnrollment()?.statutPreinscription ?? null);
   readonly currentClass = computed<ClassroomEntity | null>(() => this.currentEnrollment()?.classeRoom ?? null);
   readonly currentSection = computed<SectionEntity | null>(() => this.currentClass()?.section ?? null);

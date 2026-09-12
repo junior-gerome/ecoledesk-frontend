@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateModule } from '@ngx-translate/core';
 import { createStudentEntity } from '../../testing/students-test.fixtures';
 import { StudentListComponent } from './student-list.component';
 
@@ -8,7 +9,7 @@ describe('StudentListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [StudentListComponent],
+      imports: [StudentListComponent, TranslateModule.forRoot()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(StudentListComponent);
@@ -36,5 +37,14 @@ describe('StudentListComponent', () => {
 
     expect(component.editRequested.emit).toHaveBeenCalledWith('1');
     expect(component.deleteRequested.emit).toHaveBeenCalledWith('1');
+  });
+
+  it('should emit the profile event for the selected student', () => {
+    spyOn(component.viewProfile, 'emit');
+
+    const student = component.students[0];
+    component.requestViewProfile(student);
+
+    expect(component.viewProfile.emit).toHaveBeenCalledWith('1');
   });
 });

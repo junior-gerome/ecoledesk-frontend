@@ -67,9 +67,24 @@ export class PreEnrollmentListPageComponent implements OnInit {
     this.error.set(null);
 
     this.repository.getAll(0, 100).subscribe({
-      next: (response) => {
-        this.preEnrollments.set(response.content || []);
-        this.isLoading.set(false);
+      next: (firstPage) => {
+        const total = firstPage.totalElements ?? firstPage.content?.length ?? 0;
+        if (total > (firstPage.content?.length ?? 0)) {
+          this.repository.getAll(0, total).subscribe({
+            next: (all) => {
+              this.preEnrollments.set(all.content || []);
+              this.isLoading.set(false);
+            },
+            error: (err) => {
+              console.error('Error loading pre-enrollments', err);
+              this.preEnrollments.set(firstPage.content || []);
+              this.isLoading.set(false);
+            },
+          });
+        } else {
+          this.preEnrollments.set(firstPage.content || []);
+          this.isLoading.set(false);
+        }
       },
       error: (err) => {
         console.error('Error loading pre-enrollments', err);

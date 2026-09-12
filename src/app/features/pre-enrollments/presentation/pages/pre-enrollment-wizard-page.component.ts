@@ -6,12 +6,16 @@ import { SchoolContextService } from '@app/core/context/school-context.service';
 import { PageHeaderComponent } from '@app/shared/page-header/page-header.component';
 import { PageLayoutComponent } from '@app/shared/page-layout/page-layout.component';
 import { ButtonComponent } from '@app/shared/ui/button/button.component';
+import { Observable, switchMap, of } from 'rxjs';
 import {
   AddPreEnrollmentDocumentRequest,
   AddPreEnrollmentGuardianRequest,
+  ClassRoomOption,
   CreatePreEnrollmentRequest,
   Gender,
   PreEnrollment,
+  PreEnrollmentFeePaymentResponse,
+  RecordPreEnrollmentFeePaymentRequest,
   RelationshipType,
 } from '../../domain/models/pre-enrollment.model';
 import { PreEnrollmentHttpRepository } from '../../infrastructure/pre-enrollment-http.repository';
@@ -41,6 +45,10 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
 
+  /** Niveaux disponibles (classes de l'année scolaire active, mock data backend). */
+  readonly availableLevels = signal<ClassRoomOption[]>([]);
+  readonly isLevelLoading = signal<boolean>(false);
+
   // Formulaire Étape 1 : Candidat
   candidateForm!: FormGroup;
 
@@ -49,6 +57,11 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
 
   // Formulaire Étape 3 : Document
   documentForm!: FormGroup;
+
+  // Formulaire Étape 4 : Frais de préinscription
+  feeForm!: FormGroup;
+
+  readonly feePayment = signal<PreEnrollmentFeePaymentResponse | null>(null);
 
   readonly relationshipTypes: { value: RelationshipType; label: string }[] = [
     { value: 'FATHER', label: 'Père' },
@@ -67,12 +80,70 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
     { value: 'OTHER', label: 'Autre document' },
   ];
 
+  /** Types de pièces obligatoires imposés par le backend (school.enrollment.required-document-types). */
+  readonly requiredDocumentTypes = ['BIRTH_CERTIFICATE', 'REPORT_CARD'];
+
+  missingRequiredDocuments(): string[] {
+    const docs = this.preEnrollment()?.documents ?? [];
+    return this.requiredDocumentTypes.filter(
+      (type) => !docs.some((d) => d.documentType === type),
+    );
+  }
+
+  feeIsSatisfied(): boolean {
+    const required = this.preEnrollment()?.requiredFee ?? 0;
+    if (!required || required <= 0) return true;
+    return this.feePayment()?.verified === true;
+  }
+
   ngOnInit(): void {
     this.initForms();
     const defaultYear = this.schoolContext.selectedSchoolYear();
     if (defaultYear?.id) {
       this.candidateForm.patchValue({ academicYearId: defaultYear.id });
+      this.loadLevels(defaultYear.id);
     }
+  }
+
+  /** Charge les niveaux (classes) de l'année sélectionnée depuis les mock data. */
+  loadLevels(academicYearId?: number): void {
+    if (!academicYearId) return;
+    this.isLevelLoading.set(true);
+    this.repository.loadClasses(academicYearId).subscribe({
+      next: (levels) => {
+        this.availableLevels.set(levels || []);
+        this.isLevelLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading levels', err);
+        this.availableLevels.set([]);
+        this.isLevelLoading.set(false);
+      },
+    });
+  }
+
+  onYearChanged(yearId: string): void {
+    if (!yearId) return;
+    this.candidateForm.patchValue({ requestedLevel: '', requiredFee: 0 });
+    this.loadLevels(Number(yearId));
+  }
+
+  /** Pré-remplit la classe demandée et les frais requis depuis la classe sélectionnée. */
+  onLevelSelected(nameClasse: string): void {
+    const classRoom = this.availableLevels().find((level) => level.nameClasse === nameClasse);
+    if (!classRoom) return;
+    this.candidateForm.patchValue({
+      requestedLevel: classRoom.nameClasse,
+      requiredFee: 0,
+    });
+    if (classRoom.id == null) return;
+    this.repository.getPreInscriptionFee(classRoom.id).subscribe({
+      next: (fee) => this.candidateForm.patchValue({ requiredFee: fee }),
+      error: (err) => {
+        console.error('Error loading pre-inscription fee', err);
+        this.candidateForm.patchValue({ requiredFee: 0 });
+      },
+    });
   }
 
   private initForms(): void {
@@ -104,6 +175,13 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
       documentType: ['BIRTH_CERTIFICATE', [Validators.required]],
       storageReference: ['', [Validators.required]],
     });
+
+    this.feeForm = this.fb.group({
+      amount: [0, [Validators.required, Validators.min(0.01)]],
+      paymentDate: [new Date().toISOString().split('T')[0], [Validators.required]],
+      transactionReference: ['', [Validators.required]],
+      receiptNumber: [''],
+    });
   }
 
   // Étape 1 : Créer le brouillon
@@ -131,12 +209,13 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
     this.repository.createDraft(request).subscribe({
       next: (created) => {
         this.preEnrollment.set(created);
-        this.isLoading.set(false);
+        this.feeForm.patchValue({ amount: Number(formVal.requiredFee) || 0 });
+        this.refresh(created.id);
         this.currentStep.set(2);
       },
       error: (err) => {
         console.error('Error creating draft', err);
-        this.error.set(err?.error?.message || 'Erreur lors de la création du brouillon.');
+        this.error.set(err?.message || 'Erreur lors de la création du brouillon.');
         this.isLoading.set(false);
       },
     });
@@ -170,9 +249,8 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
     };
 
     this.repository.addGuardian(currentPre.id, request).subscribe({
-      next: (updated) => {
-        this.preEnrollment.set(updated);
-        this.isLoading.set(false);
+      next: () => {
+        this.refresh(currentPre.id);
         this.guardianForm.reset({
           relationshipType: 'MOTHER',
           primaryContact: false,
@@ -182,7 +260,7 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error adding guardian', err);
-        this.error.set(err?.error?.message || 'Erreur lors de l’ajout du responsable.');
+        this.error.set(err?.message || 'Erreur lors de l’ajout du responsable.');
         this.isLoading.set(false);
       },
     });
@@ -208,9 +286,8 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
     };
 
     this.repository.addDocument(currentPre.id, request).subscribe({
-      next: (updated) => {
-        this.preEnrollment.set(updated);
-        this.isLoading.set(false);
+      next: () => {
+        this.refresh(currentPre.id);
         this.documentForm.reset({
           documentType: 'REPORT_CARD',
           storageReference: '',
@@ -218,13 +295,55 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error adding document', err);
-        this.error.set(err?.error?.message || 'Erreur lors de l’ajout du document.');
+        this.error.set(err?.message || 'Erreur lors de l’ajout du document.');
         this.isLoading.set(false);
       },
     });
   }
 
-  // Étape 4 : Soumettre le dossier
+  // Étape 4 : Frais de préinscription (rattachés au dossier, jamais à un élève)
+  submitFeeStep(): void {
+    const currentPre = this.preEnrollment();
+    if (!currentPre) return;
+
+    if (this.feeForm.invalid) {
+      this.feeForm.markAllAsTouched();
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    const fVal = this.feeForm.value;
+    const request: RecordPreEnrollmentFeePaymentRequest = {
+      amount: Number(fVal.amount),
+      paymentDate: fVal.paymentDate,
+      transactionReference: fVal.transactionReference || undefined,
+      receiptNumber: fVal.receiptNumber || undefined,
+    };
+
+    this.repository.recordFeePayment(currentPre.id, request).pipe(
+      switchMap((payment) =>
+        payment.verified
+          ? of(payment)
+          : this.repository.verifyFeePayment(payment.id),
+      ),
+    ).subscribe({
+      next: (payment) => {
+        this.feePayment.set(payment);
+        this.successMessage.set('Le versement de préinscription a été enregistré et vérifié.');
+        this.refresh(currentPre.id);
+        this.currentStep.set(5);
+      },
+      error: (err) => {
+        console.error('Error recording fee payment', err);
+        this.error.set(err?.message || 'Erreur lors de l’enregistrement du versement.');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  // Étape 5 : Soumettre le dossier
   submitPreEnrollment(): void {
     const currentPre = this.preEnrollment();
     if (!currentPre) return;
@@ -239,7 +358,7 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error submitting pre-enrollment', err);
-        this.error.set(err?.error?.message || 'Erreur lors de la soumission du dossier.');
+        this.error.set(err?.message || 'Erreur lors de la soumission du dossier.');
         this.isLoading.set(false);
       },
     });
@@ -250,5 +369,18 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
       return;
     }
     this.currentStep.set(step);
+  }
+
+  private refresh(id: number): void {
+    this.repository.getById(id).subscribe({
+      next: (full) => {
+        this.preEnrollment.set(full);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error refreshing pre-enrollment', err);
+        this.isLoading.set(false);
+      },
+    });
   }
 }

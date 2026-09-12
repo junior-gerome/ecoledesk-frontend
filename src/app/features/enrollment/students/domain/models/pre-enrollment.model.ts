@@ -9,20 +9,27 @@ export type PreEnrollmentStatus =
   | 'SUBMITTED'
   | 'UNDER_REVIEW'
   | 'APPROVED'
-  | 'REJECTED';
+  | 'REJECTED'
+  | 'CANCELLED'
+  | 'EXPIRED';
 
 /** Maps to backend DocumentReviewStatus enum */
-export type DocumentReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type DocumentReviewStatus =
+  | 'REQUIRED'
+  | 'SUBMITTED'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'REPLACEMENT_REQUIRED';
 
 /** Maps to backend Gender enum */
-export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+export type Gender = 'MASCULIN' | 'FEMININ';
 
 /** Maps to backend RelationshipType enum */
 export type RelationshipType =
   | 'FATHER'
   | 'MOTHER'
   | 'GUARDIAN'
-  | 'SIBLING'
+  | 'TUTOR'
   | 'OTHER';
 
 /**
@@ -31,6 +38,7 @@ export type RelationshipType =
 export interface PreEnrollmentGuardianDTO {
   id: number | null;
   relationshipType: RelationshipType | null;
+  relationshipDetails: string | null;
   firstName: string | null;
   lastName: string | null;
   email: string | null;
@@ -115,9 +123,9 @@ export interface CreatePreEnrollmentRequest {
 /**
  * Request body for workflow decisions — maps to backend DecisionRequest.
  * Sent to POST /pre-enrollments/{id}/start-review, /approve, /reject.
+ * The reviewer identity is resolved server-side from Spring Security (no reviewedBy).
  */
 export interface PreEnrollmentDecisionRequest {
-  reviewedBy: number | null;
   reason?: string | null;
 }
 
@@ -127,6 +135,7 @@ export interface PreEnrollmentDecisionRequest {
  */
 export interface AddPreEnrollmentGuardianRequest {
   relationshipType: RelationshipType;
+  relationshipDetails?: string | null;
   firstName: string;
   lastName: string;
   email?: string | null;

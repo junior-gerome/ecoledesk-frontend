@@ -7,9 +7,13 @@ import { Router, RouterLink } from "@angular/router";
 import { Class } from "@app/features/classes/domain/models";
 import { Sequence } from "@app/features/sequence/domain/models";
 import { NotificationService } from "@app/core/notification/notification.service";
+import { PageHeaderComponent } from "@app/shared/page-header/page-header.component";
+import { PageLayoutComponent } from "@app/shared/page-layout/page-layout.component";
+import { ButtonComponent } from "@app/shared/ui/button/button.component";
+import { CardComponent } from "@app/shared/ui/card/card.component";
 import { EmptyStateComponent } from "@app/shared/ui/empty-state/empty-state.component";
 import { SelectComponent, SelectOption } from "@app/shared/ui/select/select.component";
-import { ButtonComponent } from "@app/shared/ui/button/button.component";
+import { TranslateModule } from "@ngx-translate/core";
 import { StudentEntity } from "@features/students/domain/models/student.entity";
 import {
   GRADE_MANAGEMENT_REPOSITORY,
@@ -23,8 +27,12 @@ import {
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
+    TranslateModule,
+    PageLayoutComponent,
+    PageHeaderComponent,
     SelectComponent,
     ButtonComponent,
+    CardComponent,
     EmptyStateComponent,
   ],
   templateUrl: "./bulletin-selector.component.html",

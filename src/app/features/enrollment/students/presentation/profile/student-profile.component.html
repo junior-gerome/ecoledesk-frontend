@@ -28,7 +28,7 @@
         }
         <div class="min-w-0 flex-1">
           <h2 class="text-2xl font-bold text-slate-900 dark:text-white">{{ currentStudent.firstNameStudent }} {{ currentStudent.lastNameStudent }}</h2>
-          <p class="text-sm text-slate-500">{{ 'studentProfile.registrationNumber' | translate }} : {{ currentStudent.id }}</p>
+          <p class="text-sm text-slate-500">{{ 'studentProfile.registrationNumber' | translate }} : {{ currentStudent.studentNumber ?? currentStudent.id }}</p>
           <div class="mt-2 flex flex-wrap gap-2">
             <app-badge variant="info">{{ currentClass()?.nameClasse || ('studentProfile.noClass' | translate) }}</app-badge>
             <app-badge variant="neutral">{{ currentSection()?.libelle || ('studentProfile.noSection' | translate) }}</app-badge>
@@ -70,6 +70,7 @@
             <h3 class="mb-4 text-lg font-semibold">{{ 'studentProfile.tabs.enrollment' | translate }}</h3>
             @if (currentEnrollment(); as enrollment) {
               <p>{{ 'studentProfile.enrollmentDate' | translate }} : {{ enrollment.dateInscription | date:'dd/MM/yyyy' }}</p>
+              <p>{{ 'studentProfile.enrollmentNumber' | translate }} : {{ enrollment.number || ('studentProfile.enrollmentNumberNotAvailable' | translate) }}</p>
               <p>{{ 'studentProfile.status' | translate }} : {{ enrollment.statutPreinscription || 'â€”' }}</p>
             } @else { <app-empty-state [title]="'common.noData' | translate" /> }
           </app-card>
@@ -84,7 +85,7 @@
           @if (grades().length) { <app-card padding="none" class="block overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr><th class="p-3">{{ 'studentProfile.subject' | translate }}</th><th class="p-3">{{ 'studentProfile.period' | translate }}</th><th class="p-3">{{ 'studentProfile.score' | translate }}</th></tr></thead><tbody>@for (grade of grades(); track grade.id) { <tr class="border-t"><td class="p-3">{{ grade.subjectName }}</td><td class="p-3">{{ grade.period }}</td><td class="p-3">{{ grade.score }}</td></tr> }</tbody></table></app-card><app-button type="button" variant="secondary" (clicked)="openBulletin()">{{ 'studentProfile.openBulletin' | translate }}</app-button> } @else { <app-empty-state [title]="'common.noData' | translate" [description]="'studentProfile.noGrades' | translate" /> }
         }
         @case ('history') {
-          @if (enrollments().length) { <app-card padding="none" class="block overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr><th class="p-3">{{ 'studentProfile.schoolYear' | translate }}</th><th class="p-3">{{ 'studentProfile.class' | translate }}</th><th class="p-3">{{ 'studentProfile.status' | translate }}</th></tr></thead><tbody>@for (enrollment of enrollments(); track enrollment.id) { <tr class="border-t"><td class="p-3">{{ enrollment.anneescolaire?.libelleAnneeScolaire || enrollment.anneeScolaireId || 'â€”' }}</td><td class="p-3">{{ enrollment.classeRoom?.nameClasse || enrollment.classeRoomId || 'â€”' }}</td><td class="p-3">{{ enrollment.statutPreinscription || 'â€”' }}</td></tr> }</tbody></table></app-card> } @else { <app-empty-state [title]="'common.noData' | translate" /> }
+          @if (enrollments().length) { <app-card padding="none" class="block overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr><th class="p-3">{{ 'studentProfile.enrollmentNumber' | translate }}</th><th class="p-3">{{ 'studentProfile.schoolYear' | translate }}</th><th class="p-3">{{ 'studentProfile.class' | translate }}</th><th class="p-3">{{ 'studentProfile.status' | translate }}</th></tr></thead><tbody>@for (enrollment of enrollments(); track enrollment.id) { <tr class="border-t"><td class="p-3">{{ enrollment.number || enrollment.id || 'â€”' }}</td><td class="p-3">{{ enrollment.anneescolaire?.libelleAnneeScolaire || enrollment.anneeScolaireId || 'â€”' }}</td><td class="p-3">{{ enrollment.classeRoom?.nameClasse || enrollment.classeRoomId || 'â€”' }}</td><td class="p-3">{{ enrollment.statutPreinscription || 'â€”' }}</td></tr> }</tbody></table></app-card> } @else { <app-empty-state [title]="'common.noData' | translate" /> }
         }
       }
     }

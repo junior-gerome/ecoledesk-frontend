@@ -23,6 +23,22 @@ export type RelationshipType =
 
 export type Gender = 'MASCULIN' | 'FEMININ' | 'MALE' | 'FEMALE';
 
+/** Maps to backend EnrollmentStatus enum (EnrollmentController /enrollments). */
+export type EnrollmentStatus =
+  | 'PENDING_CONFIRMATION'
+  | 'CONFIRMED'
+  | 'CANCELLED'
+  | 'WITHDRAWN'
+  | 'COMPLETED';
+
+/** Lightweight classroom option returned by GET /classes (ClasseRoomDTO). */
+export interface ClassRoomOption {
+  id?: number;
+  nameClasse: string;
+  level: string;
+  capacity: number;
+}
+
 export interface PreEnrollmentGuardian {
   id?: number;
   relationshipType: RelationshipType;
@@ -102,14 +118,31 @@ export interface AddPreEnrollmentDocumentRequest {
   storageReference: string;
 }
 
+/** Maps to backend RecordPreEnrollmentFeePaymentRequest (POST /enrollment-finance/pre-enrollments/{id}/fee-payments). */
+export interface RecordPreEnrollmentFeePaymentRequest {
+  amount: number;
+  paymentDate: string;
+  transactionReference?: string;
+  receiptNumber?: string;
+}
+
+/** Maps to backend PreEnrollmentFeePaymentResponse. */
+export interface PreEnrollmentFeePaymentResponse {
+  id: number;
+  preEnrollmentId: number;
+  amount: number;
+  paymentDate: string;
+  transactionReference?: string;
+  receiptNumber?: string;
+  verified: boolean;
+}
+
 export interface ReviewPreEnrollmentDocumentRequest {
   status: DocumentReviewStatus;
-  reviewedBy?: number;
   reason?: string;
 }
 
 export interface DecisionRequest {
-  reviewedBy?: number;
   reason?: string;
 }
 
@@ -123,5 +156,5 @@ export interface EnrollmentResponse {
   preEnrollmentId: number;
   studentId?: number;
   classroomId?: number;
-  status: string;
+  status: EnrollmentStatus;
 }

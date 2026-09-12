@@ -135,7 +135,7 @@
                       [style.opacity]="isMenuExpanded(item) ? '1' : '0'"
                     >
                       <div class="ml-3 mt-0.5 flex flex-col border-l border-slate-700 pl-3 pb-1">
-                        @for (subItem of item.children; track subItem.label) {
+                        @for (subItem of item.children; track subItem.routerLink + '_' + subItem.label) {
                           @if (subItem.disabled) {
                             <div class="flex items-center justify-between py-1.5 pl-1">
                               <span class="text-xs text-slate-600">{{ subItem.label | translate }}</span>

@@ -130,10 +130,15 @@
       <app-dashboard-charts />
     } @placeholder {
       <div class="charts-grid" aria-busy="true" [attr.aria-label]="'dashboardPage.loading' | translate">
-        <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
-        <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
-        <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
-        <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
+        <div class="charts-column">
+          <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
+          <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
+        </div>
+        <div class="charts-column">
+          <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
+          <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
+          <app-card padding="lg"><div class="h-64 animate-pulse rounded bg-slate-100 dark:bg-slate-700"></div></app-card>
+        </div>
       </div>
     }
 

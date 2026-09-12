@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { of, switchMap } from 'rxjs';
 import { NotificationService } from '@app/core/notification/notification.service';
@@ -152,12 +151,11 @@ export class StaffFormUseCase {
   }
 
   private extractError(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      if (typeof err.error === 'string' && err.error.trim()) return err.error;
-      if (err.error && typeof err.error === 'object') {
-        const msgs = Object.values(err.error).filter((v): v is string => typeof v === 'string');
-        if (msgs.length) return msgs.join(' ');
-      }
+    const payload = (err as { error?: unknown })?.error;
+    if (typeof payload === 'string' && payload.trim()) return payload;
+    if (payload && typeof payload === 'object') {
+      const msgs = Object.values(payload).filter((v): v is string => typeof v === 'string');
+      if (msgs.length) return msgs.join(' ');
     }
     return "Une erreur est survenue lors de l'enregistrement.";
   }

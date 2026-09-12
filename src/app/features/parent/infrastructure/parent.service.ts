@@ -22,7 +22,7 @@ export class ParentService implements ParentRepository {
 
   getAll(): Observable<Parents[]> {
     return this.http
-      .get<GuardianApi[] | { content?: GuardianApi[] }>(this.baseUrl)
+      .get<GuardianApi[] | { content?: GuardianApi[] }>(`${this.baseUrl}?size=500`)
       .pipe(map((response) => this.toParentsList(response)));
   }
 

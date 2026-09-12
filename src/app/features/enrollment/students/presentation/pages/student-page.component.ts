@@ -177,6 +177,11 @@ export class StudentPageComponent implements OnInit {
     await this.router.navigate(["/pre-enrollments/new"]);
   }
 
+  async goToProfile(studentId: string): Promise<void> {
+    const queryParams = this.appliedSearch() ? { q: this.appliedSearch() } : {};
+    await this.router.navigate(["/students", studentId], { queryParams });
+  }
+
   async goToEdit(studentId: string): Promise<void> {
     const queryParams = this.appliedSearch() ? { q: this.appliedSearch() } : {};
     await this.router.navigate(["/students", studentId, "edit"], { queryParams });

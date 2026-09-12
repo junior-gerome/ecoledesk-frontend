@@ -93,7 +93,6 @@ export class SidebarComponent {
           accessPolicy: ACCESS_POLICIES.studentsRead,
           children: [
             { label: "students.list", routerLink: "/students" },
-            { label: "students.new", routerLink: "/pre-enrollments/new" },
           ],
         },
         {
@@ -147,9 +146,9 @@ export class SidebarComponent {
             { label: "subjects.list", routerLink: "/subjects" },
             { label: "subjects.create", routerLink: "/subjects/new" },
             { label: "subjects.trimestres", routerLink: "/trimestre" },
-            { label: "new", routerLink: "/trimestre/new" },
+            { label: "subjects.newTrimestre", routerLink: "/trimestre/new" },
             { label: "subjects.sequences", routerLink: "/sequence" },
-            { label: "new", routerLink: "/sequence/new" },
+            { label: "subjects.newSequence", routerLink: "/sequence/new" },
           ],
         },
       ],
@@ -256,13 +255,11 @@ export class SidebarComponent {
           routerLink: "/settings",
           accessPolicy: ACCESS_POLICIES.settingsRead,
           children: [
-            { label: "staff",       routerLink: "/staff/new" },
-            {label: "list",         routerLink: "staff"},
-            { label: "settings.users",       routerLink: "/settings/users" },
+            { label: "settings.users", routerLink: "/settings/users" },
             { label: "settings.preferences", routerLink: "/settings/preferences" },
-            { label: "settings.audit",       routerLink: "/settings/audit" },
-            { label: "settings.fees",        routerLink: "/montant" },
-            { label: "settings.years",       routerLink: "/annees" },
+            { label: "settings.audit", routerLink: "/settings/audit" },
+            { label: "settings.fees", routerLink: "/montant" },
+            { label: "settings.years", routerLink: "/annees" },
           ],
         },
         {

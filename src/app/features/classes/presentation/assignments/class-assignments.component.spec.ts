@@ -16,7 +16,7 @@ describe('ClassAssignmentsComponent', () => {
     service = jasmine.createSpyObj<ClassRoomService>('ClassRoomService', ['getById', 'getAvailableTeachers', 'assignTeacher', 'removeTeacher']);
     router = jasmine.createSpyObj<Router>('Router', ['navigate']);
     service.getById.and.returnValue(of({ id: 4, nameClasse: 'CM2', level: 'CM2', capacity: 30, section: { id: 1, libelle: 'Primaire' }, academicYear: { id: 2, libelleAcademicYear: '2025-2026', dateDebut: '2025-09-01', dateFin: '2026-06-30', statutCode: true } }));
-    service.getAvailableTeachers.and.returnValue(of([{ id: 9, firstnameTeacher: 'Ada', lastnameTeacher: 'Lovelace', email: '', gender: Gender.FEMININ, phoneNumber: '', speciality: '', dateEmbauche: '', niveau: '' }]));
+    service.getAvailableTeachers.and.returnValue(of([{ id: 9, employeeNumber: 'EMP-009', firstName: 'Ada', lastName: 'Lovelace', gender: Gender.FEMININ, active: true }]));
     service.assignTeacher.and.returnValue(of(void 0));
     service.removeTeacher.and.returnValue(of(void 0));
     TestBed.configureTestingModule({

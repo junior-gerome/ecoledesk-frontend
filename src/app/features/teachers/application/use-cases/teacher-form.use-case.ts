@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { NotificationService } from '@app/core/notification/notification.service';
 import { TeacherEntity } from '../../domain/models/teacher.entity';
@@ -56,18 +55,17 @@ export class TeacherFormUseCase {
     });
   }
 
-  private saveErrorMessage(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (typeof error.error === 'string' && error.error.trim()) {
-        return error.error;
-      }
+private saveErrorMessage(error: unknown): string {
+    const payload = (error as { error?: unknown })?.error;
+    if (typeof payload === 'string' && payload.trim()) {
+      return payload;
+    }
 
-      if (error.error && typeof error.error === 'object') {
-        const messages = Object.values(error.error)
-          .filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
-        if (messages.length) {
-          return messages.join(' ');
-        }
+    if (payload && typeof payload === 'object') {
+      const messages = Object.values(payload)
+        .filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+      if (messages.length) {
+        return messages.join(' ');
       }
     }
 

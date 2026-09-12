@@ -166,7 +166,8 @@ export class EnrollmentMapper {
   static schoolYearToApi(schoolYear?: SchoolYearEntity | null): AnneeScolaire {
     return {
       id: this.asNumber(schoolYear?.id) ?? undefined,
-      libelleAcademicYear: schoolYear?.libelleAcademicYear ?? "",
+      libelleAcademicYear:
+        schoolYear?.libelleAcademicYear ?? schoolYear?.libelleAnneeScolaire ?? "",
       dateDebut: schoolYear?.dateDebut ?? "",
       dateFin: schoolYear?.dateFin ?? "",
       statutCode: schoolYear?.statutCode ?? false,

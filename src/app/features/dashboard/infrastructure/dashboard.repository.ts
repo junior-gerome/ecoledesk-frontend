@@ -5,17 +5,9 @@ import { DashboardRepository } from "../domain/repositories/dashboard.repository
 import { StudentStatistics } from "@app/features/students/domain/models";
 import { StudentByClasseDTO } from "@app/features/students/domain/models";
 import { StudentBySectionCountDto } from "@app/features/students/domain/models";
-import { Observable, map, of } from "rxjs";
+import { Observable, of } from "rxjs";
 import { catchError } from "rxjs/operators";
 import { DirectionDashboardSummary } from "../domain/models/dashboard-metrics.model";
-
-/** Shape returned by GET /classes */
-interface ClassRoomApiResponse {
-  id?: number;
-  nameClasse?: string;
-  capacity?: number;
-  section?: { id?: number; libelle?: string } | null;
-}
 
 @Injectable()
 export class DashboardRepositoryAdapter implements DashboardRepository {
@@ -38,43 +30,23 @@ export class DashboardRepositoryAdapter implements DashboardRepository {
   }
 
   /**
-   * Derives per-class student counts from GET /classes.
-   * The backend does not expose a dedicated count-by-class enrollment endpoint yet.
-   * Returns 0 for studentCount until GET /enrollments?classId= is available.
+   * Nombre d'eleves confirmes par classe — fourni par le backend
+   * (GET /students/statistics/by-class). Chaque eleve compte une seule fois.
    */
   getStudentsByClass(): Observable<StudentByClasseDTO[]> {
-    return this.http.get<ClassRoomApiResponse[]>(`${environment.apiUrl}/classes`).pipe(
-      map((classes) =>
-        (classes ?? []).map((c) => ({
-          nameClasseRoom: c.nameClasse ?? `Classe ${c.id ?? ''}`,
-          studentCount: 0,
-          newStudentCount: 0,
-        })),
-      ),
-      catchError(() => of([] as StudentByClasseDTO[])),
-    );
+    return this.http
+      .get<StudentByClasseDTO[]>(`${environment.apiUrl}/students/statistics/by-class`)
+      .pipe(catchError(() => of([] as StudentByClasseDTO[])));
   }
 
   /**
-   * Derives per-section counts from GET /classes.
-   * Aggregates classes by section until GET /enrollments?sectionId= is available.
+   * Nombre d'eleves confirmes par section — fourni par le backend
+   * (GET /students/statistics/by-section).
    */
   getStudentsBySection(): Observable<StudentBySectionCountDto[]> {
-    return this.http.get<ClassRoomApiResponse[]>(`${environment.apiUrl}/classes`).pipe(
-      map((classes) => {
-        const bySection = new Map<string, number>();
-        (classes ?? []).forEach((c) => {
-          const name = c.section?.libelle ?? 'Section inconnue';
-          bySection.set(name, (bySection.get(name) ?? 0));
-        });
-        return Array.from(bySection.entries()).map(([sectionName, studentCount]) => ({
-          sectionName,
-          studentCount,
-          newStudentCount: 0,
-        }));
-      }),
-      catchError(() => of([] as StudentBySectionCountDto[])),
-    );
+    return this.http
+      .get<StudentBySectionCountDto[]>(`${environment.apiUrl}/students/statistics/by-section`)
+      .pipe(catchError(() => of([] as StudentBySectionCountDto[])));
   }
 
   /**

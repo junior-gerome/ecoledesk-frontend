@@ -1,13 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PageHeaderComponent } from '@app/shared/page-header/page-header.component';
 import { PageLayoutComponent } from '@app/shared/page-layout/page-layout.component';
 import { ButtonComponent } from '@app/shared/ui/button/button.component';
-import { environment } from '@environments/environment';
 import {
+  ClassRoomOption,
   DocumentReviewStatus,
   EnrollmentResponse,
   PreEnrollment,
@@ -15,13 +14,6 @@ import {
   PreEnrollmentStatus,
 } from '../../domain/models/pre-enrollment.model';
 import { PreEnrollmentHttpRepository } from '../../infrastructure/pre-enrollment-http.repository';
-
-export interface ClassOption {
-  id: number;
-  nameClasse: string;
-  level: string;
-  capacity: number;
-}
 
 @Component({
   selector: 'app-pre-enrollment-detail-page',
@@ -40,7 +32,6 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly repository = inject(PreEnrollmentHttpRepository);
-  private readonly http = inject(HttpClient);
 
   readonly preEnrollment = signal<PreEnrollment | null>(null);
   readonly isLoading = signal<boolean>(false);
@@ -48,7 +39,7 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
   readonly successMessage = signal<string | null>(null);
 
   // Inscription & Confirmation state
-  readonly availableClasses = signal<ClassOption[]>([]);
+  readonly availableClasses = signal<ClassRoomOption[]>([]);
   readonly selectedClassroomId = signal<number | null>(null);
   readonly createdEnrollment = signal<EnrollmentResponse | null>(null);
   readonly isEnrolling = signal<boolean>(false);
@@ -87,15 +78,24 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
   }
 
   loadClasses(academicYearId?: number): void {
-    const url = academicYearId
-      ? `${environment.apiUrl}/classes?academicYearId=${academicYearId}`
-      : `${environment.apiUrl}/classes`;
-    this.http.get<ClassOption[]>(url).subscribe({
+    this.repository.loadClasses(academicYearId).subscribe({
       next: (classes) => {
         this.availableClasses.set(classes || []);
-        if (classes && classes.length > 0) {
-          this.selectedClassroomId.set(classes[0].id);
+        const withId = (classes || []).filter((classroom) => classroom.id != null);
+        if (withId.length === 0) {
+          this.selectedClassroomId.set(null);
+          return;
         }
+        const requestedLevel = this.preEnrollment()?.requestedLevel?.trim().toLowerCase();
+        const matching =
+          requestedLevel
+            ? withId.find(
+                (classroom) =>
+                  classroom.nameClasse?.trim().toLowerCase() === requestedLevel ||
+                  classroom.level?.trim().toLowerCase() === requestedLevel,
+              )
+            : undefined;
+        this.selectedClassroomId.set(matching?.id ?? withId[0].id!);
       },
       error: (err) => console.error('Error loading classes', err),
     });
@@ -115,7 +115,7 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
         this.successMessage.set('L’étude du dossier a commencé.');
       },
       error: (err) => {
-        this.error.set(err?.error?.message || 'Erreur lors du passage en revue.');
+        this.error.set(err?.message || 'Erreur lors du passage en revue.');
         this.isLoading.set(false);
       },
     });
@@ -139,7 +139,7 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
           this.isLoading.set(false);
         },
         error: (err) => {
-          this.error.set(err?.error?.message || 'Erreur lors de la revue du document.');
+          this.error.set(err?.message || 'Erreur lors de la revue du document.');
           this.isLoading.set(false);
         },
       });
@@ -169,7 +169,7 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
         this.loadClasses(updated.academicYearId);
       },
       error: (err) => {
-        this.error.set(err?.error?.message || 'Erreur lors de l’approbation du dossier.');
+        this.error.set(err?.message || 'Erreur lors de l’approbation du dossier.');
         this.isLoading.set(false);
       },
     });
@@ -189,7 +189,7 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
           this.successMessage.set('Dossier rejeté.');
         },
         error: (err) => {
-          this.error.set(err?.error?.message || 'Erreur lors du rejet du dossier.');
+          this.error.set(err?.message || 'Erreur lors du rejet du dossier.');
           this.isLoading.set(false);
         },
       });
@@ -225,7 +225,7 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
         this.successMessage.set('Inscription créée en attente de confirmation.');
       },
       error: (err) => {
-        this.error.set(err?.error?.message || 'Erreur lors de la création de l’inscription.');
+        this.error.set(err?.message || 'Erreur lors de la création de l’inscription.');
         this.isEnrolling.set(false);
       },
     });
@@ -247,7 +247,27 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
         );
       },
       error: (err) => {
-        this.error.set(err?.error?.message || 'Erreur lors de la confirmation de l’inscription.');
+        this.error.set(err?.message || 'Erreur lors de la confirmation de l’inscription.');
+        this.isEnrolling.set(false);
+      },
+    });
+  }
+
+  cancelEnrollment(): void {
+    const enrollment = this.createdEnrollment();
+    if (!enrollment) return;
+
+    this.isEnrolling.set(true);
+    this.error.set(null);
+
+    this.repository.cancelEnrollment(enrollment.id, 'Annulation administrative du dossier').subscribe({
+      next: (cancelled) => {
+        this.createdEnrollment.set(cancelled);
+        this.isEnrolling.set(false);
+        this.successMessage.set('Inscription annulée. La préinscription reste consultable.');
+      },
+      error: (err) => {
+        this.error.set(err?.message || 'Erreur lors de l’annulation de l’inscription.');
         this.isEnrolling.set(false);
       },
     });
@@ -264,7 +284,10 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
       case 'APPROVED':
         return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300';
       case 'REJECTED':
+      case 'EXPIRED':
         return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300';
+      case 'CANCELLED':
+        return 'bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300';
       default:
         return 'bg-gray-100 text-gray-700';
     }
@@ -274,5 +297,42 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
     const docs = this.preEnrollment()?.documents;
     if (!docs || docs.length === 0) return false;
     return docs.every((d) => d.reviewStatus === 'APPROVED');
+  }
+
+  /** Indice de l'étape workflow (0-based) : Soumis=0, En étude=1, Approuvé=2, Rejeté=-1 */
+  readonly workflowSteps = [
+    { key: 'SUBMITTED', label: 'Soumis', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+    { key: 'UNDER_REVIEW', label: 'En cours d\'étude', icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' },
+    { key: 'APPROVED', label: 'Approuvé', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+  ];
+
+  getWorkflowStepIndex(): number {
+    const status = this.preEnrollment()?.status;
+    switch (status) {
+      case 'SUBMITTED': return 0;
+      case 'UNDER_REVIEW': return 1;
+      case 'APPROVED': return 2;
+      case 'REJECTED': return 1;
+      default: return -1;
+    }
+  }
+
+  isRejected(): boolean {
+    return this.preEnrollment()?.status === 'REJECTED';
+  }
+
+  isTerminalStatus(): boolean {
+    const s = this.preEnrollment()?.status;
+    return s === 'APPROVED' || s === 'REJECTED' || s === 'CANCELLED' || s === 'EXPIRED';
+  }
+
+  getDocumentStats(): { total: number; approved: number; rejected: number; pending: number } {
+    const docs = this.preEnrollment()?.documents ?? [];
+    return {
+      total: docs.length,
+      approved: docs.filter((d) => d.reviewStatus === 'APPROVED').length,
+      rejected: docs.filter((d) => d.reviewStatus === 'REJECTED').length,
+      pending: docs.filter((d) => d.reviewStatus !== 'APPROVED' && d.reviewStatus !== 'REJECTED').length,
+    };
   }
 }

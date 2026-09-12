@@ -8,8 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "architecture:check": "node scripts/architecture-check.mjs",
-    "test:students": "ng test --watch=false --browsers=ChromeHeadless --include=\"src/app/features/students/**/*.spec.ts\"",
-    "test:students:coverage": "ng test --watch=false --browsers=ChromeHeadless --code-coverage --include=\"src/app/features/students/**/*.spec.ts\""
+    "test:students": "ng test --watch=false --browsers=ChromeHeadless --include=\"src/app/features/enrollment/students/**/*.spec.ts\"",
+    "test:students:coverage": "ng test --watch=false --browsers=ChromeHeadless --code-coverage --include=\"src/app/features/enrollment/students/**/*.spec.ts\""
   },
   "private": true,
   "dependencies": {
