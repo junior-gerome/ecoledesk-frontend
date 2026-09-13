@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, OnInit, inject } from "@angular/cor
 import { RouterModule } from "@angular/router";
 import { TranslateModule } from '@ngx-translate/core';
 import { CardComponent } from "@app/shared/ui/card/card.component";
+import { PageLayoutComponent } from "@app/shared/page-layout/page-layout.component";
+import { PageHeaderComponent } from "@app/shared/page-header/page-header.component";
 import { DashboardUseCase } from "@features/dashboard/application/use-cases/dashboard.use-case";
 import { DASHBOARD_REPOSITORY } from "@features/dashboard/domain/repositories/dashboard.repository";
 import { DashboardRepositoryAdapter } from "@features/dashboard/infrastructure/dashboard.repository";
@@ -10,7 +12,7 @@ import { DashboardRepositoryAdapter } from "@features/dashboard/infrastructure/d
 import { DashboardChartsComponent } from "./dashboard-charts.component";
 @Component({
   selector: "app-dashboard",
-  imports: [CommonModule, RouterModule, TranslateModule, CardComponent, DashboardChartsComponent],
+  imports: [CommonModule, RouterModule, TranslateModule, CardComponent, PageLayoutComponent, PageHeaderComponent, DashboardChartsComponent],
   standalone: true,
   templateUrl: "./dashboard.component.html",
   styleUrls: ["./dashboard.component.scss"],

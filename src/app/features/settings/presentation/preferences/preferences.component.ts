@@ -10,7 +10,7 @@ import {
   WeekStart,
 } from "@app/features/settings/infrastructure/preferences.service";
 import { ThemeMode, ThemeService } from "@app/core/services/theme/theme.service";
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from "@app/shared/ui/button/button.component";
 import { CardComponent } from "@app/shared/ui/card/card.component";
 import { InputComponent } from "@app/shared/ui/input/input.component";
@@ -55,6 +55,7 @@ export class PreferencesComponent {
   private readonly themeService = inject(ThemeService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   loading = signal(false);
   saving = signal(false);
@@ -223,14 +224,22 @@ export class PreferencesComponent {
       },
       error: () => {
         this.loading.set(false);
-        this.showToast("Failed to load preferences", "danger", "Error");
+        this.showToast(
+          this.translate.instant("preferencesPage.toastLoadError"),
+          "danger",
+          this.translate.instant("preferencesPage.toastTitleError"),
+        );
       },
     });
   }
 
   resetDefaults(): void {
     this.preferencesForm.reset({ ...this.defaultPreferences });
-    this.showToast("Defaults loaded", "info", "Defaults");
+    this.showToast(
+      this.translate.instant("preferencesPage.toastReset"),
+      "info",
+      this.translate.instant("preferencesPage.toastTitleDefaults"),
+    );
   }
 
   savePreferences(): void {
@@ -248,11 +257,19 @@ export class PreferencesComponent {
         this.preferencesForm.reset(merged);
         this.saving.set(false);
         this.themeService.setTheme(merged.theme);
-        this.showToast("Preferences saved", "success", "Success");
+        this.showToast(
+          this.translate.instant("preferencesPage.toastSave"),
+          "success",
+          this.translate.instant("preferencesPage.toastTitleSuccess"),
+        );
       },
       error: () => {
         this.saving.set(false);
-        this.showToast("Save failed", "danger", "Error");
+        this.showToast(
+          this.translate.instant("preferencesPage.toastSaveError"),
+          "danger",
+          this.translate.instant("preferencesPage.toastTitleError"),
+        );
       },
     });
   }
@@ -269,9 +286,9 @@ export class PreferencesComponent {
       error: () => {
         this.brandingLoading.set(false);
         this.showToast(
-          "Impossible de charger le branding du bulletin",
+          this.translate.instant("preferencesPage.brandingLoadError"),
           "danger",
-          "Bulletin",
+          this.translate.instant("preferencesPage.toastTitleBulletin"),
         );
       },
     });
@@ -291,16 +308,16 @@ export class PreferencesComponent {
       this.updateBrandingPreview(nextValue);
       this.brandingSaving.set(false);
       this.showToast(
-        "Le branding du bulletin a ete enregistre",
+        this.translate.instant("preferencesPage.brandingSaveSuccess"),
         "success",
-        "Bulletin",
+        this.translate.instant("preferencesPage.toastTitleBulletin"),
       );
     } catch {
       this.brandingSaving.set(false);
       this.showToast(
-        "L'enregistrement du branding a echoue",
+        this.translate.instant("preferencesPage.brandingSaveError"),
         "danger",
-        "Bulletin",
+        this.translate.instant("preferencesPage.toastTitleBulletin"),
       );
     }
   }
@@ -311,9 +328,9 @@ export class PreferencesComponent {
     this.bulletinBrandingForm.reset(nextValue);
     this.updateBrandingPreview(nextValue);
     this.showToast(
-      "Le branding du bulletin a ete reinitialise",
+      this.translate.instant("preferencesPage.brandingReset"),
       "info",
-      "Bulletin",
+      this.translate.instant("preferencesPage.toastTitleBulletin"),
     );
   }
 

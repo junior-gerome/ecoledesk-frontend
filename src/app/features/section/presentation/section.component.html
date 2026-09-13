@@ -19,7 +19,7 @@
           formControlName="libelle"
           [control]="ctrl['libelle']"
           [required]="true"
-          placeholder="Ex: Section Francophone, Section Anglophone"
+          placeholder="{{ 'sectionPage.namePlaceholder' | translate }}"
         />
 
         <app-input
@@ -36,7 +36,7 @@
             formControlName="description"
             [control]="ctrl['description']"
             [rows]="2"
-            placeholder="Description optionnelle de la section..."
+            placeholder="{{ 'sectionPage.descriptionPlaceholder' | translate }}"
           />
         </div>
       </app-form-body>
@@ -71,21 +71,21 @@
     <div class="flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
       <div>
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Liste des Sections
+          {{ 'sectionPage.listTitle' | translate }}
         </h2>
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          Toutes les sections configurées pour l'établissement
+          {{ 'sectionPage.listSubtitle' | translate }}
         </p>
       </div>
       <app-badge variant="neutral" size="sm">
-        {{ sections().length }} section(s)
+        {{ 'sectionPage.sectionCount' | translate: { count: sections().length } }}
       </app-badge>
     </div>
 
     <app-table
       [empty]="sections().length === 0"
       [emptyColspan]="4"
-      emptyMessage="Aucune section enregistrée pour le moment."
+      emptyMessage="{{ 'sectionPage.emptyList' | translate }}"
     >
       <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100 uppercase">
         N°
@@ -139,19 +139,19 @@
   <!-- Modal de confirmation de suppression -->
   <app-modal
     [open]="!!sectionPendingDeletion()"
-    title="Supprimer la Section"
+    title="{{ 'sectionPage.deleteTitle' | translate }}"
     size="md"
     [showFooter]="true"
     (closed)="closeDeleteModal()"
   >
     <p class="text-sm text-gray-600 dark:text-gray-300">
-      Êtes-vous sûr de vouloir supprimer la section
+      {{ 'sectionPage.deleteConfirm' | translate }}
       <span class="font-semibold text-gray-900 dark:text-gray-100">
         "{{ sectionPendingDeletion()?.libelle }}"
       </span> ?
       <br />
       <span class="text-xs text-red-500 mt-2 block">
-        Attention : cette action échouera si des classes sont rattachées à cette section.
+        {{ 'sectionPage.deleteWarning' | translate }}
       </span>
     </p>
 

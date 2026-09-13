@@ -7,13 +7,15 @@ import {
   Validators,
 } from "@angular/forms";
 import { Router, RouterModule } from "@angular/router";
-import { TranslateModule } from "@ngx-translate/core";
+import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import {
   AuthService,
   RegisterRequest,
 } from "@app/core/services";
 import { FormBodyComponent } from "@app/shared/form-body/form-body.component";
 import { InputComponent } from "@app/shared/ui/input/input.component";
+import { ButtonComponent } from "@app/shared/ui/button/button.component";
+import { AlertComponent } from "@app/shared/ui/alert/alert.component";
 import {
   SelectComponent,
   SelectOption,
@@ -33,6 +35,8 @@ type RegisterFormValue = RegisterRequest & {
     RouterModule,
     TranslateModule,
     InputComponent,
+    ButtonComponent,
+    AlertComponent,
     SelectComponent,
     FormBodyComponent, 
     SchoolIllustrationComponent,
@@ -55,6 +59,7 @@ export class RegisterComponent {
     private readonly fb: FormBuilder,
     private readonly auth: AuthService,
     private readonly router: Router,
+    private readonly translate: TranslateService,
   ) {
     this.registerForm = this.fb.group(
       {
@@ -117,7 +122,7 @@ export class RegisterComponent {
           err.message ||
           err.error?.message ||
           err.error?.error ||
-          "Erreur lors de l'inscription, veuillez reessayer.";
+          this.translate.instant("auth.registerError");
       },
     });
   }

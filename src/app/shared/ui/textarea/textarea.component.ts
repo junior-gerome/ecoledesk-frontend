@@ -21,6 +21,7 @@ import {
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './textarea.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '[attr.id]': 'null' },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

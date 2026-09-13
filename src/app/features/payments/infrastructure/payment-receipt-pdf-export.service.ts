@@ -33,11 +33,10 @@ export class PaymentReceiptPdfExportService {
     const host = documentRef.createElement('div');
 
     host.style.position = 'fixed';
-    host.style.left = '-200vw';
+    host.style.left = '0';
     host.style.top = '0';
     host.style.width = '210mm';
     host.style.pointerEvents = 'none';
-    host.style.opacity = '0';
     host.style.zIndex = '-1';
 
     documentRef.body.appendChild(host);

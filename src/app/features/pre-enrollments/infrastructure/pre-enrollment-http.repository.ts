@@ -100,6 +100,29 @@ export class PreEnrollmentHttpRepository {
     );
   }
 
+  /** Televerse un fichier sur le stockage objet (MinIO) et l'attache au dossier de preinscription. */
+  uploadDocument(
+    id: number,
+    file: File,
+    documentType: string,
+  ): Observable<PreEnrollment> {
+    const formData = new FormData();
+    formData.append('documentType', documentType);
+    formData.append('file', file);
+    return this.http.post<PreEnrollment>(
+      API_ENDPOINTS.enrollments.preEnrollmentDocumentUpload(id),
+      formData,
+    );
+  }
+
+  /** Telecharge le fichier d'un document du dossier de preinscription (stocke sur MinIO). */
+  downloadDocument(id: number, documentId: number): Observable<Blob> {
+    return this.http.get(
+      API_ENDPOINTS.enrollments.preEnrollmentDocumentDownload(id, documentId),
+      { responseType: 'blob' },
+    );
+  }
+
   reviewDocument(
     id: number,
     documentId: number,

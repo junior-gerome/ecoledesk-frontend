@@ -52,6 +52,10 @@ export const API_ENDPOINTS = {
     preEnrollmentStartReview: (id: string | number) => `${environment.apiUrl}/pre-enrollments/${segment(id)}/start-review`,
     preEnrollmentGuardians: (id: string | number) => `${environment.apiUrl}/pre-enrollments/${segment(id)}/guardians`,
     preEnrollmentDocuments: (id: string | number) => `${environment.apiUrl}/pre-enrollments/${segment(id)}/documents`,
+    preEnrollmentDocumentUpload: (id: string | number) =>
+      `${environment.apiUrl}/pre-enrollments/${segment(id)}/documents/upload`,
+    preEnrollmentDocumentDownload: (id: string | number, documentId: string | number) =>
+      `${environment.apiUrl}/pre-enrollments/${segment(id)}/documents/${segment(documentId)}/download`,
     preEnrollmentDocumentReview: (id: string | number, documentId: string | number) =>
       `${environment.apiUrl}/pre-enrollments/${segment(id)}/documents/${segment(documentId)}/review`,
     byStatus: (status: string) => `${environment.apiUrl}/pre-enrollments/by-status/${segment(status)}`,

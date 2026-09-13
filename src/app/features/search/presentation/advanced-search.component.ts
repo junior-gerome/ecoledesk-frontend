@@ -14,8 +14,15 @@ import {
   SearchFacade,
   SearchCriteria,
 } from '../application/search.facade';
+import { CardComponent } from '@app/shared/ui/card/card.component';
+import { ButtonComponent } from '@app/shared/ui/button/button.component';
 import { InputComponent } from '@app/shared/ui/input/input.component';
 import { SelectComponent, SelectOption } from '@app/shared/ui/select/select.component';
+import { PageLayoutComponent } from '@app/shared/page-layout/page-layout.component';
+import { PageHeaderComponent } from '@app/shared/page-header/page-header.component';
+import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { NotificationService } from '@app/core/notification/notification.service';
 
 interface AdvancedSearchResult {
   type: 'student' | 'grade' | 'payment' | string;
@@ -33,7 +40,17 @@ interface AdvancedSearchResult {
 @Component({
   selector: 'app-advanced-search',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputComponent, SelectComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TranslateModule,
+    InputComponent,
+    SelectComponent,
+    ButtonComponent,
+    CardComponent,
+    PageLayoutComponent,
+    PageHeaderComponent,
+  ],
   templateUrl: './advanced-search.component.html',
   styleUrls: ['./advanced-search.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,22 +60,25 @@ export class AdvancedSearchComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly keywordsSubject = new Subject<string>();
   private readonly searchFacade = inject(SearchFacade);
+  private readonly translate = inject(TranslateService);
+  private readonly notificationService = inject(NotificationService);
 
   readonly searchResults = signal<AdvancedSearchResult[]>([]);
   readonly suggestions = signal<string[]>([]);
   readonly searchContext = signal('');
+  readonly hasSearched = signal(false);
   readonly sectionOptions: SelectOption<string>[] = [
-    { label: 'Toutes les sections', value: '' },
+    { label: this.translate.instant('searchPage.sectionAll'), value: '' },
     { label: 'Francophone', value: 'FRANCOPHONE' },
     { label: 'Anglophone', value: 'ANGLOPHONE' },
   ];
   readonly levelOptions: SelectOption<string>[] = [
-    { label: 'Tous les niveaux', value: '' },
+    { label: this.translate.instant('searchPage.levelAll'), value: '' },
     { label: 'Maternelle', value: 'MATERNELLE' },
     { label: 'Primaire', value: 'PRIMAIRE' },
   ];
   readonly paymentStatusOptions: SelectOption<string>[] = [
-    { label: 'Tous les statuts', value: '' },
+    { label: this.translate.instant('searchPage.paymentStatusAll'), value: '' },
     { label: 'Paye', value: 'PAID' },
     { label: 'En attente', value: 'PENDING' },
     { label: 'En retard', value: 'OVERDUE' },
@@ -99,7 +119,8 @@ export class AdvancedSearchComponent {
       });
   }
 
-  onSubmit(): void {
+onSubmit(): void {
+    this.hasSearched.set(true);
     const criteria = this.searchForm.getRawValue() as SearchCriteria;
     this.searchFacade
       .searchStudents(criteria)
@@ -118,10 +139,11 @@ export class AdvancedSearchComponent {
     this.searchForm.reset();
     this.searchResults.set([]);
     this.suggestions.set([]);
+    this.hasSearched.set(false);
   }
 
   saveAsFavorite(): void {
-    const name = prompt('Nom de la recherche :');
+    const name = prompt(this.translate.instant('searchPage.favoriteNamePrompt'));
     if (!name) {
       return;
     }
@@ -129,7 +151,12 @@ export class AdvancedSearchComponent {
     this.searchFacade
       .saveFavoriteSearch(name, this.searchForm.getRawValue() as SearchCriteria)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe();
+      .subscribe({
+        next: () => this.notificationService.success(
+          this.translate.instant('searchPage.favoriteSaved'),
+          0,
+        ),
+      });
   }
 }
 

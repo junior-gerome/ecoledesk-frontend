@@ -185,6 +185,16 @@ export class PaymentReceiptManagementUseCase {
       return;
     }
 
+    const previewWindow = this.documentGateway.openWindow();
+    if (!previewWindow) {
+      this.showToast(
+        "Le navigateur a bloque l'apercu du recu. Autorisez les pop-ups puis recommencez.",
+        'warning',
+        'Apercu bloque',
+      );
+      return;
+    }
+
     this.previewingReceiptId.set(paymentId);
     this.repository
       .getReceiptDocument(paymentId)
@@ -204,6 +214,7 @@ export class PaymentReceiptManagementUseCase {
           const result = this.documentGateway.openPreview(
             blob,
             this.repository.buildReceiptFileName(receipt),
+            previewWindow,
           );
 
           if (!result.ok) {
@@ -223,6 +234,7 @@ export class PaymentReceiptManagementUseCase {
         },
         error: (error) => {
           console.error("Erreur lors de l'ouverture de l'apercu du recu", error);
+          previewWindow.close();
           this.showToast(
             "L'apercu du recu a echoue.",
             'danger',
@@ -235,6 +247,16 @@ export class PaymentReceiptManagementUseCase {
   printReceipt(receipt: PaymentReceiptViewModel): void {
     const paymentId = this.ensureReceiptAvailable(receipt);
     if (!paymentId) {
+      return;
+    }
+
+    const printWindow = this.documentGateway.openWindow();
+    if (!printWindow) {
+      this.showToast(
+        "Le navigateur a bloque la fenetre d'impression. Autorisez les pop-ups puis recommencez.",
+        'warning',
+        'Impression bloquee',
+      );
       return;
     }
 
@@ -257,6 +279,7 @@ export class PaymentReceiptManagementUseCase {
           const result = this.documentGateway.openPrintable(
             blob,
             this.repository.buildReceiptFileName(receipt),
+            printWindow,
           );
 
           if (!result.ok) {
@@ -276,6 +299,7 @@ export class PaymentReceiptManagementUseCase {
         },
         error: (error) => {
           console.error("Erreur lors de l'impression du recu", error);
+          printWindow.close();
           this.showToast(
             "L'impression du recu a echoue.",
             'danger',

@@ -113,6 +113,12 @@
            dark:disabled:bg-gray-700;
   }
 
+  /* color-scheme dark → contrôles natifs (date, number spinners,
+     toggles) rendus en sombre par le navigateur en dark mode */
+  .dark .form-control {
+    color-scheme: dark;
+  }
+
 
   .form-error {
     @apply text-xs text-red-600 dark:text-red-400
@@ -121,6 +127,20 @@
 
   .form-hint {
     @apply text-xs text-gray-500 dark:text-gray-400;
+  }
+
+  /* =========================
+     CUSTOM FORM HOSTS (DARK MODE)
+     @tailwindcss/forms applique background-color:#fff via les sélecteurs
+     [type='text'], [type='number'], [type='date'], ...
+     Ces sélecteurs à attribut nu matchent aussi les hôtes
+     <app-input type="..."> (custom elements). La classe .form-control
+     corrige l'input interne en dark mode, mais pas l'hôte :
+     on rétablit ici un fond sombre cohérent (layer components > layer base).
+  ========================== */
+
+  app-input {
+    @apply dark:bg-gray-800;
   }
 
   /* =========================

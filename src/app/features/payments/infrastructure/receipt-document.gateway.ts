@@ -17,8 +17,11 @@ export class ReceiptDocumentGateway {
     this.urlFactory.revokeObjectURL(url);
   }
 
-  openPreview(blob: Blob, fileName: string): { ok: boolean; reason?: string } {
-    const previewWindow = window.open('', '_blank', 'noopener,noreferrer');
+  openWindow(): Window | null {
+    return window.open('', '_blank');
+  }
+
+  openPreview(blob: Blob, fileName: string, previewWindow: Window | null): { ok: boolean; reason?: string } {
     if (!previewWindow) {
       return { ok: false, reason: 'blocked' };
     }
@@ -41,18 +44,25 @@ export class ReceiptDocumentGateway {
 
     const url = this.urlFactory.createObjectURL(blob);
     previewWindow.document.title = fileName;
-    previewWindow.addEventListener(
-      'beforeunload',
-      () => this.urlFactory.revokeObjectURL(url),
-      { once: true },
-    );
+
+    let revoked = false;
+    const revoke = () => {
+      if (revoked) {
+        return;
+      }
+      revoked = true;
+      this.urlFactory.revokeObjectURL(url);
+    };
+
+    previewWindow.addEventListener('load', revoke, { once: true });
+
     previewWindow.location.href = url;
+    window.setTimeout(revoke, 60_000);
 
     return { ok: true };
   }
 
-  openPrintable(blob: Blob, fileName: string): { ok: boolean; reason?: string } {
-    const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+  openPrintable(blob: Blob, fileName: string, printWindow: Window | null): { ok: boolean; reason?: string } {
     if (!printWindow) {
       return { ok: false, reason: 'blocked' };
     }

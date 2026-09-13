@@ -1,17 +1,9 @@
-<section class="dashboard-shell">
-  <header class="dashboard-hero">
-    <div>
-      <p class="dashboard-kicker">{{ 'dashboardPage.administrativeView' | translate }}</p>
-      <h1 class="dashboard-title">{{ 'dashboard.title' | translate }}</h1>
-      <p class="dashboard-subtitle">
-        {{ 'dashboardPage.subtitle' | translate }}
-      </p>
-    </div>
-
-    <a routerLink="/students" class="dashboard-primary-action">
+<app-page-layout>
+  <app-page-header [title]="'dashboard.title' | translate">
+    <a routerLink="/students" class="btn btn-primary">
       {{ 'dashboardPage.viewPreRegistrations' | translate }}
     </a>
-  </header>
+  </app-page-header>
 
   <ng-container *ngIf="isLoading(); else dashboardContent">
     <div class="dashboard-loading" aria-live="polite">
@@ -87,10 +79,12 @@
       </app-card>
     </div>
 
-    <section class="dashboard-direction-panel">
-      <div>
-        <p class="dashboard-kicker dashboard-kicker-muted">{{ 'dashboardPage.management' | translate }}</p>
-        <h2 class="dashboard-card-title">{{ 'dashboardPage.quickAlerts' | translate }}</h2>
+    <app-card padding="lg">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <p class="dashboard-kicker dashboard-kicker-muted">{{ 'dashboardPage.management' | translate }}</p>
+          <h2 class="dashboard-card-title">{{ 'dashboardPage.quickAlerts' | translate }}</h2>
+        </div>
       </div>
 
       <div class="dashboard-direction-grid">
@@ -124,7 +118,7 @@
           <strong>{{ directionSummary().recentAuditEntries }}</strong>
         </div>
       </div>
-    </section>
+    </app-card>
 
     @defer (on viewport) {
       <app-dashboard-charts />
@@ -168,4 +162,4 @@
       </div>
     </section>
   </ng-template>
-</section>
+</app-page-layout>

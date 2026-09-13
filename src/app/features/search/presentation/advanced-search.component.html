@@ -1,120 +1,135 @@
-﻿
-<div class="min-h-screen bg-gray-100 py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-2xl font-semibold mb-6">Recherche avancee</h2>
+﻿<app-page-layout>
+  <app-page-header [title]="'searchPage.title' | translate"></app-page-header>
 
-        <form [formGroup]="searchForm" (ngSubmit)="onSubmit()">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Section -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Section</label>
-              <app-select formControlName="section" [options]="sectionOptions" placeholder="Toutes les sections" />
-            </div>
+  <app-card padding="lg">
+    <form [formGroup]="searchForm" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <app-select
+          [label]="'searchPage.sectionLabel' | translate"
+          formControlName="section"
+          [options]="sectionOptions"
+          [placeholder]="'searchPage.sectionAll' | translate"
+        />
 
-            <!-- Niveau -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Niveau</label>
-              <app-select formControlName="level" [options]="levelOptions" placeholder="Tous les niveaux" />
-            </div>
+        <app-select
+          [label]="'searchPage.levelLabel' | translate"
+          formControlName="level"
+          [options]="levelOptions"
+          [placeholder]="'searchPage.levelAll' | translate"
+        />
 
-            <!-- Periode -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Periode</label>
-              <div class="grid grid-cols-2 gap-2">
-                <app-input type="date" formControlName="startDate"></app-input>
-                <app-input type="date" formControlName="endDate"></app-input>
-              </div>
-            </div>
-
-            <!-- Mots-cles -->
-            <div class="col-span-full">
-              <label class="block text-sm font-medium text-gray-700">Mots-cles</label>
-              <app-input type="text" formControlName="keywords"></app-input>
-              
-              <div *ngIf="suggestions().length > 0" class="mt-1 bg-white shadow-lg rounded-md">
-                <ul class="py-1">
-                  <li *ngFor="let suggestion of suggestions()"
-                      class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                      (click)="selectSuggestion(suggestion)">
-                    {{suggestion}}
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <ng-container [ngSwitch]="searchContext()">
-              <div *ngSwitchCase="'grades'" class="col-span-full">
-                <label class="block text-sm font-medium text-gray-700">Plage de notes</label>
-                <div class="grid grid-cols-2 gap-2">
-                  <app-input type="number" formControlName="minGrade" [min]="0" [max]="20"></app-input>
-                  <app-input type="number" formControlName="maxGrade" [min]="0" [max]="20"></app-input>
-                </div>
-              </div>
-
-              <div *ngSwitchCase="'payments'" class="col-span-full">
-                <label class="block text-sm font-medium text-gray-700">Statut de paiement</label>
-                <app-select formControlName="paymentStatus" [options]="paymentStatusOptions" placeholder="Tous les statuts" />
-              </div>
-            </ng-container>
+        <div>
+          <p class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
+            {{ 'searchPage.periodLabel' | translate }}
+          </p>
+          <div class="grid grid-cols-2 gap-2">
+            <app-input type="date" formControlName="startDate" />
+            <app-input type="date" formControlName="endDate" />
           </div>
+        </div>
 
-          <!-- Actions -->
-          <div class="mt-6 flex justify-between">
-            <div>
-              <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
-                Rechercher
-              </button>
-              <button type="button" (click)="resetForm()" class="ml-3 inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Reinitialiser
-              </button>
-            </div>
-            <button type="button" (click)="saveAsFavorite()" class="inline-flex items-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-              <svg class="mr-2 h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              Sauvegarder
-            </button>
-          </div>
-        </form>
+        <div class="col-span-full">
+          <app-input
+            [label]="'searchPage.keywordsLabel' | translate"
+            type="text"
+            formControlName="keywords"
+          />
 
-        <!-- Resultats de recherche -->
-        <div *ngIf="searchResults().length > 0" class="mt-8">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Resultats</h3>
-          <div class="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul role="list" class="divide-y divide-gray-200">
-              <li *ngFor="let result of searchResults()" class="px-6 py-4 hover:bg-gray-50">
-                <!-- Contenu du resultat selon le type -->
-                <ng-container [ngSwitch]="result.type">
-                  <!-- Eleve -->
-                  <div *ngSwitchCase="'student'" class="flex items-center">
-                    <div class="min-w-0 flex-1">
-                      <p class="text-sm font-medium text-primary-600">{{result.firstName}} {{result.lastName}}</p>
-                      <p class="text-sm text-gray-500">{{result.class}} - {{result.section}}</p>
-                    </div>
-                  </div>
-
-                  <!-- Note -->
-                  <div *ngSwitchCase="'grade'" class="flex items-center">
-                    <div class="min-w-0 flex-1">
-                      <p class="text-sm font-medium text-primary-600">{{result.subject}}</p>
-                      <p class="text-sm text-gray-500">{{result.value}}/20 - {{result.date | date}}</p>
-                    </div>
-                  </div>
-
-                  <!-- Paiement -->
-                  <div *ngSwitchCase="'payment'" class="flex items-center">
-                    <div class="min-w-0 flex-1">
-                      <p class="text-sm font-medium text-primary-600">{{result.type}} - {{result.amount | currency:'XAF'}}</p>
-                      <p class="text-sm text-gray-500">{{result.date | date}} - {{result.status}}</p>
-                    </div>
-                  </div>
-                </ng-container>
+          <div *ngIf="suggestions().length > 0" class="mt-1 rounded-md shadow-lg">
+            <ul class="overflow-hidden rounded-md border border-gray-200 bg-white py-1 dark:border-gray-600 dark:bg-gray-700">
+              <li
+                *ngFor="let suggestion of suggestions()"
+                class="cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600"
+                (click)="selectSuggestion(suggestion)"
+              >
+                {{ suggestion }}
               </li>
             </ul>
           </div>
         </div>
+
+        <ng-container [ngSwitch]="searchContext()">
+          <div *ngSwitchCase="'grades'" class="col-span-full">
+            <p class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
+              {{ 'searchPage.gradeRangeLabel' | translate }}
+            </p>
+            <div class="grid grid-cols-2 gap-2">
+              <app-input type="number" formControlName="minGrade" [min]="0" [max]="20" />
+              <app-input type="number" formControlName="maxGrade" [min]="0" [max]="20" />
+            </div>
+          </div>
+
+          <div *ngSwitchCase="'payments'" class="col-span-full">
+            <app-select
+              [label]="'searchPage.paymentStatusLabel' | translate"
+              formControlName="paymentStatus"
+              [options]="paymentStatusOptions"
+              [placeholder]="'searchPage.paymentStatusAll' | translate"
+            />
+          </div>
+        </ng-container>
       </div>
-    </div>
+
+      <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap gap-3">
+          <app-button type="submit" variant="primary">
+            {{ 'searchPage.search' | translate }}
+          </app-button>
+          <app-button type="button" variant="secondary" (clicked)="resetForm()">
+            {{ 'searchPage.reset' | translate }}
+          </app-button>
+        </div>
+        <app-button type="button" variant="secondary" (clicked)="saveAsFavorite()">
+          <svg class="mr-2 h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+          {{ 'searchPage.saveAsFavorite' | translate }}
+        </app-button>
+      </div>
+    </form>
+  </app-card>
+
+  <div *ngIf="searchResults().length > 0" class="space-y-4">
+    <app-card padding="lg">
+      <h3 class="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">
+        {{ 'searchPage.results' | translate }}
+      </h3>
+      <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-600">
+        <li *ngFor="let result of searchResults()" class="px-2 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+          <ng-container [ngSwitch]="result.type">
+            <div *ngSwitchCase="'student'" class="flex items-center">
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-primary-600 dark:text-primary-400">
+                  {{ result.firstName }} {{ result.lastName }}
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-300">{{ result.class }} - {{ result.section }}</p>
+              </div>
+            </div>
+
+            <div *ngSwitchCase="'grade'" class="flex items-center">
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-primary-600 dark:text-primary-400">{{ result.subject }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-300">{{ result.value }}/20 - {{ result.date | date }}</p>
+              </div>
+            </div>
+
+            <div *ngSwitchCase="'payment'" class="flex items-center">
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-primary-600 dark:text-primary-400">
+                  {{ result.type }} - {{ result.amount | currency: 'XAF' }}
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-300">{{ result.date | date }} - {{ result.status }}</p>
+              </div>
+            </div>
+          </ng-container>
+        </li>
+      </ul>
+    </app-card>
   </div>
 
+  <app-card *ngIf="searchResults().length === 0 && hasSearched()" padding="lg">
+    <p class="text-sm text-gray-500 dark:text-gray-300">
+      {{ 'searchPage.noResults' | translate }}
+    </p>
+  </app-card>
+</app-page-layout>

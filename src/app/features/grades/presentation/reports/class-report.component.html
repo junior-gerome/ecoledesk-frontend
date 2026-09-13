@@ -20,29 +20,21 @@
 
     <div class="rounded-2xl bg-white p-6 shadow dark:bg-gray-800">
       <form [formGroup]="form" class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label for="classId" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'reportPage.class' | translate }}
-          </label>
-          <app-select
-            id="classId"
-            formControlName="classId"
-            [options]="classOptions"
-            [placeholder]="'reportPage.selectClass' | translate"
-          />
-        </div>
+        <app-select
+          id="classId"
+          [label]="'reportPage.class' | translate"
+          formControlName="classId"
+          [options]="classOptions"
+          [placeholder]="'reportPage.selectClass' | translate"
+        />
 
-        <div>
-          <label for="period" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ 'reportPage.sequence' | translate }}
-          </label>
-          <app-select
-            id="period"
-            formControlName="period"
-            [options]="periodOptions"
-            [placeholder]="'reportPage.selectSequence' | translate"
-          />
-        </div>
+        <app-select
+          id="period"
+          [label]="'reportPage.sequence' | translate"
+          formControlName="period"
+          [options]="periodOptions"
+          [placeholder]="'reportPage.selectSequence' | translate"
+        />
       </form>
 
       <div class="mt-6 flex flex-wrap justify-end gap-2">

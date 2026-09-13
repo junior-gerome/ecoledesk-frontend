@@ -12,13 +12,15 @@ import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import { AppError } from "@core/errors/app-error.model";
 import { AuthService } from "@core/services/auth.service";
 import { InputComponent } from "@app/shared/ui/input/input.component";
+import { ButtonComponent } from "@app/shared/ui/button/button.component";
+import { AlertComponent } from "@app/shared/ui/alert/alert.component";
 import { FormBodyComponent } from "@app/shared/form-body/form-body.component";
 import { SchoolIllustrationComponent } from "@app/shared/schoolIllustration/school-illustration.component";
 
 @Component({
   selector: "app-login",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, InputComponent, FormBodyComponent, TranslateModule, SchoolIllustrationComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, InputComponent, ButtonComponent, AlertComponent, FormBodyComponent, TranslateModule, SchoolIllustrationComponent],
   templateUrl: `./login.component.html`,
   styleUrls: ["./login.component.scss"],
 })
@@ -70,7 +72,7 @@ export class LoginComponent implements OnInit {
             ? this.formatValidationError(err)
             : err.status === 429
               ? err.message
-            : "Email ou mot de passe incorrect";
+            : this.translate.instant("auth.loginError");
       },
     });
   }

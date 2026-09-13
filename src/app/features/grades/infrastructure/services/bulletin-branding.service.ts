@@ -56,9 +56,9 @@ export const DEFAULT_BULLETIN_BRANDING_CONFIG: BulletinBrandingConfig = {
   institutionLines: [
     "REPUBLIQUE DU CAMEROUN",
     "MINISTERE DE L'EDUCATION DE BASE",
-    "Etablissement scolaire",
+    "Groupe Scolaire Bahia Pontoise",
   ],
-  contactLine: "Bulletin scolaire officiel",
+  contactLine: "GSBP-DKR-001 | +221338000000 | contact@gsbp.edu.sn",
   documentTitle: "Bulletin officiel",
   documentSubtitle: "Synthese pedagogique printable et exportable au format A4.",
   footerLines: [
@@ -141,7 +141,8 @@ export class BulletinBrandingService {
     const defaultInstitutionLines = [
       "REPUBLIQUE DU CAMEROUN",
       "MINISTERE DE L'EDUCATION DE BASE",
-      this.cleanString(preferences?.schoolName) || "Etablissement scolaire",
+      this.cleanString(preferences?.schoolName) ||
+        DEFAULT_BULLETIN_BRANDING_CONFIG.institutionLines[2],
     ];
     const institutionLines =
       this.parseMultiline(overrides.institutionLinesText) || defaultInstitutionLines;

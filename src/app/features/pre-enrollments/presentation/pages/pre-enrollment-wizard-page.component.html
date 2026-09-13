@@ -102,11 +102,12 @@
       <form [formGroup]="candidateForm" (ngSubmit)="submitCandidateStep()" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label for="preFirstName" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Prénom *
             </label>
             <input
               type="text"
+              id="preFirstName"
               formControlName="firstName"
               placeholder="Ex: Jean"
               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -114,11 +115,12 @@
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label for="preLastName" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nom *
             </label>
             <input
               type="text"
+              id="preLastName"
               formControlName="lastName"
               placeholder="Ex: Dupont"
               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -126,21 +128,23 @@
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label for="preBirthDate" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Date de naissance *
             </label>
             <input
               type="date"
+              id="preBirthDate"
               formControlName="birthDate"
               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label for="preGender" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Genre *
             </label>
             <select
+              id="preGender"
               formControlName="gender"
               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
             >
@@ -150,11 +154,12 @@
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label for="preBirthPlace" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Lieu de naissance
             </label>
             <input
               type="text"
+              id="preBirthPlace"
               formControlName="birthPlace"
               placeholder="Ex: Douala, Yaoundé, Paris..."
               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -162,10 +167,11 @@
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label for="preAcademicYear" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Année scolaire *
             </label>
             <select
+              id="preAcademicYear"
               formControlName="academicYearId"
               (change)="onYearChanged($any($event.target).value)"
               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -177,7 +183,7 @@
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label for="preRequestedLevel" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Niveau demandé *
             </label>
             @if (isLevelLoading()) {
@@ -186,6 +192,7 @@
               </div>
             } @else if (availableLevels().length > 0) {
               <select
+                id="preRequestedLevel"
                 formControlName="requestedLevel"
                 (change)="onLevelSelected($any($event.target).value)"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -198,6 +205,7 @@
             } @else {
               <input
                 type="text"
+                id="preRequestedLevel"
                 formControlName="requestedLevel"
                 placeholder="Ex: 6ème, SIL, CP, CM2, Seconde C..."
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -206,11 +214,12 @@
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label for="preRequiredFee" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Frais de dossier requis
             </label>
             <input
               type="number"
+              id="preRequiredFee"
               formControlName="requiredFee"
               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
@@ -273,10 +282,11 @@
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preGuardianRelationship" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Lien de parenté *
               </label>
               <select
+                id="preGuardianRelationship"
                 formControlName="relationshipType"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
               >
@@ -287,11 +297,12 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preGuardianFirstName" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Prénom *
               </label>
               <input
                 type="text"
+                id="preGuardianFirstName"
                 formControlName="firstName"
                 placeholder="Ex: Pierre"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -299,11 +310,12 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preGuardianLastName" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Nom *
               </label>
               <input
                 type="text"
+                id="preGuardianLastName"
                 formControlName="lastName"
                 placeholder="Ex: Dupont"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -311,11 +323,12 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preGuardianPhone" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Téléphone *
               </label>
               <input
                 type="tel"
+                id="preGuardianPhone"
                 formControlName="phoneNumber"
                 placeholder="Ex: +237 6..."
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -323,11 +336,12 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preGuardianEmail" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
               </label>
               <input
                 type="email"
+                id="preGuardianEmail"
                 formControlName="email"
                 placeholder="Ex: parent@email.com"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -335,11 +349,12 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preGuardianAddress" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Adresse
               </label>
               <input
                 type="text"
+                id="preGuardianAddress"
                 formControlName="address"
                 placeholder="Ex: Quartier, Ville"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -406,9 +421,17 @@
                     {{ doc.documentType }}
                   </div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">
-                    Réf : {{ doc.storageReference }} | Statut : <span class="font-semibold">{{ doc.reviewStatus }}</span>
+                    Statut : <span class="font-semibold">{{ doc.reviewStatus }}</span>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  (click)="downloadDocument(doc)"
+                  title="Télécharger le fichier (MinIO)"
+                  class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Télécharger
+                </button>
               </div>
             }
           </div>
@@ -418,16 +441,17 @@
           </div>
         }
 
-        <!-- Formulaire d'ajout de document -->
+        <!-- Formulaire d'ajout de document (upload vers MinIO) -->
         <form [formGroup]="documentForm" (ngSubmit)="addDocument()" class="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-700">
           <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Ajouter un document</h4>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preDocumentType" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Type de pièce *
               </label>
               <select
+                id="preDocumentType"
                 formControlName="documentType"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
               >
@@ -438,21 +462,25 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Lien / Référence de stockage *
+              <label for="preDocumentFile" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Fichier (PDF, image) *
               </label>
               <input
-                type="text"
-                formControlName="storageReference"
-                placeholder="Ex: /uploads/pre-enrollments/acte.pdf"
+                type="file"
+                id="preDocumentFile"
+                accept=".pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                (change)="onFileSelected($event)"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
               />
+              <p class="text-[11px] text-gray-400 mt-1">
+                Stocké sur MinIO (max 5 Mo). {{ selectedDocumentFile ? 'Fichier sélectionné : ' + selectedDocumentFile.name : '' }}
+              </p>
             </div>
           </div>
 
           <div class="flex justify-end">
-            <app-button type="submit" variant="secondary" [disabled]="isLoading() || documentForm.invalid">
-              + Ajouter cette pièce
+            <app-button type="submit" variant="secondary" [disabled]="isLoading() || documentForm.invalid || !selectedDocumentFile">
+              + Téléverser cette pièce
             </app-button>
           </div>
         </form>
@@ -492,11 +520,12 @@
         <form [formGroup]="feeForm" (ngSubmit)="submitFeeStep()" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preFeeAmount" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Montant versé *
               </label>
               <input
                 type="number"
+                id="preFeeAmount"
                 formControlName="amount"
                 min="0"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -504,22 +533,24 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preFeeDate" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Date du versement *
               </label>
               <input
                 type="date"
+                id="preFeeDate"
                 formControlName="paymentDate"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
               />
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preFeeReference" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Référence de transaction
               </label>
               <input
                 type="text"
+                id="preFeeReference"
                 formControlName="transactionReference"
                 placeholder="Ex: MTN-MOMO-XXXX"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -527,11 +558,12 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label for="preFeeReceiptNumber" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 N° de reçu
               </label>
               <input
                 type="text"
+                id="preFeeReceiptNumber"
                 formControlName="receiptNumber"
                 placeholder="Ex: REC-2026-001"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"

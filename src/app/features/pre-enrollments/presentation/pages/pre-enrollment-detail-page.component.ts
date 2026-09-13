@@ -145,6 +145,27 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
       });
   }
 
+  /** Telecharge un document du dossier depuis le stockage objet (MinIO). */
+  downloadDocument(doc: PreEnrollmentDocument): void {
+    const current = this.preEnrollment();
+    if (!current || doc.id == null) return;
+
+    this.repository.downloadDocument(current.id, doc.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.storageReference?.split('/').pop() || 'document';
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error downloading document', err);
+        this.error.set('Impossible de télécharger le document.');
+      },
+    });
+  }
+
   openRejectDocumentModal(doc: PreEnrollmentDocument, status: DocumentReviewStatus): void {
     this.reasonModalTitle.set(
       status === 'REJECTED' ? 'Rejeter la pièce justificative' : 'Demander le remplacement de la pièce'

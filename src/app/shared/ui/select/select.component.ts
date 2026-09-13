@@ -25,6 +25,7 @@ export interface SelectOption<T = string> {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, AutoFocusDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '[attr.id]': 'null' },
   templateUrl: './select.component.html',
   providers: [
     {

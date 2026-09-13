@@ -32,6 +32,7 @@ export type InputType =
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './input.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '[attr.id]': 'null' },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -8,12 +8,12 @@ import { PageLayoutComponent } from '@app/shared/page-layout/page-layout.compone
 import { ButtonComponent } from '@app/shared/ui/button/button.component';
 import { Observable, switchMap, of } from 'rxjs';
 import {
-  AddPreEnrollmentDocumentRequest,
   AddPreEnrollmentGuardianRequest,
   ClassRoomOption,
   CreatePreEnrollmentRequest,
   Gender,
   PreEnrollment,
+  PreEnrollmentDocument,
   PreEnrollmentFeePaymentResponse,
   RecordPreEnrollmentFeePaymentRequest,
   RelationshipType,
@@ -57,6 +57,9 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
 
   // Formulaire Étape 3 : Document
   documentForm!: FormGroup;
+
+  /** Fichier selectionne pour l'upload (stocke sur MinIO cote backend). */
+  selectedDocumentFile: File | null = null;
 
   // Formulaire Étape 4 : Frais de préinscription
   feeForm!: FormGroup;
@@ -173,7 +176,6 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
 
     this.documentForm = this.fb.group({
       documentType: ['BIRTH_CERTIFICATE', [Validators.required]],
-      storageReference: ['', [Validators.required]],
     });
 
     this.feeForm = this.fb.group({
@@ -267,6 +269,12 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
   }
 
   // Étape 3 : Ajouter un document
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedDocumentFile = input?.files?.[0] ?? null;
+  }
+
+  // Étape 3 : Ajouter un document
   addDocument(): void {
     if (this.documentForm.invalid) {
       this.documentForm.markAllAsTouched();
@@ -276,27 +284,47 @@ export class PreEnrollmentWizardPageComponent implements OnInit {
     const currentPre = this.preEnrollment();
     if (!currentPre) return;
 
+    const file = this.selectedDocumentFile;
+    if (!file) {
+      this.error.set('Veuillez sélectionner un fichier à téléverser.');
+      return;
+    }
+
     this.isLoading.set(true);
     this.error.set(null);
 
     const dVal = this.documentForm.value;
-    const request: AddPreEnrollmentDocumentRequest = {
-      documentType: dVal.documentType,
-      storageReference: dVal.storageReference,
-    };
-
-    this.repository.addDocument(currentPre.id, request).subscribe({
+    this.repository.uploadDocument(currentPre.id, file, dVal.documentType).subscribe({
       next: () => {
         this.refresh(currentPre.id);
-        this.documentForm.reset({
-          documentType: 'REPORT_CARD',
-          storageReference: '',
-        });
+        this.documentForm.reset({ documentType: 'REPORT_CARD' });
+        this.selectedDocumentFile = null;
       },
       error: (err) => {
-        console.error('Error adding document', err);
-        this.error.set(err?.message || 'Erreur lors de l’ajout du document.');
+        console.error('Error uploading document', err);
+        this.error.set(err?.message || 'Erreur lors du téléversement du document.');
         this.isLoading.set(false);
+      },
+    });
+  }
+
+  /** Telecharge un document du dossier depuis le stockage objet (MinIO). */
+  downloadDocument(doc: PreEnrollmentDocument): void {
+    const currentPre = this.preEnrollment();
+    if (!currentPre || doc.id == null) return;
+
+    this.repository.downloadDocument(currentPre.id, doc.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.storageReference?.split('/').pop() || 'document';
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error downloading document', err);
+        this.error.set('Impossible de télécharger le document.');
       },
     });
   }

@@ -12,11 +12,12 @@ import { AuthService } from "@core/services/auth.service";
 import { InputComponent } from "@app/shared/ui/input/input.component";
 import { FormBodyComponent } from "@app/shared/form-body/form-body.component";
 import { ButtonComponent } from "@app/shared/ui/button/button.component";
+import { AlertComponent } from "@app/shared/ui/alert/alert.component";
 
 @Component({
   selector: "app-forgot-password",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, TranslateModule, InputComponent, ButtonComponent, FormBodyComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, TranslateModule, InputComponent, ButtonComponent, AlertComponent, FormBodyComponent],
   templateUrl: "./forgot-password.component.html",
   styleUrls: ["./forgot-password.component.scss"],
 })
@@ -48,7 +49,7 @@ export class ForgotPasswordComponent {
         .subscribe({
           next: () => {
             this.isLoading = false;
-            this.success = this.translate.instant('auth.loginSuccess');
+            this.success = this.translate.instant('auth.forgotSuccess');
             setTimeout(() => {
               this.router.navigate(["/auth/login"]);
             }, 3000);
