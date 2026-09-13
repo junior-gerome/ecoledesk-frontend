@@ -130,17 +130,28 @@
   }
 
   /* =========================
-     CUSTOM FORM HOSTS (DARK MODE)
-     @tailwindcss/forms applique background-color:#fff via les sélecteurs
+     CUSTOM FORM HOSTS
+     @tailwindcss/forms applique via les sélecteurs à attribut nu
      [type='text'], [type='number'], [type='date'], ...
-     Ces sélecteurs à attribut nu matchent aussi les hôtes
-     <app-input type="..."> (custom elements). La classe .form-control
-     corrige l'input interne en dark mode, mais pas l'hôte :
-     on rétablit ici un fond sombre cohérent (layer components > layer base).
+     ces styles aux hôtes <app-input type="..."> (custom elements) :
+     background-color #fff, paddings 8px 12px, border-radius 0.
+     → enveloppe parasite (fond + padding) autour du label + du champ.
+     Le CSS servi est aplati (pas de @layer) → c'est la spécificité qui
+     tranche : app-input[type] (0,1,1) > [type='...'] (0,1,0).
+     L'hôte est neutralisé (layout uniquement) ; l'<input> interne reste
+     stylé par .form-control (bordure/fond/focus/error/disabled/readonly/dark).
   ========================== */
 
   app-input {
-    @apply dark:bg-gray-800;
+    display: block;
+  }
+
+  app-input[type] {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
   }
 
   /* =========================
