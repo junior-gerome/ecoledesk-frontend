@@ -43,6 +43,8 @@ export const API_ENDPOINTS = {
     confirm: (id: string | number) => `${environment.apiUrl}/enrollments/${segment(id)}/confirm`,
     cancel: (id: string | number) => `${environment.apiUrl}/enrollments/${segment(id)}/cancel`,
     withdraw: (id: string | number) => `${environment.apiUrl}/enrollments/${segment(id)}/withdraw`,
+    byPreEnrollment: (preEnrollmentId: string | number) =>
+      `${environment.apiUrl}/enrollments/by-pre-enrollment/${segment(preEnrollmentId)}`,
     // Pre-enrollment workflow
     preEnrollments: `${environment.apiUrl}/pre-enrollments`,
     preEnrollmentDetail: (id: string | number) => `${environment.apiUrl}/pre-enrollments/${segment(id)}`,

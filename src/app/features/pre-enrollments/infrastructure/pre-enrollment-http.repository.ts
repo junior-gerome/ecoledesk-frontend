@@ -1,7 +1,8 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { API_ENDPOINTS } from '@app/core/configuration/api-endpoints.config';
-import { Observable, map } from 'rxjs';
+import { SILENT_REQUEST } from '@app/core/interceptors/http-context-tokens';
+import { Observable, catchError, map, of, throwError } from 'rxjs';
 import {
   AddPreEnrollmentDocumentRequest,
   AddPreEnrollmentGuardianRequest,
@@ -181,6 +182,22 @@ export class PreEnrollmentHttpRepository {
       API_ENDPOINTS.enrollments.fromPreEnrollment(preEnrollmentId),
       request,
     );
+  }
+
+  /**
+   * Recherche l'inscription existante d'une préinscription approuvée.
+   * Retourne {@code null} quand aucune inscription n'existe encore (404).
+   */
+  getEnrollmentByPreEnrollment(preEnrollmentId: number): Observable<EnrollmentResponse | null> {
+    return this.http
+      .get<EnrollmentResponse>(API_ENDPOINTS.enrollments.byPreEnrollment(preEnrollmentId), {
+        context: new HttpContext().set(SILENT_REQUEST, true),
+      })
+      .pipe(
+        catchError((error: { status?: number }) =>
+          error?.status === 404 ? of(null) : throwError(() => error),
+        ),
+      );
   }
 
   confirmEnrollment(enrollmentId: number): Observable<EnrollmentResponse> {

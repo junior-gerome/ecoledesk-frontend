@@ -66,12 +66,58 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
         this.preEnrollment.set(data);
         this.isLoading.set(false);
         if (data.status === 'APPROVED') {
+          this.loadExistingEnrollment(data.id);
           this.loadClasses(data.academicYearId);
         }
       },
       error: (err) => {
         console.error('Error loading pre-enrollment detail', err);
         this.error.set('Impossible de charger le détail du dossier.');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  /**
+   * Recharge une éventuelle inscription déjà créée pour une préinscription approuvée.
+   * Évite de proposer "Créer l'inscription" alors qu'une inscription existe déjà
+   * (retours sur la page, double affichage, doublon interdit côté backend).
+   */
+  loadExistingEnrollment(preEnrollmentId: number): void {
+    this.repository.getEnrollmentByPreEnrollment(preEnrollmentId).subscribe({
+      next: (enrollment) => {
+        if (enrollment) {
+          this.createdEnrollment.set(enrollment);
+        }
+      },
+      error: (err) => console.error('Error loading existing enrollment', err),
+    });
+  }
+
+  /**
+   * Recharge le dossier complet (GET détail, incluant la liste des pièces justificatives)
+   * après une mutation workflow. Les endpoints de décision renvoient un DTO léger
+   * sans `documents` : sans ce rechargement la liste serait vidée et le compteur
+   * d'approbations repasserait à zéro.
+   */
+  reload(id: number, message?: string, successMessageText?: string): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    this.repository.getById(id).subscribe({
+      next: (data) => {
+        this.preEnrollment.set(data);
+        this.isLoading.set(false);
+        if (message) {
+          this.successMessage.set(message);
+        }
+        if (data.status === 'APPROVED') {
+          this.loadExistingEnrollment(data.id);
+          this.loadClasses(data.academicYearId);
+        }
+      },
+      error: (err) => {
+        this.error.set(err?.message || 'Impossible de recharger le dossier.');
         this.isLoading.set(false);
       },
     });
@@ -109,13 +155,34 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
     this.error.set(null);
 
     this.repository.startReview(current.id).subscribe({
-      next: (updated) => {
-        this.preEnrollment.set(updated);
-        this.isLoading.set(false);
-        this.successMessage.set('L’étude du dossier a commencé.');
+      next: () => {
+        // Le backend renvoie un DTO léger (sans documents) : on recharge le dossier complet
+        // pour conserver la liste des pièces et débloquer les décisions.
+        this.reload(current.id, 'L’étude du dossier a commencé.');
       },
       error: (err) => {
         this.error.set(err?.message || 'Erreur lors du passage en revue.');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  /** Soumet le dossier (DRAFT → SUBMITTED) pour démarrer le workflow d'étude. */
+  submitDossier(): void {
+    const current = this.preEnrollment();
+    if (!current) return;
+
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    this.repository.submit(current.id).subscribe({
+      next: () => {
+        // DTO de décision léger (sans documents ni identité complète) : on recharge le
+        // dossier complet pour conserver pièces, état civil, niveau et année scolaire.
+        this.reload(current.id, 'Le dossier a été soumis pour étude.');
+      },
+      error: (err) => {
+        this.error.set(err?.message || 'Erreur lors de la soumission du dossier.');
         this.isLoading.set(false);
       },
     });
@@ -135,8 +202,9 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
       })
       .subscribe({
         next: (updated) => {
-          this.preEnrollment.set(updated);
-          this.isLoading.set(false);
+          // Le backend renvoie un DTO léger (sans documents ni bornes candidat) :
+          // on recharge le dossier complet pour conserver pièces + identité + année.
+          this.reload(current.id, 'La pièce justificative a été mise à jour.');
         },
         error: (err) => {
           this.error.set(err?.message || 'Erreur lors de la revue du document.');
@@ -161,7 +229,7 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error downloading document', err);
-        this.error.set('Impossible de télécharger le document.');
+        this.error.set(err?.message || 'Impossible de télécharger le document.');
       },
     });
   }
@@ -183,11 +251,10 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
     this.error.set(null);
 
     this.repository.approve(current.id).subscribe({
-      next: (updated) => {
-        this.preEnrollment.set(updated);
-        this.isLoading.set(false);
-        this.successMessage.set('Dossier de préinscription approuvé avec succès !');
-        this.loadClasses(updated.academicYearId);
+      next: (received) => {
+        // DTO de décision léger (sans pièces ni identité complet) : on recharge le dossier
+        // complet pour conserver la liste des documents et afficher la classe d'affectation.
+        this.reload(current.id, 'Le dossier de préinscription a été approuvé.');
       },
       error: (err) => {
         this.error.set(err?.message || 'Erreur lors de l’approbation du dossier.');
@@ -204,10 +271,10 @@ export class PreEnrollmentDetailPageComponent implements OnInit {
       if (!current) return;
       this.isLoading.set(true);
       this.repository.reject(current.id, { reason: this.reasonText() }).subscribe({
-        next: (updated) => {
-          this.preEnrollment.set(updated);
-          this.isLoading.set(false);
-          this.successMessage.set('Dossier rejeté.');
+        next: () => {
+          // DTO de décision léger (sans pièces ni bornes identité complètes) : on recharge
+          // le dossier complet pour conserver documents, naissance/genre, niveau et année.
+          this.reload(current.id, 'Dossier rejeté.');
         },
         error: (err) => {
           this.error.set(err?.message || 'Erreur lors du rejet du dossier.');
