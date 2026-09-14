@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Payment } from '@app/features/payments/domain/models';
 import { environment } from '@environments/environment';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, map, throwError } from 'rxjs';
 
 export interface PaymentStudentApiModel {
   id: number;
@@ -10,6 +10,15 @@ export interface PaymentStudentApiModel {
   lastNameStudent: string;
   /** Matricule (studentNumber) from backend StudentDTO */
   studentNumber?: string | null;
+}
+
+/** PageResponse<T> shape from GET /students (StudentController.getAllStudents). */
+interface PageResponseBody<T> {
+  content?: T[] | null;
+  page?: number | null;
+  size?: number | null;
+  totalElements?: number | null;
+  totalPages?: number | null;
 }
 
 const SILENT_ERROR_HEADERS = new HttpHeaders({
@@ -54,34 +63,48 @@ export class PaymentFormRepository {
    * Kept for backward compatibility with PaymentFormUseCase.loadStudents().
    */
   getStudents(): Observable<PaymentStudentApiModel[]> {
-    return this.http.get<PaymentStudentApiModel[]>(`${environment.apiUrl}/students`);
+    const params = new HttpParams().set('size', '500');
+    return this.http
+      .get<PageResponseBody<PaymentStudentApiModel>>(
+        `${environment.apiUrl}/students`,
+        { params },
+      )
+      .pipe(map((response) => response?.content ?? []));
   }
 
   /**
    * Search students by keyword (name, matricule) via GET /students?q={keyword}.
    * Uses the backend search to avoid loading all students.
-   * Falls back to GET /students if no keyword provided.
+   * Falls back to the first page of students if no keyword provided.
    */
   searchStudents(keyword?: string): Observable<PaymentStudentApiModel[]> {
-    const params = keyword?.trim()
-      ? new HttpParams().set('q', keyword.trim())
-      : new HttpParams();
-    return this.http.get<PaymentStudentApiModel[]>(
-      `${environment.apiUrl}/students`,
-      { params },
-    );
+    let params = new HttpParams().set('size', '500');
+    const search = keyword?.trim();
+    if (search) {
+      params = params.set('q', search);
+    }
+    return this.http
+      .get<PageResponseBody<PaymentStudentApiModel>>(
+        `${environment.apiUrl}/students`,
+        { params },
+      )
+      .pipe(map((response) => response?.content ?? []));
   }
 
   /**
    * Look up a single student by their matricule (studentNumber).
-   * Uses GET /students?q={matricule} — returns the first match.
+   * Uses GET /students?q={matricule} — returns the first page of matches.
    */
   findStudentByMatricule(matricule: string): Observable<PaymentStudentApiModel[]> {
-    const params = new HttpParams().set('q', matricule.trim());
-    return this.http.get<PaymentStudentApiModel[]>(
-      `${environment.apiUrl}/students`,
-      { params },
-    );
+    const params = new HttpParams()
+      .set('q', matricule.trim())
+      .set('size', '50');
+    return this.http
+      .get<PageResponseBody<PaymentStudentApiModel>>(
+        `${environment.apiUrl}/students`,
+        { params },
+      )
+      .pipe(map((response) => response?.content ?? []));
   }
 
   private withBackendFallback<T>(

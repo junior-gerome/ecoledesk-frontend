@@ -11,14 +11,21 @@ export class StudentEnrollmentFacade {
   readonly studentClasses = this.useCase.studentClasses;
   readonly sections = this.useCase.sections;
   readonly classes = this.useCase.classes;
+  readonly currentPage = this.useCase.currentPage;
+  readonly totalPages = this.useCase.totalPages;
+  readonly totalElements = this.useCase.totalElements;
   readonly selectedMontant = this.useCase.selectedMontant;
   readonly montantLoading = this.useCase.montantLoading;
   readonly activeAnneeScolaire = this.useCase.activeAnneeScolaire;
   readonly isSubmitting = this.useCase.isSubmitting;
   readonly error = this.useCase.error;
 
-  loadListPage(): Promise<void> {
-    return this.useCase.loadListPage();
+  loadListPage(options?: { q?: string | null; page?: number }): Promise<void> {
+    return this.useCase.loadListPage(options);
+  }
+
+  setPage(page: number): Promise<void> {
+    return this.useCase.setPage(page);
   }
 
   loadStudentForm(studentId?: string): Promise<EnrollmentFormValue | null> {

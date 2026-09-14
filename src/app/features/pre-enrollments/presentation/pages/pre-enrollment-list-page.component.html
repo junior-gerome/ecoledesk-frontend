@@ -24,7 +24,7 @@
           ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-600 text-white shadow-sm'
           : 'px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
       >
-        Tous ({{ preEnrollments().length }})
+        Tous ({{ totalElements() }})
       </button>
       <button
         type="button"
@@ -156,4 +156,99 @@
       }
     </app-table>
   </div>
+
+  <!-- ── Pagination ──────────────────────────────────────────────────────── -->
+  @if (totalPages() > 0) {
+    <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
+
+      <!-- Infos résumé -->
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        @if (totalElements() > 0) {
+          Affichage
+          <span class="font-medium text-gray-700 dark:text-gray-300">
+            {{ currentPage() * pageSize() + 1 }}–{{ rangeEnd() }}
+          </span>
+          sur
+          <span class="font-medium text-gray-700 dark:text-gray-300">{{ totalElements() }}</span>
+          résultat{{ totalElements() > 1 ? 's' : '' }}
+        }
+      </p>
+
+      <!-- Contrôles -->
+      <div class="flex items-center gap-1">
+
+        <!-- Précédent -->
+        <button
+          type="button"
+          (click)="previousPage()"
+          [disabled]="isFirst()"
+          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors
+                 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300
+                 hover:bg-gray-100 dark:hover:bg-gray-700
+                 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Page précédente"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Préc.
+        </button>
+
+        <!-- Numéros de page -->
+        @for (p of visiblePages(); track $index) {
+          @if (p === -1) {
+            <span class="px-2 py-1.5 text-xs text-gray-400">…</span>
+          } @else {
+            <button
+              type="button"
+              (click)="goToPage(p)"
+              [class]="p === currentPage()
+                ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-600 text-white shadow-sm'
+                : 'px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'"
+              [attr.aria-current]="p === currentPage() ? 'page' : null"
+            >
+              {{ p + 1 }}
+            </button>
+          }
+        }
+
+        <!-- Suivant -->
+        <button
+          type="button"
+          (click)="nextPage()"
+          [disabled]="isLast()"
+          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors
+                 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300
+                 hover:bg-gray-100 dark:hover:bg-gray-700
+                 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Page suivante"
+        >
+          Suiv.
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Taille de page -->
+      <div class="flex items-center gap-2">
+        <label for="pageSizeSelect" class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+          Lignes par page :
+        </label>
+        <select
+          id="pageSizeSelect"
+          [ngModel]="pageSize()"
+          (ngModelChange)="changePageSize($event)"
+          class="text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+        >
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="50">50</option>
+          <option [ngValue]="100">100</option>
+        </select>
+      </div>
+
+    </div>
+  }
+
 </app-page-layout>

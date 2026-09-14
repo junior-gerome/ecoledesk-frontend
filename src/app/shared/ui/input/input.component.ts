@@ -103,7 +103,7 @@ export class InputComponent implements ControlValueAccessor, OnChanges {
     const base = ['form-control'];
 
     if (this.hasError) {
-      base.push('border-red-400 focus:border-red-500 focus:ring-red-400 dark:border-red-500');
+      base.push('border-red-400 focus:border-red-500 focus:ring-red-400 dark:bg-slate-800 dark:border-red-500');
     } else {
       base.push('border-gray-300 focus:border-blue-500 focus:ring-blue-400 dark:border-gray-600');
     }

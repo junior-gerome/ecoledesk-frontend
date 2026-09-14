@@ -10,8 +10,27 @@ import { SchoolYearEntity } from '../models/school-year.entity';
 import { SectionEntity } from '../models/section.entity';
 import { StudentEntity } from '../models/student.entity';
 
+export interface StudentPageRequest {
+  /** 0-based page number (matches the backend PageResponse). */
+  page: number;
+  /** Number of students per page. */
+  size: number;
+  /** Optional search keyword (name, matricule). */
+  q?: string | null;
+}
+
+export interface StudentPageResult {
+  students: StudentEntity[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
+
 export interface EnrollmentRepository {
-  getStudents(): Observable<StudentEntity[]>;
+  getStudents(request: StudentPageRequest): Observable<StudentPageResult>;
   getStudent(studentId: string): Observable<StudentEntity>;
   getEnrollments(): Observable<EnrollmentEntity[]>;
   getSections(): Observable<SectionEntity[]>;

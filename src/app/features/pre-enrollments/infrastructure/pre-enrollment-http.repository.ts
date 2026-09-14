@@ -20,10 +20,12 @@ import {
 
 export interface PageResponse<T> {
   content: T[];
+  page: number;         // champ retourné par le record Spring (PageResponse.page)
+  size: number;
   totalElements: number;
   totalPages: number;
-  size: number;
-  number: number;
+  first: boolean;
+  last: boolean;
   empty: boolean;
 }
 
@@ -40,11 +42,14 @@ interface ClassroomDto {
 export class PreEnrollmentHttpRepository {
   private readonly http = inject(HttpClient);
 
-  getAll(page: number = 0, size: number = 20): Observable<PageResponse<PreEnrollment>> {
-    const params = new HttpParams()
+  getAll(page: number = 0, size: number = 10, status?: string): Observable<PageResponse<PreEnrollment>> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sort', 'creationDate,desc');
+    if (status && status !== 'ALL') {
+      params = params.set('status', status);
+    }
     return this.http.get<PageResponse<PreEnrollment>>(API_ENDPOINTS.enrollments.preEnrollments, { params });
   }
 

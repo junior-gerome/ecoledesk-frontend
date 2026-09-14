@@ -18,7 +18,11 @@ import { PaymentEntity } from '../domain/models/payment.entity';
 import { SchoolYearEntity } from '../domain/models/school-year.entity';
 import { SectionEntity } from '../domain/models/section.entity';
 import { StudentEntity } from '../domain/models/student.entity';
-import { EnrollmentRepository } from '../domain/repositories/enrollment.repository';
+import {
+  EnrollmentRepository,
+  StudentPageRequest,
+  StudentPageResult,
+} from '../domain/repositories/enrollment.repository';
 
 // ─── Request / Response shapes aligned with backend DTOs ──────────────────────
 
@@ -82,14 +86,59 @@ interface EnrollmentMediumApiResponse {
   academicYearLabel?: string | null;
 }
 
+/**
+ * PageResponse shape from GET /students (StudentController.getAllStudents).
+ */
+interface StudentPageApiResponse {
+  content?: StudentApi[] | null;
+  page?: number | null;
+  size?: number | null;
+  totalElements?: number | null;
+  totalPages?: number | null;
+  first?: boolean | null;
+  last?: boolean | null;
+}
+
 @Injectable()
 export class StudentEnrollmentRepository implements EnrollmentRepository {
   private readonly http = inject(HttpClient);
 
-  getStudents(): Observable<StudentEntity[]> {
+  getStudents(request: StudentPageRequest): Observable<StudentPageResult> {
+    let params = new HttpParams()
+      .set('page', String(request.page ?? 0))
+      .set('size', String(request.size ?? 20))
+      .set('sort', 'id,asc');
+    const search = request.q?.trim();
+    if (search) {
+      params = params.set('q', search);
+    }
+
     return this.http
-      .get<StudentApi[]>(`${environment.apiUrl}/students`)
-      .pipe(map((students) => (students ?? []).map((student) => StudentMapper.fromApi(student))));
+      .get<StudentPageApiResponse>(`${environment.apiUrl}/students`, { params })
+      .pipe(
+        map((page) => ({
+          students: (page?.content ?? []).map((student) =>
+            StudentMapper.fromApi(student),
+          ),
+          page: page?.page ?? 0,
+          size: page?.size ?? request.size,
+          totalElements: page?.totalElements ?? 0,
+          totalPages: page?.totalPages ?? 0,
+          first: page?.first ?? true,
+          last: page?.last ?? true,
+        })),
+        catchError(() =>
+          of({
+            students: [] as StudentEntity[],
+            page: request.page,
+            size: request.size,
+            totalElements: 0,
+            totalPages: 0,
+            first: true,
+            last: true,
+          }),
+        ),
+      );
   }
 
   getStudent(studentId: string): Observable<StudentEntity> {

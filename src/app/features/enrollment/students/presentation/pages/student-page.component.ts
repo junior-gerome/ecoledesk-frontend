@@ -29,6 +29,7 @@ import { StudentEnrollmentRepository } from "../../infrastructure/student-enroll
 import { EnrollmentStore, StoreActionResult } from "../store/enrollment.store";
 import { StudentFileExportService } from "../../infrastructure/student-file-export.service";
 import { StudentEntity } from "../../domain/models/student.entity";
+import { PaginationComponent } from "@app/shared/ui/pagination/pagination.component";
 
 type StudentPageMode = "list" | "create" | "edit";
 
@@ -44,9 +45,10 @@ import { TranslateModule } from '@ngx-translate/core';
     PageHeaderComponent,
     ButtonComponent,
     HasPermissionDirective,
-    ToastComponent,
+ToastComponent,
     StudentListComponent,
     StudentFormComponent,
+    PaginationComponent,
   ],
   providers: [
     StudentEnrollmentRepository,
@@ -98,6 +100,8 @@ export class StudentPageComponent implements OnInit {
     }
     return this.students().filter((student) => this.matchesStudent(student, query));
   });
+  readonly currentPage = this.store.currentPage;
+  readonly totalPages = this.store.totalPages;
   readonly sections = this.store.sections;
   readonly classes = this.store.classes;
   readonly selectedMontant = this.store.selectedMontant;
@@ -187,13 +191,12 @@ export class StudentPageComponent implements OnInit {
     await this.router.navigate(["/students", studentId, "edit"], { queryParams });
   }
 
-  async onExportExcel(): Promise<void> {
+async onExportExcel(): Promise<void> {
     if (this.isExportingExcel()) return;
     this.isExportingExcel.set(true);
     try {
-      const students = this.filteredStudents();
       await this.exportService.exportStudentsToExcel(this.appliedSearch());
-      this.showToast(`${students.length} eleve(s) exporte(s) en Excel`, "success", "Export reussi");
+      this.showToast(`${this.store.totalElements()} eleve(s) exporte(s) en Excel`, "success", "Export reussi");
     } catch {
       this.showToast("Erreur lors de l'export Excel", "danger", "Erreur");
     } finally {
@@ -276,13 +279,19 @@ export class StudentPageComponent implements OnInit {
     this.importPreviewRows.set([]);
   }
 
-  onSearch(): void {
+onSearch(): void {
     this.appliedSearch.set(this.searchInput().trim());
+    void this.store.loadListPage({ q: this.appliedSearch() || null, page: 1 });
   }
 
   clearSearch(): void {
     this.searchInput.set("");
     this.appliedSearch.set("");
+    void this.store.loadListPage({ q: null, page: 1 });
+  }
+
+  async onPageChange(page: number): Promise<void> {
+    await this.store.loadListPage({ page });
   }
 
   async onSubmit(): Promise<void> {
@@ -387,8 +396,8 @@ export class StudentPageComponent implements OnInit {
       return;
     }
 
-    this.mode.set("list");
-    await this.store.loadListPage();
+this.mode.set("list");
+    await this.store.loadListPage({ q: listSearch || null });
   }
 
   private showToast(message: string, variant: ToastVariant, title = ""): void {

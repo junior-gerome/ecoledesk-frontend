@@ -27,10 +27,36 @@ export class PreEnrollmentListPageComponent implements OnInit {
   private readonly repository = inject(PreEnrollmentHttpRepository);
   private readonly router = inject(Router);
 
+  // ── Données ─────────────────────────────────────────────────────────────
   readonly preEnrollments = signal<PreEnrollment[]>([]);
   readonly isLoading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
 
+  // ── Pagination (côté serveur) ────────────────────────────────────────────
+  readonly currentPage = signal<number>(0);
+  readonly pageSize = signal<number>(20);
+  readonly totalElements = signal<number>(0);
+  readonly totalPages = signal<number>(0);
+  readonly isFirst = signal<boolean>(true);
+  readonly isLast = signal<boolean>(true);
+
+  // Pages visibles autour de la page courante
+  readonly visiblePages = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i);
+    const pages: number[] = [];
+    const start = Math.max(0, current - 2);
+    const end = Math.min(total - 1, current + 2);
+    if (start > 0) pages.push(0);
+    if (start > 1) pages.push(-1); // ellipsis
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < total - 2) pages.push(-1); // ellipsis
+    if (end < total - 1) pages.push(total - 1);
+    return pages;
+  });
+
+  // ── Filtres locaux (appliqués sur la page courante) ──────────────────────
   readonly selectedStatus = signal<string>('ALL');
   readonly searchQuery = signal<string>('');
 
@@ -66,25 +92,14 @@ export class PreEnrollmentListPageComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.repository.getAll(0, 100).subscribe({
-      next: (firstPage) => {
-        const total = firstPage.totalElements ?? firstPage.content?.length ?? 0;
-        if (total > (firstPage.content?.length ?? 0)) {
-          this.repository.getAll(0, total).subscribe({
-            next: (all) => {
-              this.preEnrollments.set(all.content || []);
-              this.isLoading.set(false);
-            },
-            error: (err) => {
-              console.error('Error loading pre-enrollments', err);
-              this.preEnrollments.set(firstPage.content || []);
-              this.isLoading.set(false);
-            },
-          });
-        } else {
-          this.preEnrollments.set(firstPage.content || []);
-          this.isLoading.set(false);
-        }
+    this.repository.getAll(this.currentPage(), this.pageSize(), this.selectedStatus()).subscribe({
+      next: (response) => {
+        this.preEnrollments.set(response.content ?? []);
+        this.totalElements.set(response.totalElements ?? 0);
+        this.totalPages.set(response.totalPages ?? 0);
+        this.isFirst.set(response.first ?? this.currentPage() === 0);
+        this.isLast.set(response.last ?? this.currentPage() >= (response.totalPages ?? 1) - 1);
+        this.isLoading.set(false);
       },
       error: (err) => {
         console.error('Error loading pre-enrollments', err);
@@ -94,8 +109,32 @@ export class PreEnrollmentListPageComponent implements OnInit {
     });
   }
 
+  // ── Navigation pagination ────────────────────────────────────────────────
+  goToPage(page: number): void {
+    if (page < 0 || page >= this.totalPages() || page === this.currentPage()) return;
+    this.currentPage.set(page);
+    this.loadData();
+  }
+
+  previousPage(): void {
+    this.goToPage(this.currentPage() - 1);
+  }
+
+  nextPage(): void {
+    this.goToPage(this.currentPage() + 1);
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(0);
+    this.loadData();
+  }
+
+  // ── Filtres ───────────────────────────────────────────────────────────────
   filterByStatus(status: string): void {
     this.selectedStatus.set(status);
+    this.currentPage.set(0);
+    this.loadData();
   }
 
   goToDetail(id: number): void {
@@ -123,22 +162,22 @@ export class PreEnrollmentListPageComponent implements OnInit {
 
   getStatusLabel(status: PreEnrollmentStatus): string {
     switch (status) {
-      case 'DRAFT':
-        return 'Brouillon';
-      case 'SUBMITTED':
-        return 'Soumis';
-      case 'UNDER_REVIEW':
-        return 'En cours d’étude';
-      case 'APPROVED':
-        return 'Approuvé';
-      case 'REJECTED':
-        return 'Rejeté';
-      case 'CANCELLED':
-        return 'Annulé';
-      case 'EXPIRED':
-        return 'Expiré';
-      default:
-        return status;
+      case 'DRAFT':        return 'Brouillon';
+      case 'SUBMITTED':    return 'Soumis';
+      case 'UNDER_REVIEW': return 'En cours d\u2019\u00e9tude';
+      case 'APPROVED':     return 'Approuv\u00e9';
+      case 'REJECTED':     return 'Rejet\u00e9';
+      case 'CANCELLED':    return 'Annul\u00e9';
+      case 'EXPIRED':      return 'Expir\u00e9';
+      default:             return status;
     }
+  }
+
+  /** Borne haute de la plage affichée (ex: "1–20 sur 47"). */
+  rangeEnd(): number {
+    return Math.min(
+      (this.currentPage() + 1) * this.pageSize(),
+      this.totalElements()
+    );
   }
 }

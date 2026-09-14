@@ -13,14 +13,21 @@ export class StudentPageUseCase {
   readonly studentClasses = this.store.studentClasses;
   readonly sections = this.store.sections;
   readonly classes = this.store.classes;
+  readonly currentPage = this.store.currentPage;
+  readonly totalPages = this.store.totalPages;
+  readonly totalElements = this.store.totalElements;
   readonly selectedMontant = this.store.selectedMontant;
   readonly montantLoading = this.store.montantLoading;
   readonly activeAnneeScolaire = this.store.activeAnneeScolaire;
   readonly isSubmitting = this.store.isSubmitting;
   readonly error = this.store.error;
 
-  loadListPage(): Promise<void> {
-    return this.store.loadListPage();
+  loadListPage(options?: { q?: string | null; page?: number }): Promise<void> {
+    return this.store.loadListPage(options);
+  }
+
+  setPage(page: number): Promise<void> {
+    return this.store.setPage(page);
   }
 
   loadStudentForm(studentId?: string): Promise<EnrollmentFormValue | null> {

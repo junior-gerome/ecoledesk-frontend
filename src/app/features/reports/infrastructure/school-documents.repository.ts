@@ -25,6 +25,17 @@ interface EnrollmentBasicApiDto {
   status?: string | null;
 }
 
+/**
+ * PageResponse<T> shape from GET /students (StudentController.getAllStudents).
+ */
+interface PageResponseBody<T> {
+  content?: T[] | null;
+  page?: number | null;
+  size?: number | null;
+  totalElements?: number | null;
+  totalPages?: number | null;
+}
+
 @Injectable()
 export class SchoolDocumentsRepositoryAdapter
   implements SchoolDocumentsRepository
@@ -34,8 +45,13 @@ export class SchoolDocumentsRepositoryAdapter
   loadData(): Observable<SchoolDocumentsData> {
     return forkJoin({
       students: this.http
-        .get<SchoolStudentApi[]>(`${environment.apiUrl}/students`)
-        .pipe(catchError(() => of<SchoolStudentApi[]>([]))),
+        .get<PageResponseBody<SchoolStudentApi>>(
+          `${environment.apiUrl}/students?size=500`,
+        )
+        .pipe(
+          map((response) => response?.content ?? []),
+          catchError(() => of<SchoolStudentApi[]>([])),
+        ),
       classes: this.http
         .get<SchoolClassApi[]>(`${environment.apiUrl}/classes`)
         .pipe(catchError(() => of<SchoolClassApi[]>([]))),

@@ -56,7 +56,17 @@ describe('EnrollmentStore', () => {
         ? options.activeSchoolYear
         : createSchoolYearEntity();
 
-    repository.getStudents.and.returnValue(of([createStudentEntity()]));
+    repository.getStudents.and.returnValue(
+      of({
+        students: [createStudentEntity()],
+        page: 0,
+        size: 20,
+        totalElements: 1,
+        totalPages: 1,
+        first: true,
+        last: true,
+      }),
+    );
     repository.getEnrollments.and.returnValue(of([createEnrollmentEntity()]));
     repository.getSections.and.returnValue(of([createSectionEntity()]));
     repository.getAllClasses.and.returnValue(of([createClassroomEntity()]));

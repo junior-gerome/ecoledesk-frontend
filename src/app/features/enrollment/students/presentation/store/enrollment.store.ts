@@ -33,6 +33,11 @@ export class EnrollmentStore {
   private readonly _studentToEdit = signal<StudentEditionContext | null>(null);
   private readonly _isSubmitting = signal(false);
   private readonly _error = signal<string | null>(null);
+  private readonly _query = signal("");
+  private readonly _currentPage = signal(1);
+  private readonly _pageSize = signal(20);
+  private readonly _totalPages = signal(1);
+  private readonly _totalElements = signal(0);
 
   readonly students = this._students.asReadonly();
   readonly enrollments = this._enrollments.asReadonly();
@@ -44,6 +49,10 @@ export class EnrollmentStore {
   readonly studentToEdit = this._studentToEdit.asReadonly();
   readonly isSubmitting = this._isSubmitting.asReadonly();
   readonly error = this._error.asReadonly();
+  readonly currentPage = this._currentPage.asReadonly();
+  readonly pageSize = this._pageSize.asReadonly();
+  readonly totalPages = this._totalPages.asReadonly();
+  readonly totalElements = this._totalElements.asReadonly();
 
   private readonly classNameMap = computed(() =>
     this.domain.buildClassNameMap(this._classCatalog()),
@@ -64,13 +73,20 @@ export class EnrollmentStore {
     ),
   );
 
-  async loadListPage(): Promise<void> {
+  async loadListPage(options?: { q?: string | null; page?: number }): Promise<void> {
     this._error.set(null);
+
+    const query = options?.q !== undefined ? (options.q ?? "") : this._query();
+    const page = options?.page ?? this._currentPage();
 
     try {
       const snapshot = await firstValueFrom(
         forkJoin({
-          students: this.repository.getStudents(),
+          students: this.repository.getStudents({
+            page: page - 1,
+            size: this._pageSize(),
+            q: query || null,
+          }),
           enrollments: this.repository.getEnrollments(),
           sections: this.repository.getSections(),
           classes: this.repository.getAllClasses(),
@@ -78,7 +94,8 @@ export class EnrollmentStore {
         }),
       );
 
-      this._students.set(snapshot.students);
+      const result = snapshot.students;
+      this._students.set(result.students);
       this._enrollments.set(snapshot.enrollments);
       this._sections.set(snapshot.sections);
       this._classCatalog.set(snapshot.classes);
@@ -86,10 +103,20 @@ export class EnrollmentStore {
       this._selectedMontant.set(null);
       this._montantLoading.set(false);
       this._activeAnneeScolaire.set(snapshot.activeSchoolYear);
+      this._query.set(query);
+      this._totalPages.set(result.totalPages);
+      this._totalElements.set(result.totalElements);
+      this._currentPage.set(
+        result.totalPages === 0 ? 1 : Math.min(page, result.totalPages),
+      );
     } catch (error) {
       console.error("Erreur lors du chargement des eleves", error);
       this._error.set("Impossible de charger les eleves pour le moment.");
     }
+  }
+
+  setPage(page: number): Promise<void> {
+    return this.loadListPage({ page });
   }
 
   async loadStudentForm(studentId?: string): Promise<EnrollmentFormValue | null> {
@@ -382,6 +409,7 @@ export class EnrollmentStore {
             studentId,
         ),
       );
+      this._totalElements.update((total) => Math.max(0, total - 1));
 
       return {
         success: true,

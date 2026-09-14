@@ -126,6 +126,16 @@
       (deleteRequested)="deleteStudent($event)"
     />
 
+    @if (totalPages() > 1) {
+      <div class="mt-4">
+        <app-pagination
+          [currentPage]="currentPage()"
+          [totalPages]="totalPages()"
+          (pageChange)="onPageChange($event)"
+        />
+      </div>
+    }
+
     @if (importPreviewOpen()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
         <section class="max-h-[85vh] w-full max-w-5xl overflow-hidden rounded-lg bg-white shadow-xl dark:bg-slate-900">

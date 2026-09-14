@@ -12,7 +12,10 @@ export type EnrollmentStatus =
   | 'COMPLETED';
 
 /** Maps to backend EnrollmentType enum */
-export type EnrollmentType = 'NEW_ADMISSION' | 'REENROLLMENT' | 'TRANSFER';
+export type EnrollmentType = 
+  |'NEW_ADMISSION' 
+  | 'REENROLLMENT' 
+  | 'TRANSFER';
 
 /**
  * Full enrollment — maps to backend EnrollmentFullDTO.
