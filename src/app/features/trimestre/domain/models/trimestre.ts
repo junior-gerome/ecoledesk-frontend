@@ -4,6 +4,6 @@ export interface Trimestre {
   id?: number;
   libelleTrimestre: string;
   // numero: number;
-  anneeScolaire: AnneeScolaire;
+  anneeScolaire?: AnneeScolaire | null;
   // type: TypeTrimestre;
 }
