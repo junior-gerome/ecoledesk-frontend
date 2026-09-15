@@ -15,6 +15,9 @@ export class DashboardUseCase {
   private readonly repository = inject<DashboardRepository>(DASHBOARD_REPOSITORY);
   private readonly domain = inject(DashboardDomainService);
 
+  private readonly cacheTtl = 60_000;
+  private cacheTimestamp = 0;
+
   readonly isLoading = signal(true);
 
   readonly totalStudents = signal(0);
@@ -85,6 +88,7 @@ export class DashboardUseCase {
   }
 
   private loadDashboardMetrics(): void {
+    if (Date.now() - this.cacheTimestamp < this.cacheTtl) return;
     this.isLoading.set(true);
 
     forkJoin({
@@ -167,6 +171,7 @@ export class DashboardUseCase {
           this.newStudentsByClasseData.set(
             this.domain.newStudentsByClassData(metrics.byClass),
           );
+          this.cacheTimestamp = Date.now();
           this.isLoading.set(false);
         },
       });

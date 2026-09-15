@@ -5,6 +5,7 @@
 import { CommonModule } from "@angular/common";
 import {
   Component,
+  DestroyRef,
   ElementRef,
   OnInit,
   computed,
@@ -16,6 +17,7 @@ import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { TranslateModule } from '@ngx-translate/core';
 import { combineLatest, finalize } from "rxjs";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 import { BulletinDTO, GradeRowDTO } from "@features/grades/application/dtos";
 import {
@@ -62,6 +64,7 @@ interface BulletinSequenceColumn {
   styleUrl: "./bulletin-page.component.scss",
 })
 export class BulletinPageComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject<ActivatedRoute>(ActivatedRoute);
   private readonly viewBulletinUseCase =
     inject<ViewBulletinUseCase>(ViewBulletinUseCase);
@@ -285,7 +288,9 @@ export class BulletinPageComponent implements OnInit {
   ngOnInit(): void {
     this.loadBranding();
 
-    combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe({
+    combineLatest([this.route.paramMap, this.route.queryParamMap])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: ([paramMap, queryParamMap]) => {
         const nextStudentId =
           Number.parseInt(paramMap.get("studentId") || "", 10) || 0;

@@ -1,12 +1,9 @@
 import { HttpClient, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { APP_INITIALIZER, ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import {
-  PreloadAllModules,
   provideRouter,
   withComponentInputBinding,
-  withEnabledBlockingInitialNavigation,
-  withPreloading,
 } from '@angular/router';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { appRoutes } from './app.routes';
@@ -25,11 +22,10 @@ export function createTranslateLoader(http: HttpClient): TranslateLoader {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
     provideRouter(
       appRoutes,
       withComponentInputBinding(),
-      withEnabledBlockingInitialNavigation(),
-      withPreloading(PreloadAllModules),
     ),
     provideHttpClient(
       withFetch(),

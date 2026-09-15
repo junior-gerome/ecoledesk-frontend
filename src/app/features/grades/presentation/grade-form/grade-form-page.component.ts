@@ -3,7 +3,7 @@
  * Formulaire moderne de saisie des notes
  */
 import { CommonModule } from "@angular/common";
-import { Component, OnInit, inject, signal } from "@angular/core";
+import { Component, DestroyRef, OnInit, inject, signal } from "@angular/core";
 import {
   FormBuilder,
   FormGroup,
@@ -11,6 +11,7 @@ import {
   Validators,
 } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 import {
   CreateGradeUseCase,
@@ -56,6 +57,7 @@ import { FormBodyComponent } from "@app/shared/form-body/form-body.component";
   styleUrl: "./grade-form-page.component.scss",
 })
 export class GradeFormPageComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject<FormBuilder>(FormBuilder);
   private readonly router = inject<Router>(Router);
   private readonly createGradeUseCase = inject<CreateGradeUseCase>(
@@ -87,7 +89,9 @@ export class GradeFormPageComponent implements OnInit {
     this.setupScoreValidation();
     this.gradeForm
       .get("classId")
-      ?.valueChanges.subscribe((classId) => this.onClassChange(Number(classId) || 0));
+      ?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((classId) => this.onClassChange(Number(classId) || 0));
   }
 
   private initForm(): void {
@@ -124,7 +128,9 @@ export class GradeFormPageComponent implements OnInit {
   }
 
   private setupScoreValidation(): void {
-    this.gradeForm.get("score")?.valueChanges.subscribe((scoreValue) => {
+    this.gradeForm.get("score")?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((scoreValue) => {
       const score = Number(scoreValue);
 
       if (!Number.isFinite(score)) {

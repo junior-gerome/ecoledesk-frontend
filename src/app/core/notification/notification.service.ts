@@ -27,7 +27,10 @@ export class NotificationService {
   private stompClient: NotificationSocketClient | null = null;
   private readonly notificationsSubject = new BehaviorSubject<Notification[]>([]);
   private connected = false;
+  private initializing = false;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectDelay = 3000;
+  private readonly reconnectMaxDelay = 30000;
   readonly connectionState = signal<'offline' | 'connecting' | 'connected' | 'error'>('offline');
   readonly connectionError = signal<string | null>(null);
 
@@ -40,9 +43,10 @@ export class NotificationService {
   }
 
   private async initializeWebSocketConnection(): Promise<void> {
-    if (this.connected || this.stompClient || !this.session.isAuthenticated()) return;
+    if (this.connected || this.stompClient || this.initializing || !this.session.isAuthenticated()) return;
     const token = this.session.getToken();
     if (!token) return;
+    this.initializing = true;
     this.connectionState.set('connecting');
     this.connectionError.set(null);
     try {
@@ -54,12 +58,18 @@ export class NotificationService {
       this.stompClient = Stomp.over(() => new SockJS(`${environment.apiUrl}/ws`) as never) as NotificationSocketClient;
       this.stompClient.connect({ Authorization: `Bearer ${token}` }, () => {
         this.connected = true;
+        this.initializing = false;
+        this.reconnectDelay = 3000;
         this.connectionState.set('connected');
         this.connectionError.set(null);
         const userId = this.session.getUserId();
         if (userId) this.stompClient?.subscribe(`/user/${userId}/notifications`, (message) => this.receive(message.body));
-      }, () => this.scheduleReconnect());
+      }, () => {
+        this.initializing = false;
+        this.scheduleReconnect();
+      });
     } catch {
+      this.initializing = false;
       this.connectionState.set('error');
       this.connectionError.set('notifications.connectionError');
       this.scheduleReconnect();
@@ -93,10 +103,12 @@ export class NotificationService {
     if (this.reconnectTimer || !this.session.isAuthenticated()) return;
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
+      this.stompClient?.disconnect();
       this.stompClient = null;
       this.connected = false;
       void this.initializeWebSocketConnection();
-    }, 5000);
+      this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.reconnectMaxDelay);
+    }, this.reconnectDelay);
   }
 
   success(message: string, targetId = 0): void { this.addManual(message, 'success', targetId); }
@@ -115,6 +127,8 @@ export class NotificationService {
   disconnect(): void {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     this.reconnectTimer = null;
+    this.initializing = false;
+    this.reconnectDelay = 3000;
     this.stompClient?.disconnect();
     this.stompClient = null;
     this.connected = false;
