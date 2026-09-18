@@ -1,35 +1,152 @@
 ﻿<app-page-layout>
   <app-page-header [title]="pageTitleKey() | translate">
-    @if (isListMode()) {
+@if (isListMode()) {
       <div class="flex flex-wrap items-center gap-2">
-        <!-- Export Actions Dropdown -->
+        <!-- Export dropdown -->
         <div class="relative inline-flex items-center gap-1.5">
           <app-button
             type="button"
             variant="success"
             size="sm"
-            [loading]="isExportingExcel()"
-            (clicked)="onExportExcel()"
+            [loading]="isExporting()"
+            (clicked)="toggleExportMenu()"
           >
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            Excel
+            Exporter
+            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
           </app-button>
 
-          <app-button
-            type="button"
-            variant="neutral"
-            size="sm"
-            [loading]="isExportingPdf()"
-            (clicked)="onExportPdf()"
-          >
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-            PDF
-          </app-button>
+          @if (exportMenuOpen()) {
+            <div
+              class="absolute right-0 top-full z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+            >
+              <header class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-2.5 dark:border-gray-700 dark:bg-gray-700/50">
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-200">Exporter la liste</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ totalElements() }} eleve(s)
+                </span>
+              </header>
+
+              <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                <div class="flex items-center justify-between gap-2 px-4 py-2.5 opacity-100">
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Selection ({{ selectedStudentCount() }})</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Les eleves coches</p>
+                  </div>
+                  <div class="flex shrink-0 items-center gap-1">
+                    <app-button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      [disabled]="selectedStudentCount() === 0 || isExporting()"
+                      (clicked)="onExportSelectionExcel()"
+                      title="Exporter la selection en Excel"
+                    >
+                      Excel
+                    </app-button>
+                    <app-button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      [disabled]="selectedStudentCount() === 0 || isExporting()"
+                      (clicked)="onExportSelectionPdf()"
+                      title="Exporter la selection en PDF"
+                    >
+                      PDF
+                    </app-button>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-2 px-4 py-2.5">
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Page affichee ({{ pageStudentCount() }})</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Uniquement les lignes visibles</p>
+                  </div>
+                  <div class="flex shrink-0 items-center gap-1">
+                    <app-button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      [disabled]="pageStudentCount() === 0 || isExporting()"
+                      (clicked)="onExportPageExcel()"
+                      title="Exporter la page en Excel"
+                    >
+                      Excel
+                    </app-button>
+                    <app-button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      [disabled]="pageStudentCount() === 0 || isExporting()"
+                      (clicked)="onExportPagePdf()"
+                      title="Exporter la page en PDF"
+                    >
+                      PDF
+                    </app-button>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-2 px-4 py-2.5">
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Tous les resultats ({{ totalElements() }})</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ appliedSearch() ? 'Tous les eleves correspondant a la recherche' : "Toute la base d'eleves" }}
+                    </p>
+                  </div>
+                  <div class="flex shrink-0 items-center gap-1">
+                    <app-button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      [disabled]="totalElements() === 0 || isExporting()"
+                      (clicked)="onExportAllExcel()"
+                      title="Exporter tous les resultats en Excel"
+                    >
+                      Excel
+                    </app-button>
+                    <app-button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      [disabled]="totalElements() === 0 || isExporting()"
+                      (clicked)="onExportAllPdf()"
+                      title="Exporter tous les resultats en PDF"
+                    >
+                      PDF
+                    </app-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+          @if (exportMenuOpen()) {
+            <div
+              class="fixed inset-0 z-20"
+              (click)="closeExportMenu()"
+              aria-hidden="true"
+            ></div>
+          }
         </div>
+
+        @if (selectedStudentCount() > 0) {
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
+            {{ selectedStudentCount() }} selectionne(s)
+            <button
+              type="button"
+              class="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-primary-500 hover:bg-primary-100 hover:text-primary-700 dark:hover:bg-primary-800"
+              (click)="clearSelection()"
+              aria-label="Effacer la selection"
+            >
+              <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </span>
+        }
 
         <!-- Separator -->
         <div class="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
@@ -121,6 +238,11 @@
     <app-students-list
       [students]="filteredStudents()"
       [studentClasses]="studentClasses()"
+      [selectedIds]="selectedIds()"
+      [allSelected]="allPageSelected()"
+      [someSelected]="somePageSelected()"
+      (toggleSelection)="toggleStudentSelection($event)"
+      (toggleSelectAll)="toggleSelectAllOnPage($event)"
       (viewProfile)="goToProfile($event)"
       (editRequested)="goToEdit($event)"
       (deleteRequested)="deleteStudent($event)"

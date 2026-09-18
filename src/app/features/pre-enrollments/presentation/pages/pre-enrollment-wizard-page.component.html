@@ -14,7 +14,7 @@
 
   <!-- Stepper Indicator -->
   <div class="mt-6 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-    <div class="flex items-center justify-between max-w-3xl mx-auto">
+    <div class="mx-auto flex max-w-3xl items-center justify-between overflow-x-auto pb-1">
       <!-- Step 1 -->
       <div class="flex items-center gap-2 cursor-pointer" (click)="goToStep(1)">
         <div
@@ -260,7 +260,7 @@
                     {{ g.firstName }} {{ g.lastName }}
                     <span class="ml-2 text-xs font-normal text-gray-500">({{ g.relationshipType }})</span>
                     @if (g.primaryContact) {
-                      <span class="ml-2 px-2 py-0.5 rounded text-[10px] font-semibold bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">Contact principal</span>
+                      <span class="ml-2 px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">Contact principal</span>
                     }
                   </div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">
@@ -472,7 +472,7 @@
                 (change)="onFileSelected($event)"
                 class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
               />
-              <p class="text-[11px] text-gray-400 mt-1">
+              <p class="text-xs text-gray-400 mt-1">
                 Stocké sur MinIO (max 5 Mo). {{ selectedDocumentFile ? 'Fichier sélectionné : ' + selectedDocumentFile.name : '' }}
               </p>
             </div>

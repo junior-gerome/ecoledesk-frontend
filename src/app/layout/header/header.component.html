@@ -2,7 +2,7 @@
   class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 transition-colors duration-300"
 >
   <div class="min-w-0 flex-1">
-    <div class="inline-flex max-w-full items-center rounded-md bg-primary-50 px-3 py-2 ring-1 ring-primary-100 dark:bg-primary-950/40 dark:ring-primary-900">
+    <div class="inline-flex max-w-full items-center rounded-xl bg-gradient-to-br from-primary-50 to-white px-3.5 py-2 shadow-sm shadow-primary-100/60 ring-1 ring-primary-100/70 dark:from-primary-950/50 dark:to-slate-900 dark:shadow-black/10 dark:ring-primary-900/60">
       <span class="truncate text-base font-semibold text-primary-800 dark:text-primary-100 sm:text-lg">
         {{ 'app.name' | translate }}
       </span>
@@ -13,7 +13,7 @@
     @if (userProfile() && (schoolContext.years().length || schoolContext.loading() || schoolContext.error())) {
       <div class="hidden items-center gap-2 lg:flex" [attr.aria-label]="'schoolContext.label' | translate">
         <label class="sr-only" for="header-school-year">{{ 'schoolContext.schoolYear' | translate }}</label>
-        <select id="header-school-year" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs dark:border-slate-600 dark:bg-slate-800" [value]="schoolContext.selectionState().schoolYearId ?? ''" (change)="schoolContext.selectSchoolYear($any($event.target).value)">
+        <select id="header-school-year" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 shadow-sm shadow-slate-100 transition focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200" [value]="schoolContext.selectionState().schoolYearId ?? ''" (change)="schoolContext.selectSchoolYear($any($event.target).value)">
           <option value="">{{ 'schoolContext.schoolYear' | translate }}</option>
           @for (year of schoolContext.years(); track year.id) {
             <option [value]="year.id">{{ year.libelleAcademicYear }}{{ year.statutCode ? ' · ' + ('schoolContext.active' | translate) : '' }}</option>
@@ -21,7 +21,7 @@
         </select>
         @if (schoolContext.trimestres().length) {
           <label class="sr-only" for="header-trimestre">{{ 'schoolContext.trimestre' | translate }}</label>
-          <select id="header-trimestre" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs dark:border-slate-600 dark:bg-slate-800" [value]="schoolContext.selectionState().trimestreId ?? ''" (change)="schoolContext.selectTrimestre($any($event.target).value)">
+          <select id="header-trimestre" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 shadow-sm shadow-slate-100 transition focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200" [value]="schoolContext.selectionState().trimestreId ?? ''" (change)="schoolContext.selectTrimestre($any($event.target).value)">
             <option value="">{{ 'schoolContext.trimestre' | translate }}</option>
             @for (trimestre of schoolContext.trimestres(); track trimestre.id) {
               <option [value]="trimestre.id">{{ trimestre.libelleTrimestre }}</option>
@@ -30,7 +30,7 @@
         }
         @if (schoolContext.sequences().length) {
           <label class="sr-only" for="header-sequence">{{ 'schoolContext.sequence' | translate }}</label>
-          <select id="header-sequence" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs dark:border-slate-600 dark:bg-slate-800" [value]="schoolContext.selectionState().sequenceId ?? ''" (change)="schoolContext.selectSequence($any($event.target).value)">
+          <select id="header-sequence" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 shadow-sm shadow-slate-100 transition focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200" [value]="schoolContext.selectionState().sequenceId ?? ''" (change)="schoolContext.selectSequence($any($event.target).value)">
             <option value="">{{ 'schoolContext.sequence' | translate }}</option>
             @for (sequence of schoolContext.sequences(); track sequence.id) {
               <option [value]="sequence.id">{{ sequence.libelleSequence }}</option>
@@ -46,15 +46,24 @@
     <div class="relative hidden lg:block">
       <form (submit)="submitHeaderSearch(); $event.preventDefault()" class="flex items-center">
         <label class="sr-only" for="header-global-search">{{ 'globalSearch.label' | translate }}</label>
-        <input id="header-global-search" class="w-48 rounded-md border border-slate-300 px-2 py-1.5 text-xs dark:border-slate-600 dark:bg-slate-800" [value]="headerSearch()" (input)="onHeaderSearch($any($event.target).value)" [placeholder]="'globalSearch.placeholder' | translate" />
+        <input id="header-global-search" class="w-48 rounded-lg border border-slate-200 bg-slate-50/60 px-2.5 py-1.5 text-xs text-slate-700 shadow-sm shadow-slate-100 transition placeholder:text-slate-400 focus:border-primary-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:bg-slate-800" [value]="headerSearch()" (input)="onHeaderSearch($any($event.target).value)" [placeholder]="'globalSearch.placeholder' | translate" />
       </form>
       @if (headerSearchLoading()) { <span class="absolute right-2 top-2 text-xs text-slate-400">…</span> }
       @if (headerSuggestions().length) {
-        <ul class="absolute z-50 mt-1 w-full rounded-md border border-slate-200 bg-white p-1 text-xs shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          @for (suggestion of headerSuggestions(); track suggestion) { <li><button type="button" class="w-full rounded px-2 py-1 text-left hover:bg-slate-100 dark:hover:bg-slate-800" (click)="selectHeaderSuggestion(suggestion)">{{ suggestion }}</button></li> }
+        <ul class="absolute z-50 mt-1.5 w-full rounded-xl border border-slate-100 bg-white/95 p-1.5 text-xs shadow-xl shadow-slate-200/60 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 dark:shadow-black/30">
+          @for (suggestion of headerSuggestions(); track suggestion) { <li><button type="button" class="w-full rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-slate-100 dark:hover:bg-slate-800" (click)="selectHeaderSuggestion(suggestion)">{{ suggestion }}</button></li> }
         </ul>
       }
     </div>
+    <a
+      routerLink="/search"
+      class="inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500/40 lg:hidden dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+      [attr.aria-label]="'globalSearch.label' | translate"
+    >
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+    </a>
     <app-language-switcher></app-language-switcher>
     <app-theme></app-theme>
     <app-notification></app-notification>

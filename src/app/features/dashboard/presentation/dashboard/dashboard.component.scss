@@ -17,7 +17,8 @@
 .dashboard-loading {
   align-items: center;
   background: #fff;
-  border-radius: 0.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   color: #64748b;
   display: flex;
   flex-direction: column;
@@ -26,24 +27,53 @@
   min-height: 18rem;
 }
 
+/* Mobile first : 1 colonne, puis 2 (sm), puis 3 (lg) */
 .dashboard-stat-grid,
 .dashboard-action-grid {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
 }
 
+@media (min-width: 640px) {
+  .dashboard-stat-grid,
+  .dashboard-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-stat-grid,
+  .dashboard-action-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Mobile first : 1 colonne, puis 2 (md) */
 .dashboard-section-grid {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
 }
 
+@media (min-width: 768px) {
+  .dashboard-section-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile first : 1 colonne, puis 2 (lg) */
 .charts-grid {
   display: grid;
   gap: 1.25rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .charts-column {
@@ -54,18 +84,18 @@
 .dashboard-stat {
   align-items: center;
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .dashboard-stat-icon {
   align-items: center;
-  border-radius: 0.5rem;
+  border-radius: 1.25rem;
   color: #fff;
   display: inline-flex;
   flex: 0 0 auto;
-  height: 3rem;
+  height: 3.25rem;
   justify-content: center;
-  width: 3rem;
+  width: 3.25rem;
 }
 
 .dashboard-stat-label {
@@ -79,6 +109,7 @@
   color: #0f172a;
   font-size: 1.75rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   margin: 0.25rem 0 0;
 }
@@ -106,9 +137,10 @@
 }
 
 .dashboard-direction-item {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   display: grid;
   gap: 0.25rem;
   min-height: 6rem;
@@ -133,8 +165,9 @@
 }
 
 .dashboard-pill {
-  background: #ecfeff;
+  background: linear-gradient(135deg, #f0fdfa, #ecfeff);
   border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(20, 184, 166, 0.12);
   color: #0f766e;
   font-size: 0.8125rem;
   font-weight: 700;

@@ -1,8 +1,23 @@
 ﻿<app-table
   [empty]="students.length === 0"
-  [emptyColspan]="6"
+  [emptyColspan]="7"
   [emptyMessage]="'studentPage.noStudent' | translate"
 >
+  <th
+    table-head
+    scope="col"
+    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100"
+  >
+    <input
+      type="checkbox"
+      class="h-4 w-4 cursor-pointer rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+      [checked]="allSelected"
+      [appIndeterminate]="someSelected && !allSelected"
+      [disabled]="students.length === 0"
+      (change)="onToggleSelectAll($event)"
+      aria-label="Sélectionner tous les élèves de la page"
+    />
+  </th>
   <th
     table-head
     scope="col"
@@ -50,7 +65,18 @@
     <tr
       table-body
       class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+      [class.bg-primary-50]="isSelected(student)"
     >
+      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
+        <input
+          type="checkbox"
+          class="h-4 w-4 cursor-pointer rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+          [checked]="isSelected(student)"
+          [disabled]="!student.id"
+          (change)="onToggleSelection(student)"
+          [attr.aria-label]="'Sélectionner ' + student.lastNameStudent + ' ' + student.firstNameStudent"
+        />
+      </td>
       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
         {{ student.studentNumber ?? ('studentPage.noMatricule' | translate) }}
       </td>

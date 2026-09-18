@@ -30,6 +30,8 @@ import { EnrollmentStore, StoreActionResult } from "../store/enrollment.store";
 import { StudentFileExportService } from "../../infrastructure/student-file-export.service";
 import { StudentEntity } from "../../domain/models/student.entity";
 import { PaginationComponent } from "@app/shared/ui/pagination/pagination.component";
+import { ListExportService, ListExportColumn, ListExportOptions } from "@app/shared/services/list-export.service";
+import { firstValueFrom } from "rxjs";
 
 type StudentPageMode = "list" | "create" | "edit";
 
@@ -70,9 +72,12 @@ export class StudentPageComponent implements OnInit {
   readonly permissions = APP_PERMISSIONS;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly formBuilder = inject(EnrollmentFormBuilder);
+private readonly formBuilder = inject(EnrollmentFormBuilder);
   protected readonly store = inject(StudentPageStore);
   private readonly exportService = inject(StudentFileExportService);
+  private readonly listExport = inject(ListExportService);
+  private readonly repository = inject(ENROLLMENT_REPOSITORY);
+  private readonly domain = inject(EnrollmentDomainService);
 
   readonly studentForm: EnrollmentFormGroup = this.formBuilder.create();
   private readonly initialFormValue = this.studentForm.getRawValue();
@@ -80,8 +85,20 @@ export class StudentPageComponent implements OnInit {
   readonly searchInput = signal("");
   readonly appliedSearch = signal("");
 
-  readonly isExportingExcel = signal(false);
-  readonly isExportingPdf = signal(false);
+  readonly selectedIds = signal<Set<string>>(new Set<string>());
+  readonly exportMenuOpen = signal(false);
+  readonly isExporting = signal(false);
+  readonly allPageSelected = computed(() => {
+    const ids = this.filteredStudents().map((s) => s.id).filter((id): id is string => !!id);
+    return ids.length > 0 && ids.every((id) => this.selectedIds().has(id));
+  });
+  readonly somePageSelected = computed(() => {
+    const ids = this.filteredStudents().map((s) => s.id).filter((id): id is string => !!id);
+    return ids.some((id) => this.selectedIds().has(id));
+  });
+  readonly selectedStudentCount = computed(() => this.selectedIds().size);
+  readonly pageStudentCount = computed(() => this.filteredStudents().length);
+
   readonly isImporting = signal(false);
   readonly importPreviewRows = signal<Partial<StudentEntity>[]>([]);
   readonly importPreviewOpen = signal(false);
@@ -102,6 +119,7 @@ export class StudentPageComponent implements OnInit {
   });
   readonly currentPage = this.store.currentPage;
   readonly totalPages = this.store.totalPages;
+  readonly totalElements = this.store.totalElements;
   readonly sections = this.store.sections;
   readonly classes = this.store.classes;
   readonly selectedMontant = this.store.selectedMontant;
@@ -191,31 +209,235 @@ export class StudentPageComponent implements OnInit {
     await this.router.navigate(["/students", studentId, "edit"], { queryParams });
   }
 
-async onExportExcel(): Promise<void> {
-    if (this.isExportingExcel()) return;
-    this.isExportingExcel.set(true);
+toggleExportMenu(): void {
+    this.exportMenuOpen.update((open) => !open);
+  }
+
+  closeExportMenu(): void {
+    this.exportMenuOpen.set(false);
+  }
+
+  toggleStudentSelection(studentId: string): void {
+    this.selectedIds.update((current) => {
+      const next = new Set(current);
+      if (next.has(studentId)) {
+        next.delete(studentId);
+      } else {
+        next.add(studentId);
+      }
+      return next;
+    });
+  }
+
+  toggleSelectAllOnPage(checked: boolean): void {
+    this.selectedIds.update((current) => {
+      const next = new Set(current);
+      for (const student of this.filteredStudents()) {
+        if (!student.id) continue;
+        if (checked) {
+          next.add(student.id);
+        } else {
+          next.delete(student.id);
+        }
+      }
+      return next;
+    });
+  }
+
+  clearSelection(): void {
+    this.selectedIds.set(new Set<string>());
+  }
+
+  private selectedStudents(): StudentEntity[] {
+    return this.filteredStudents().filter(
+      (student) => !!student.id && this.selectedIds().has(student.id),
+    );
+  }
+
+  async onExportSelectionExcel(): Promise<void> {
+    const selected = this.selectedStudents();
+    if (!selected.length) {
+      this.showToast("Aucun elève sélectionné", "warning", "Export");
+      return;
+    }
+    this.closeExportMenu();
+    await this.runExport(
+      "Excel",
+      this.buildExcelOptions("Selection d'eleves", selected),
+    );
+  }
+
+  async onExportSelectionPdf(): Promise<void> {
+    const selected = this.selectedStudents();
+    if (!selected.length) {
+      this.showToast("Aucun elève sélectionné", "warning", "Export");
+      return;
+    }
+    this.closeExportMenu();
+    await this.runExport("PDF", this.buildPdfOptions("Selection d'eleves", selected));
+  }
+
+  async onExportPageExcel(): Promise<void> {
+    const page = this.filteredStudents();
+    if (!page.length) {
+      this.showToast("Aucun élève à exporter", "warning", "Export");
+      return;
+    }
+    this.closeExportMenu();
+    await this.runExport("Excel", this.buildExcelOptions("Liste des eleves", page));
+  }
+
+  async onExportPagePdf(): Promise<void> {
+    const page = this.filteredStudents();
+    if (!page.length) {
+      this.showToast("Aucun élève à exporter", "warning", "Export");
+      return;
+    }
+    this.closeExportMenu();
+    await this.runExport("PDF", this.buildPdfOptions("Liste des eleves", page));
+  }
+
+  async onExportAllExcel(): Promise<void> {
+    this.closeExportMenu();
+    const data = await this.fetchAllStudents();
+    await this.runExport("Excel", this.buildExcelOptions("Liste des eleves", data.students, data.classes));
+  }
+
+  async onExportAllPdf(): Promise<void> {
+    this.closeExportMenu();
+    const data = await this.fetchAllStudents();
+    await this.runExport("PDF", this.buildPdfOptions("Liste des eleves", data.students, data.classes));
+  }
+
+  private async runExport(format: "Excel" | "PDF", options: ListExportOptions): Promise<void> {
+    if (this.isExporting()) return;
+    this.isExporting.set(true);
     try {
-      await this.exportService.exportStudentsToExcel(this.appliedSearch());
-      this.showToast(`${this.store.totalElements()} eleve(s) exporte(s) en Excel`, "success", "Export reussi");
+      if (format === "Excel") {
+        await this.listExport.exportExcel(options);
+      } else {
+        await this.listExport.exportPdf(options);
+      }
+      this.showToast(
+        `${options.rows.length} eleve(s) exporte(s) en ${format}`,
+        "success",
+        "Export reussi",
+      );
     } catch {
-      this.showToast("Erreur lors de l'export Excel", "danger", "Erreur");
+      console.error("Erreur lors de l'export", format);
+      this.showToast(`Erreur lors de l'export ${format}`, "danger", "Erreur");
     } finally {
-      this.isExportingExcel.set(false);
+      this.isExporting.set(false);
     }
   }
 
-  async onExportPdf(): Promise<void> {
-    if (this.isExportingPdf()) return;
-    this.isExportingPdf.set(true);
-    try {
-      const date = new Date().toISOString().split("T")[0];
-      await this.exportService.exportStudentsToPdf(`liste-eleves-${date}.pdf`, this.appliedSearch());
-      this.showToast("PDF genere avec succes", "success", "Export PDF");
-    } catch {
-      this.showToast("Erreur lors de la generation du PDF", "danger", "Erreur");
-    } finally {
-      this.isExportingPdf.set(false);
+  private buildExcelOptions(
+    title: string,
+    students: StudentEntity[],
+    classMap?: Readonly<Record<string, string>>,
+  ): ListExportOptions {
+    return {
+      title,
+      subtitle: `Généré le ${new Date().toLocaleDateString('fr-FR')} — ${students.length} eleve(s)`,
+      fileName: this.exportFileName("xlsx"),
+      columns: this.exportColumns(),
+      rows: students.map((student) => this.toExportRow(student, classMap)),
+    };
+  }
+
+  private buildPdfOptions(
+    title: string,
+    students: StudentEntity[],
+    classMap?: Readonly<Record<string, string>>,
+  ): ListExportOptions {
+    return {
+      title,
+      subtitle: `Généré le ${new Date().toLocaleDateString('fr-FR')} — ${students.length} eleve(s)`,
+      fileName: this.exportFileName("pdf"),
+      columns: this.exportColumns(),
+      rows: students.map((student) => this.toExportRow(student, classMap)),
+    };
+  }
+
+  private exportColumns(): ListExportColumn[] {
+    return [
+      { header: "N°", key: "numero", weight: 14, align: "center" },
+      { header: "Nom", key: "nom", weight: 20 },
+      { header: "Prénom", key: "prenom", weight: 20 },
+      { header: "Date de naissance", key: "naissance", weight: 18, align: "center" },
+      { header: "Classe", key: "classe", weight: 24 },
+    ];
+  }
+
+  private toExportRow(
+    student: StudentEntity,
+    classMap?: Readonly<Record<string, string>>,
+  ): Record<string, string> {
+    const studentId = student.id?.trim() ?? null;
+    const classes = classMap ?? this.studentClasses();
+    return {
+      numero: student.studentNumber?.trim() || (studentId ? String(studentId) : "—"),
+      nom: student.lastNameStudent?.trim() || "—",
+      prenom: student.firstNameStudent?.trim() || "—",
+      naissance: this.formatExportDate(student.dateOfBirth),
+      classe: studentId ? (classes[studentId] ?? "Non inscrit") : "Non inscrit",
+    };
+  }
+
+  private formatExportDate(value: unknown): string {
+    if (!value) return "—";
+    if (value instanceof Date) {
+      return `${String(value.getDate()).padStart(2, "0")}/${String(value.getMonth() + 1).padStart(2, "0")}/${value.getFullYear()}`;
     }
+    const text = String(value);
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(text.trim());
+    if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+    return text.slice(0, 10);
+  }
+
+  private exportFileName(extension: "xlsx" | "pdf"): string {
+    const date = new Date().toISOString().split("T")[0];
+    return `liste-eleves-${date}.${extension}`;
+  }
+
+  private async fetchAllStudents(): Promise<{
+    students: StudentEntity[];
+    classes: Record<string, string>;
+  }> {
+    const query = this.appliedSearch();
+    const all: StudentEntity[] = [];
+    let page = 0;
+    let hasNext = true;
+
+    while (hasNext) {
+      const result = await firstValueFrom(
+        this.repository.getStudents({ page, size: 500, q: query || null }),
+      );
+      all.push(...result.students);
+      hasNext = !result.last;
+      page += 1;
+      if (page > 5000) break;
+    }
+
+    const [enrollments, classes, activeSchoolYear] = await Promise.all([
+      firstValueFrom(this.repository.getEnrollments()),
+      firstValueFrom(this.repository.getAllClasses()),
+      firstValueFrom(this.repository.getActiveSchoolYear()),
+    ]);
+
+    const activeYearId = this.domain.resolveId(activeSchoolYear?.id);
+    const latestEnrollmentIndex = this.domain.buildLatestEnrollmentIndex(
+      enrollments,
+      activeYearId,
+    );
+    const classNameMap = this.domain.buildClassNameMap(classes);
+    const classByStudent = this.domain.buildStudentClasses(
+      all,
+      latestEnrollmentIndex,
+      classNameMap,
+    );
+
+    return { students: all, classes: classByStudent };
   }
 
   async onDownloadTemplate(): Promise<void> {
@@ -281,16 +503,19 @@ async onExportExcel(): Promise<void> {
 
 onSearch(): void {
     this.appliedSearch.set(this.searchInput().trim());
+    this.clearSelection();
     void this.store.loadListPage({ q: this.appliedSearch() || null, page: 1 });
   }
 
   clearSearch(): void {
     this.searchInput.set("");
     this.appliedSearch.set("");
+    this.clearSelection();
     void this.store.loadListPage({ q: null, page: 1 });
   }
 
   async onPageChange(page: number): Promise<void> {
+    this.clearSelection();
     await this.store.loadListPage({ page });
   }
 

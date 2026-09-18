@@ -1,0 +1,78 @@
+:host {
+  display: block;
+}
+
+/* ============================================================
+   BASE — MOBILE FIRST
+   La sidebar est un tiroir hors-écran (transform), ouvert via
+   la classe .sidebar-open pilotée par l'état JS (mobile < lg seulement).
+   ============================================================ */
+nav {
+  width: 16rem;
+  transform: translateX(-100%);
+  transition:
+    transform 300ms ease-in-out,
+    width 300ms ease-in-out;
+  will-change: transform, width;
+}
+
+nav.sidebar-open {
+  transform: translateX(0);
+}
+
+/* ============================================================
+   RENFORCEMENT — DESKTOP (>= 1024px)
+   La sidebar devient épinglée (aucun transform) ; la largeur et
+   les règles "rail" sont conditionnées par .sidebar-collapsed.
+   ============================================================ */
+@media (min-width: 1024px) {
+  nav,
+  nav.sidebar-open {
+    transform: none;
+  }
+
+  nav.sidebar-collapsed {
+    width: 4.25rem;
+  }
+
+  /* Rail : éléments en icônes seules, centrés */
+  nav.sidebar-collapsed .nav-item,
+  nav.sidebar-collapsed .nav-category-btn {
+    justify-content: center;
+    gap: 0;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  nav.sidebar-collapsed .nav-label,
+  nav.sidebar-collapsed .nav-year-text {
+    width: 0;
+    overflow: hidden;
+    opacity: 0;
+  }
+}
+
+/* ============================================================
+   Barre de défilement discrète et cohérente
+   ============================================================ */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.35);
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.55);
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}

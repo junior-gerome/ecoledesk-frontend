@@ -1,39 +1,92 @@
 <nav
   id="primary-sidebar"
-  class="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-slate-900 text-white shadow-xl transition-transform duration-300 md:z-auto"
-  [class.translate-x-0]="layoutService.sidebarOpen()"
-  [class.-translate-x-full]="!layoutService.sidebarOpen()"
+  class="fixed left-0 top-0 z-40 flex h-screen flex-col overflow-hidden bg-slate-900 text-white shadow-2xl shadow-slate-900/40"
+  [class.sidebar-open]="layoutService.sidebarOpen()"
+  [class.sidebar-collapsed]="isCollapsed()"
 >
-  <!-- En-tÃªte -->
-  <div class="flex shrink-0 items-center justify-between border-b border-slate-700/60 px-4 py-4">
-    <div class="flex items-center gap-2">
-      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
+  <!-- En-tête -->
+  <div
+    class="flex shrink-0 items-center justify-between gap-2 border-b border-slate-800/70 px-4 py-4 transition-all duration-300"
+    [class.justify-center]="isCollapsed()"
+    [class.px-2]="isCollapsed()"
+  >
+    <div class="flex min-w-0 items-center gap-2.5">
+      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg shadow-primary-900/40">
         <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.083 12.083 0 0121 13c0 5.523-4.477 10-10 10S1 18.523 1 13c0-.85.095-1.678.274-2.476L12 14z"/>
         </svg>
       </div>
-      <span class="text-base font-bold tracking-wide text-white">GSBP</span>
+      <span
+        class="nav-label whitespace-nowrap text-base font-bold tracking-wide text-white"
+      >GSBP</span>
     </div>
-    @if (layoutService.isMobile()) {
-      <button
-        type="button"
-        (click)="layoutService.toggleSidebar()"
-        class="rounded-md p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white"
-        [attr.aria-label]="'nav.closeMenu' | translate"
-      >
+
+    <button
+      type="button"
+      (click)="layoutService.toggleSidebar()"
+      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 lg:hidden"
+      [attr.aria-label]="'nav.closeMenu' | translate"
+    >
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+    <button
+      type="button"
+      (click)="layoutService.toggleSidebarCollapsed()"
+      class="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 lg:inline-flex"
+      [attr.aria-label]="(isCollapsed() ? 'nav.expand' : 'nav.collapse') | translate"
+      [attr.title]="(isCollapsed() ? 'nav.expand' : 'nav.collapse') | translate"
+    >
+      @if (isCollapsed()) {
         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l7-7-7-7M5 5l7 7-7 7"/>
         </svg>
-      </button>
-    }
+      } @else {
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l-7 7 7 7M19 5l-7 7 7 7"/>
+        </svg>
+      }
+    </button>
+  </div>
+
+  <!-- Filtre réactif -->
+  <div class="shrink-0 px-3 pb-1 pt-3" [class.hidden]="isCollapsed()">
+    <div class="relative">
+      <svg
+        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+        fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input
+        [value]="sidebarQuery()"
+        (input)="onSidebarQuery($any($event.target).value)"
+        class="w-full rounded-xl border border-slate-700/60 bg-slate-800/40 py-2 pl-9 pr-8 text-xs text-slate-200 placeholder-slate-500 transition focus:border-primary-500/70 focus:outline-none focus:ring-2 focus:ring-primary-500/25"
+        [placeholder]="'nav.filter' | translate"
+        [attr.aria-label]="'nav.filter' | translate"
+      />
+      @if (sidebarQuery()) {
+        <button
+          type="button"
+          (click)="clearSidebarQuery()"
+          class="absolute right-2 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-700 hover:text-white"
+          [attr.aria-label]="'nav.clear' | translate"
+        >
+          <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      }
+    </div>
   </div>
 
   <!-- Navigation scrollable -->
-  <div class="flex-1 overflow-y-auto py-3 scrollbar-thin">
-    @for (category of categories; track category.id) {
+  <div class="sidebar-scroll flex-1 overflow-y-auto py-3">
+    @for (category of visibleCategories(); track category.id) {
 
-      <!-- CatÃ©gorie sans label : items directs (Accueil) -->
+      <!-- Catégorie sans label : items directs (Accueil) -->
       @if (!category.label) {
         <div class="px-2 pb-2">
           @for (item of category.items; track item.id) {
@@ -42,43 +95,55 @@
               [routerLink]="item.routerLink"
               routerLinkActive="bg-primary-600/20 text-primary-300 font-semibold"
               [routerLinkActiveOptions]="{exact: true}"
-              class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-700/60 hover:text-white"
-              (click)="layoutService.closeSidebarMobile()"
+              class="nav-item relative flex items-center gap-3 rounded-xl px-3 py-2 text-slate-300 transition-all duration-300 hover:bg-slate-700/50 hover:text-white"
+              [attr.title]="isCollapsed() && isItemVisible(item) ? (item.label | translate) : null"
+              (click)="onNavItemClick()"
             >
+              <span
+                class="absolute bottom-2 left-0 top-2 w-1 -translate-x-2 rounded-r-full bg-primary-400 opacity-0 transition-all duration-300"
+                [class.translate-x-0]="isMenuActive(item)"
+                [class.opacity-100]="isMenuActive(item)"
+              ></span>
               <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="safeIcon(item.iconSvg)"></span>
-              <span class="text-sm font-medium">{{ item.label | translate }}</span>
+              <span class="nav-label whitespace-nowrap text-sm font-medium">{{ item.label | translate }}</span>
             </a>
           }
         </div>
-        <div class="mx-3 mb-2 border-t border-slate-700/50"></div>
+        <div class="mx-3 mb-2 border-t border-slate-800/60"></div>
       }
 
-      <!-- CatÃ©gorie dÃ©roulante -->
+      <!-- Catégorie déroulante -->
       @if (category.label) {
         <div class="px-2 pb-1">
 
-          <!-- Bouton catÃ©gorie -->
+          <!-- Bouton catégorie -->
           <button
             type="button"
             (click)="toggleCategory(category.id, isCategoryExpanded(category))"
-            class="flex w-full items-center justify-between rounded-lg px-3 py-1.5 transition-colors hover:bg-slate-700/40"
+            class="nav-category-btn flex w-full items-center justify-between gap-2 rounded-xl px-3 py-1.5 transition-colors duration-200 hover:bg-slate-800/60"
+            [attr.title]="isCollapsed() ? (category.label | translate) : null"
           >
-            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-              {{ category.label | translate }}
-            </span>
-            <svg
-              class="h-3 w-3 shrink-0 text-slate-500 transition-transform duration-200"
-              [class.rotate-180]="isCategoryExpanded(category)"
-              fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-            </svg>
+            @if (isCollapsed()) {
+              <span class="mx-auto block h-px w-6 rounded bg-slate-600/50"></span>
+            } @else {
+              <span class="nav-category-label text-xs font-bold uppercase tracking-widest text-slate-500">
+                {{ category.label | translate }}
+              </span>
+              <svg
+                class="nav-chevron h-3 w-3 shrink-0 text-slate-500 transition-transform duration-200"
+                [class.rotate-180]="isCategoryExpanded(category)"
+                fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+              </svg>
+            }
           </button>
 
-          <!-- Items de la catÃ©gorie -->
+          <!-- Items de la catégorie -->
           <div
-            class="overflow-hidden transition-all duration-200"
-            [style.max-height]="isCategoryExpanded(category) ? '600px' : '0px'"
+            class="nav-submenu overflow-hidden transition-all duration-200"
+            [class.hidden]="isCollapsed()"
+            [style.max-height]="isCategoryExpanded(category) ? '800px' : '0px'"
             [style.opacity]="isCategoryExpanded(category) ? '1' : '0'"
           >
             <div class="mt-0.5 flex flex-col gap-0.5">
@@ -88,14 +153,20 @@
                 @if (!item.children) {
                   <a
                     [class.hidden]="!isItemVisible(item)"
-              [routerLink]="item.routerLink"
+                    [routerLink]="item.routerLink"
                     routerLinkActive="bg-primary-600/20 text-primary-300 font-semibold"
-                    class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-700/60 hover:text-white"
-                    (click)="layoutService.closeSidebarMobile()"
+                    class="nav-item relative flex items-center gap-3 rounded-xl px-3 py-2 text-slate-300 transition-all duration-300 hover:bg-slate-700/50 hover:text-white"
+                    [attr.title]="isCollapsed() ? (item.label | translate) : null"
+                    (click)="onNavItemClick()"
                   >
+                    <span
+                      class="absolute bottom-2 left-0 top-2 w-1 -translate-x-2 rounded-r-full bg-primary-400 opacity-0 transition-all duration-300"
+                      [class.translate-x-0]="isMenuActive(item)"
+                      [class.opacity-100]="isMenuActive(item)"
+                    ></span>
                     <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="safeIcon(item.iconSvg)"></span>
-                    <span class="text-sm">{{ item.label | translate }}</span>
-                    @if (item.comingSoon) {
+                    <span class="nav-label whitespace-nowrap text-sm">{{ item.label | translate }}</span>
+                    @if (item.comingSoon && !isCollapsed()) {
                       <app-badge variant="warning" size="xs">{{ 'common.comingSoon' | translate }}</app-badge>
                     }
                   </a>
@@ -107,20 +178,26 @@
                     <button
                       type="button"
                       (click)="onMenuClick(item)"
-                      class="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-slate-700/60"
-                      [class.bg-slate-700]="isMenuExpanded(item) || isMenuActive(item)"
+                      class="nav-item flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 transition-colors duration-200 hover:bg-slate-800/60"
+                      [class.bg-slate-800]="isMenuExpanded(item) || isMenuActive(item)"
                       [class.text-white]="isMenuExpanded(item) || isMenuActive(item)"
                       [class.text-slate-300]="!isMenuExpanded(item) && !isMenuActive(item)"
+                      [attr.title]="isCollapsed() ? (item.label | translate) : null"
                     >
-                      <div class="flex items-center gap-3">
+                      <span
+                        class="absolute bottom-2 left-0 top-2 w-1 -translate-x-2 rounded-r-full bg-primary-400 opacity-0 transition-all duration-300"
+                        [class.translate-x-0]="isMenuActive(item)"
+                        [class.opacity-100]="isMenuActive(item)"
+                      ></span>
+                      <div class="flex min-w-0 items-center gap-3">
                         <span class="flex h-5 w-5 shrink-0 items-center justify-center" [innerHTML]="safeIcon(item.iconSvg)"></span>
-                        <span class="text-sm">{{ item.label | translate }}</span>
-                        @if (item.comingSoon) {
+                        <span class="nav-label whitespace-nowrap text-sm">{{ item.label | translate }}</span>
+                        @if (item.comingSoon && !isCollapsed()) {
                           <app-badge variant="warning" size="xs">{{ 'common.comingSoon' | translate }}</app-badge>
                         }
                       </div>
                       <svg
-                        class="h-3.5 w-3.5 shrink-0 transition-transform duration-200"
+                        class="nav-chevron h-3.5 w-3.5 shrink-0 transition-transform duration-200"
                         [class.rotate-180]="isMenuExpanded(item)"
                         fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
                       >
@@ -131,10 +208,11 @@
                     <!-- Sous-items avec animation -->
                     <div
                       class="overflow-hidden transition-all duration-200"
-                      [style.max-height]="isMenuExpanded(item) ? '400px' : '0px'"
+                      [class.hidden]="isCollapsed()"
+                      [style.max-height]="isMenuExpanded(item) ? '500px' : '0px'"
                       [style.opacity]="isMenuExpanded(item) ? '1' : '0'"
                     >
-                      <div class="ml-3 mt-0.5 flex flex-col border-l border-slate-700 pl-3 pb-1">
+                      <div class="ml-3 mt-0.5 flex flex-col border-l border-slate-700/70 pl-3 pb-1">
                         @for (subItem of item.children; track subItem.routerLink + '_' + subItem.label) {
                           @if (subItem.disabled) {
                             <div class="flex items-center justify-between py-1.5 pl-1">
@@ -145,8 +223,8 @@
                             <a
                               [routerLink]="subItem.routerLink"
                               routerLinkActive="text-primary-300 font-semibold"
-                              class="flex items-center gap-2 rounded-md py-1.5 pl-1 pr-2 text-sm text-slate-400 transition-colors hover:bg-slate-700/50 hover:text-white"
-                              (click)="layoutService.closeSidebarMobile()"
+                              class="flex items-center gap-2 rounded-lg py-1.5 pl-1 pr-2 text-sm text-slate-400 transition-colors duration-200 hover:bg-slate-700/50 hover:text-white"
+                              (click)="onNavItemClick()"
                             >
                               <span class="h-1 w-1 shrink-0 rounded-full bg-slate-600"></span>
                               {{ subItem.label | translate }}
@@ -159,24 +237,37 @@
                 }
 
               }
+
+              @if (query() && visibleCategories().length === 0) {
+                <p class="px-3 py-4 text-center text-xs text-slate-600">{{ 'nav.noResults' | translate }}</p>
+              }
             </div>
           </div>
 
-          <div class="mx-1 mt-2 border-t border-slate-700/40"></div>
+          <div class="mx-1 mt-2 border-t border-slate-800/60"></div>
         </div>
       }
 
     }
+
+    @if (query() && visibleCategories().length === 0) {
+      <p class="px-4 py-6 text-center text-xs text-slate-600">{{ 'nav.noResults' | translate }}</p>
+    }
   </div>
-  <!-- Pied de sidebar : année scolaire active + profil + logout -->
-  <div class="shrink-0 border-t border-slate-700/60 px-3 py-3">
+  <!-- Pied de sidebar : année scolaire active + déconnexion -->
+  <div class="shrink-0 border-t border-slate-800/70 px-3 py-3">
     @if (activeYearLabel()) {
-      <div class="mb-2 flex items-center gap-2 rounded-md bg-primary-900/40 px-3 py-2 ring-1 ring-primary-700/50">
+      <div
+        class="mb-2 flex items-center gap-2 rounded-xl bg-slate-800/50 px-3 py-2.5 ring-1 ring-slate-700/40 transition-all duration-300"
+        [class.justify-center]="isCollapsed()"
+        [class.px-0]="isCollapsed()"
+        [attr.title]="isCollapsed() ? activeYearLabel() : null"
+      >
         <svg class="h-3.5 w-3.5 shrink-0 text-primary-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
-        <div class="min-w-0">
-          <p class="text-[10px] font-medium uppercase tracking-wider text-primary-400">{{ 'schoolContext.schoolYear' | translate }}</p>
+        <div class="nav-year-text min-w-0">
+          <p class="text-[10px] font-medium uppercase tracking-wider text-primary-400 sm:text-xs">{{ 'schoolContext.schoolYear' | translate }}</p>
           <p class="truncate text-xs font-semibold text-primary-200">{{ activeYearLabel() }}</p>
         </div>
       </div>
@@ -184,22 +275,21 @@
     <button
       type="button"
       (click)="logout()"
-      class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-red-500/10 hover:text-red-400"
+      class="nav-item flex w-full items-center gap-3 rounded-xl px-3 py-2 text-slate-300 transition-all duration-300 hover:bg-red-500/10 hover:text-red-400"
+      [class.justify-center]="isCollapsed()"
+      [attr.title]="isCollapsed() ? ('auth.logout' | translate) : null"
     >
       <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
       </svg>
-      <span class="text-sm font-medium">{{ 'auth.logout' | translate }}</span>
+      <span class="nav-label whitespace-nowrap text-sm font-medium">{{ 'auth.logout' | translate }}</span>
     </button>
   </div>
 </nav>
 
-@if (layoutService.sidebarOpen() && layoutService.isMobile()) {
+@if (layoutService.sidebarOpen()) {
   <div
     (click)="layoutService.toggleSidebar()"
-    class="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
+    class="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
   ></div>
 }
-
-
-

@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
 import { environment } from "@environments/environment";
 import { firstValueFrom } from "rxjs";
@@ -15,28 +15,6 @@ type ExcelRow = ExcelCell[];
 })
 export class StudentFileExportService {
   private readonly http = inject(HttpClient);
-
-  async exportStudentsToExcel(keyword = ""): Promise<void> {
-    const blob = await firstValueFrom(
-      this.http.get(`${environment.apiUrl}/students/export/excel`, {
-        params: this.searchParams(keyword),
-        responseType: "blob",
-      }),
-    );
-
-    this.downloadBlob(blob, `liste-eleves-${new Date().toISOString().split("T")[0]}.xlsx`);
-  }
-
-  async exportStudentsToPdf(fileName: string, keyword = ""): Promise<void> {
-    const blob = await firstValueFrom(
-      this.http.get(`${environment.apiUrl}/students/export/pdf`, {
-        params: this.searchParams(keyword),
-        responseType: "blob",
-      }),
-    );
-
-    this.downloadBlob(blob, fileName);
-  }
 
   async importStudentsFromExcel(file: File): Promise<Partial<StudentEntity>[]> {
     const XLSX = await import("xlsx");
@@ -206,11 +184,6 @@ export class StudentFileExportService {
     link.download = fileName;
     link.click();
     window.URL.revokeObjectURL(url);
-  }
-
-  private searchParams(keyword: string): HttpParams {
-    const trimmed = keyword.trim();
-    return trimmed ? new HttpParams().set("q", trimmed) : new HttpParams();
   }
 
   private parseParentType(value: ExcelCell): TypeParent {

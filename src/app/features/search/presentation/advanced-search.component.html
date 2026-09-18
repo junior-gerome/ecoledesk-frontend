@@ -22,7 +22,7 @@
           <p class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
             {{ 'searchPage.periodLabel' | translate }}
           </p>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <app-input type="date" formControlName="startDate" />
             <app-input type="date" formControlName="endDate" />
           </div>
@@ -53,7 +53,7 @@
             <p class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
               {{ 'searchPage.gradeRangeLabel' | translate }}
             </p>
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <app-input type="number" formControlName="minGrade" [min]="0" [max]="20" />
               <app-input type="number" formControlName="maxGrade" [min]="0" [max]="20" />
             </div>

@@ -1,0 +1,21 @@
+/* ============================================================
+   BASE — MOBILE FIRST
+   Le contenu occupe toute la largeur (la sidebar est un tiroir
+   hors-écran). À partir de lg, la sidebar est épinglée : on
+   décale le contenu selon la largeur de la sidebar (16rem) ou
+   de son mode rail (4.25rem).
+   ============================================================ */
+.mainlayout-content {
+  margin-left: 0;
+  transition: margin-left 300ms ease-in-out;
+}
+
+@media (min-width: 1024px) {
+  .mainlayout-content {
+    margin-left: 16rem;
+  }
+
+  .mainlayout-content.sidebar-collapsed {
+    margin-left: 4.25rem;
+  }
+}

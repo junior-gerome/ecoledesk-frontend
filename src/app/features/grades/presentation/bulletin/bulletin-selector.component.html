@@ -9,58 +9,319 @@
     {{ 'bulletinPage.selectorSubtitle' | translate }}
   </p>
 
-  <app-card padding="lg">
-    <form [formGroup]="form" class="grid grid-cols-1 gap-4 md:grid-cols-3">
-      <app-select
-        id="classId"
-        formControlName="classId"
-        [options]="classOptions"
-        [label]="'bulletinPage.class' | translate"
-        [placeholder]="'bulletinPage.chooseClass' | translate"
-      />
+  <div class="mt-6 space-y-5">
+    <app-card padding="lg">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <app-select
+          [ngModel]="selectedClassId()"
+          (ngModelChange)="onClassChange($event)"
+          [options]="classOptions()"
+          [label]="'bulletinPage.class' | translate"
+          [placeholder]="'bulletinPage.chooseClass' | translate"
+        />
 
-      <app-select
-        id="studentId"
-        formControlName="studentId"
-        [options]="studentOptions"
-        [label]="'bulletinPage.student' | translate"
-        [placeholder]="loadingStudents
-          ? ('bulletinPage.loadingStudents' | translate)
-          : ('bulletinPage.chooseStudent' | translate)"
-      />
+        <app-select
+          [ngModel]="selectedPeriod()"
+          (ngModelChange)="onPeriodChange($event)"
+          [options]="periodOptions()"
+          [label]="'bulletinPage.period' | translate"
+          [placeholder]="'bulletinPage.choosePeriod' | translate"
+        />
 
-      <app-select
-        id="period"
-        formControlName="period"
-        [options]="periodOptions"
-        [label]="'bulletinPage.sequence' | translate"
-        [placeholder]="'bulletinPage.chooseSequence' | translate"
-      />
-    </form>
+        <app-input
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+          [label]="'bulletinPage.searchStudent' | translate"
+          [placeholder]="'bulletinPage.searchPlaceholder' | translate"
+        />
+      </div>
+    </app-card>
 
-    <div class="mt-6 flex justify-end">
-      <app-button
-        type="button"
-        variant="primary"
-        [disabled]="!form.get('classId')?.value || !form.get('studentId')?.value"
-        (click)="openBulletin()"
-      >
-        {{ 'bulletinPage.openBulletin' | translate }}
-      </app-button>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+        @if (selectedIds().size > 0) {
+          <span class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-700">
+            {{ selectedIds().size }} {{ 'bulletinPage.selectedCount' | translate }}
+          </span>
+        }
+
+        @if (filteredRows().length > 0) {
+          <button
+            type="button"
+            class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+            (click)="toggleSelectAll()"
+          >
+            {{ allVisibleSelected() ? ('bulletinPage.clearSelection' | translate) : ('bulletinPage.selectAll' | translate) }}
+          </button>
+        }
+
+        @if (selectedIds().size > 0) {
+          <button
+            type="button"
+            class="text-rose-600 hover:text-rose-800 dark:text-rose-400"
+            (click)="clearSelection()"
+          >
+            {{ 'bulletinPage.clearSelection' | translate }}
+          </button>
+        }
+      </div>
+
+      <div class="relative">
+        @if (menuOpen()) {
+          <div class="fixed inset-0 z-20" (click)="closeMenu()"></div>
+        }
+
+        <div class="flex items-center gap-2">
+          <app-button
+            type="button"
+            variant="secondary"
+            size="sm"
+            [disabled]="selectedIds().size === 0"
+            (click)="openPreview()"
+          >
+            {{ 'bulletinPage.preview' | translate }}
+          </app-button>
+
+          <app-button
+            type="button"
+            variant="primary"
+            size="sm"
+            [disabled]="downloadDisabled()"
+            (click)="toggleMenu()"
+          >
+            {{ 'bulletinPage.download' | translate }}
+            <span class="ml-1 inline-block opacity-70">▾</span>
+          </app-button>
+        </div>
+
+        @if (menuOpen()) {
+          <div class="absolute right-0 z-30 mt-2 w-80 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl dark:border-gray-700 dark:bg-gray-800">
+            @if (selectedIds().size === 0) {
+              <p class="px-3 py-2 text-xs text-gray-500">
+                {{ 'bulletinPage.noSelectionWarning' | translate }}
+              </p>
+            }
+
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left transition hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700"
+              [disabled]="exporting()"
+              (click)="downloadCombinedPdf()"
+            >
+              <span>
+                <span class="block text-sm font-semibold">{{ 'bulletinPage.pdfCombined' | translate }}</span>
+                <span class="block text-xs text-gray-500">{{ 'bulletinPage.downloadSelection' | translate }}</span>
+              </span>
+              <span class="text-xs font-semibold text-indigo-600">PDF</span>
+            </button>
+
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left transition hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700"
+              [disabled]="exporting()"
+              (click)="downloadZip()"
+            >
+              <span>
+                <span class="block text-sm font-semibold">{{ 'bulletinPage.zip' | translate }}</span>
+                <span class="block text-xs text-gray-500">{{ 'bulletinPage.downloadSelection' | translate }}</span>
+              </span>
+              <span class="text-xs font-semibold text-indigo-600">ZIP</span>
+            </button>
+
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left transition hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-700"
+              [disabled]="exporting()"
+              (click)="downloadExcel()"
+            >
+              <span>
+                <span class="block text-sm font-semibold">{{ 'bulletinPage.excelMulti' | translate }}</span>
+                <span class="block text-xs text-gray-500">{{ 'bulletinPage.downloadSelection' | translate }}</span>
+              </span>
+              <span class="text-xs font-semibold text-emerald-600">XLSX</span>
+            </button>
+          </div>
+        }
+      </div>
     </div>
-  </app-card>
 
-  @if (!form.get('classId')?.value) {
-    <app-empty-state
-      [title]="'bulletinPage.noClassTitle' | translate"
-      [description]="'bulletinPage.noClassDesc' | translate"
-      icon="○"
-    />
-  } @else if (!loadingStudents && studentOptions.length === 0) {
-    <app-empty-state
-      [title]="'bulletinPage.noStudentTitle' | translate"
-      [description]="'bulletinPage.noStudentDesc' | translate"
-      icon="○"
-    />
-  }
+    @if (!selectedClassId()) {
+      <app-empty-state
+        [title]="'bulletinPage.noClassTitle' | translate"
+        [description]="'bulletinPage.noClassDesc' | translate"
+        icon="○"
+      />
+    } @else if (loadingBulletins()) {
+      <app-card padding="lg">
+        <div class="space-y-3">
+          <div class="h-10 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800"></div>
+          @for (index of [1, 2, 3, 4, 5]; track index) {
+            <div class="h-14 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800"></div>
+          }
+        </div>
+      </app-card>
+    } @else if (filteredRows().length === 0) {
+      <app-empty-state
+        [title]="'bulletinPage.noBulletinTitle' | translate"
+        [description]="'bulletinPage.noBulletinDesc' | translate"
+        icon="◎"
+      />
+    } @else {
+      <app-card padding="none" class="overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800">
+              <tr>
+                <th class="w-12 px-4 py-3">
+                  <input
+                    #selectAllInput
+                    type="checkbox"
+                    class="h-4 w-4 rounded border-gray-300 accent-indigo-600"
+                    [checked]="allVisibleSelected()"
+                    (change)="toggleSelectAll()"
+                  />
+                </th>
+                <th class="px-4 py-3">{{ 'bulletinPage.student' | translate }}</th>
+                <th class="px-4 py-3">{{ 'bulletinPage.averageShort' | translate }}</th>
+                <th class="px-4 py-3">{{ 'bulletinPage.rankShort' | translate }}</th>
+                <th class="px-4 py-3">{{ 'bulletinPage.mentionShort' | translate }}</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              @for (row of filteredRows(); track row.studentId) {
+                <tr class="transition hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td class="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      class="h-4 w-4 rounded border-gray-300 accent-indigo-600"
+                      [checked]="selectedIds().has(row.studentId)"
+                      (change)="toggle(row.studentId)"
+                    />
+                  </td>
+
+                  <td class="px-4 py-3">
+                    <div class="flex items-center gap-3">
+                      <span class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
+                        {{ row.bulletin.studentHeader.initials }}
+                      </span>
+                      <span class="font-semibold text-gray-800 dark:text-gray-100">{{ row.name }}</span>
+                      @if (row.isSuccessful) {
+                        <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                          ✓
+                        </span>
+                      }
+                    </div>
+                  </td>
+
+                  <td class="px-4 py-3 font-mono font-semibold text-gray-700 dark:text-gray-200">
+                    {{ row.average }}/20
+                  </td>
+
+                  <td class="px-4 py-3 text-gray-600 dark:text-gray-300">
+                    @if (row.rank) {
+                      {{ row.rank }}/{{ row.totalStudents }}
+                    } @else {
+                      –
+                    }
+                  </td>
+
+                  <td class="px-4 py-3">
+                    <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" [class]="row.isSuccessful ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'">
+                      {{ row.mention }}
+                    </span>
+                  </td>
+
+                  <td class="px-4 py-3 text-right">
+                    <div class="flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        class="font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+                        (click)="openPreview(row.studentId)"
+                      >
+                        {{ 'bulletinPage.preview' | translate }}
+                      </button>
+
+                      @if (selectedPeriodKind() === 'sequence') {
+                        <a
+                          [routerLink]="['/grades/bulletin', row.studentId]"
+                          [queryParams]="{ period: currentResolution().windowPeriod }"
+                          class="font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+                        >
+                          {{ 'bulletinPage.view' | translate }}
+                        </a>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </app-card>
+    }
+  </div>
 </app-page-layout>
+
+@if (previewOpen() && previewDtos().length) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/60" (click)="closePreview()"></div>
+
+    <div class="relative flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-gray-100 shadow-2xl dark:bg-gray-800">
+      <div class="flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-5 py-4 dark:border-gray-700 dark:bg-gray-900">
+        <div>
+          <p class="text-sm font-bold text-gray-900 dark:text-white">{{ 'bulletinPage.previewTitle' | translate }}</p>
+          <p class="text-xs text-gray-500">{{ 'bulletinPage.previewSubtitle' | translate }}</p>
+        </div>
+
+        <div class="flex shrink-0 items-center gap-3">
+          <span class="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 dark:border-gray-600 dark:text-gray-300">
+            {{ previewBulletins().length }} {{ 'bulletinPage.selectedCount' | translate }}
+          </span>
+          <button
+            type="button"
+            class="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700"
+            aria-label="Fermer"
+            (click)="closePreview()"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-y-auto px-4 py-6">
+        @for (preview of previewDtos(); track preview.studentId) {
+          <div class="mb-8 last:mb-0">
+            <div class="mx-auto mb-2 flex max-w-[210mm] items-center justify-between px-1">
+              <span class="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                {{ 'bulletinPage.student' | translate }} : {{ preview.studentName }}
+              </span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                {{ preview.sequence }} · {{ preview.trimester }}
+              </span>
+            </div>
+            <div class="bulletin-shell bulletin-shell--pdf mx-auto max-w-[210mm]">
+              <app-bulletin-sheet [bulletin]="preview" [branding]="branding()" [pdfMode]="true" />
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="flex items-center justify-end gap-3 border-t border-gray-200 bg-white px-5 py-4 dark:border-gray-700 dark:bg-gray-900">
+        <app-button type="button" variant="secondary" size="sm" (click)="closePreview()">
+          {{ 'bulletinPage.close' | translate }}
+        </app-button>
+        <app-button
+          type="button"
+          variant="primary"
+          size="sm"
+          [loading]="exporting()"
+          (click)="downloadFromPreview()"
+        >
+          {{ 'bulletinPage.downloadSelected' | translate }} ({{ previewBulletins().length }})
+        </app-button>
+      </div>
+    </div>
+  </div>
+}

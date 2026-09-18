@@ -10,7 +10,7 @@ import { ACCESS_POLICIES } from '@app/core/security/access-policy';
 import { RbacService } from '@app/core/security/rbac.service';
 import { SchoolContextService } from '@app/core/context/school-context.service';
 import { computed } from "@angular/core";
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 const ICON = {
   dashboard: `<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>`,
   students:  `<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.083 12.083 0 0121 13c0 5.523-4.477 10-10 10S1 18.523 1 13c0-.85.095-1.678.274-2.476L12 14z"/></svg>`,
@@ -42,9 +42,37 @@ export class SidebarComponent {
   private readonly rbac = inject(RbacService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly schoolContext = inject(SchoolContextService);
+  private readonly translate = inject(TranslateService);
   readonly accessPolicies = ACCESS_POLICIES;
   readonly menuState = signal<Record<string, boolean>>({});
   readonly categoryState = signal<Record<string, boolean>>({});
+
+  readonly sidebarQuery = signal<string>("");
+
+  readonly query = computed(() => this.sidebarQuery().trim().toLowerCase());
+
+  /** Mode "rail" : sidebar réduite (icônes seules) — appliqué par CSS à partir de lg */
+  readonly isCollapsed = computed(() => this.layoutService.sidebarCollapsed());
+
+  readonly visibleCategories = computed<SidebarCategory[]>(() => {
+    const q = this.query();
+    if (!q) {
+      return this.categories;
+    }
+
+    return this.categories
+      .map((category) => {
+        const items = category.items
+          .filter((item) => this.isItemVisible(item))
+          .filter((item) => this.matchesQuery(item, q));
+        return { ...category, items };
+      })
+      .filter(
+        (category) =>
+          category.items.length > 0 ||
+          this.labelText(category.label).toLowerCase().includes(q),
+      );
+  });
 
   /** Label de l'année scolaire active — affiché dans le pied de sidebar */
   readonly activeYearLabel = computed(() => {
@@ -280,7 +308,43 @@ export class SidebarComponent {
     return !item.accessPolicy || this.rbac.canAccess(item.accessPolicy);
   }
 
+  labelText(label: string): string {
+    return label ? this.translate.instant(label) : "";
+  }
+
+  matchesQuery(item: SidebarItems, q: string): boolean {
+    if (this.labelText(item.label).toLowerCase().includes(q)) {
+      return true;
+    }
+    return (item.children ?? []).some((child) =>
+      this.labelText(child.label).toLowerCase().includes(q),
+    );
+  }
+
+  onSidebarQuery(value: string): void {
+    this.sidebarQuery.set(value);
+  }
+
+  clearSidebarQuery(): void {
+    this.sidebarQuery.set("");
+  }
+
+  /** En mode rail, tout clic sur un élément déploie la sidebar */
+  expandIfCollapsed(): void {
+    if (this.isCollapsed()) {
+      this.layoutService.toggleSidebarCollapsed();
+    }
+  }
+
+  onNavItemClick(): void {
+    this.expandIfCollapsed();
+    this.layoutService.closeSidebarMobile();
+  }
+
   isCategoryExpanded(category: SidebarCategory): boolean {
+    if (this.query()) {
+      return true;
+    }
     const explicit = this.categoryState()[category.id];
     if (explicit !== undefined) return explicit;
     if (category.defaultOpen) return true;
@@ -288,10 +352,12 @@ export class SidebarComponent {
   }
 
   toggleCategory(categoryId: string, currentState: boolean): void {
+    this.expandIfCollapsed();
     this.categoryState.update((s) => ({ ...s, [categoryId]: !currentState }));
   }
 
   toggleMenu(menuId: string): void {
+    this.expandIfCollapsed();
     this.menuState.update((current) => ({
       ...current,
       [menuId]: !this.isMenuExpandedByState(menuId),
@@ -299,6 +365,7 @@ export class SidebarComponent {
   }
 
   onMenuClick(item: SidebarItems): void {
+    this.expandIfCollapsed();
     const shouldOpen = !this.isMenuExpanded(item);
     this.menuState.update((current) => ({
       ...current,
@@ -322,6 +389,9 @@ export class SidebarComponent {
   }
 
   isMenuExpanded(item: SidebarItems): boolean {
+    if (this.query()) {
+      return true;
+    }
     const explicitState = this.menuState()[item.id];
     if (explicitState !== undefined) return explicitState;
     return this.isMenuActive(item);

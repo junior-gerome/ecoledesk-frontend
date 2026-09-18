@@ -3,15 +3,114 @@
     title="Gestion des Préinscriptions"
     subtitle="Suivi, étude des dossiers et validation des candidatures"
   >
-    <app-button
-      type="button"
-      variant="primary"
-      prefixIcon="+"
-      routerLink="/pre-enrollments/new"
-    >
-      Nouvelle Préinscription
-    </app-button>
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="relative inline-flex items-center gap-1.5">
+        <app-button
+          type="button"
+          variant="success"
+          [loading]="isExporting()"
+          (clicked)="toggleExportMenu()"
+        >
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Exporter
+          <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </app-button>
+
+        @if (exportMenuOpen()) {
+          <div class="absolute right-0 top-full z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+            <header class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-2.5 dark:border-gray-700 dark:bg-gray-700/50">
+              <span class="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-200">Exporter les dossiers</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">{{ totalElements() }} dossier(s)</span>
+            </header>
+
+            <div class="divide-y divide-gray-100 dark:divide-gray-700">
+              <div class="flex items-center justify-between gap-2 px-4 py-2.5">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Selection ({{ selectedCount() }})</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Les dossiers coches</p>
+                </div>
+                <div class="flex shrink-0 items-center gap-1">
+                  <app-button type="button" variant="ghost" size="sm" [disabled]="selectedCount() === 0 || isExporting()" (clicked)="onExportSelectionExcel()" title="Exporter la selection en Excel">Excel</app-button>
+                  <app-button type="button" variant="ghost" size="sm" [disabled]="selectedCount() === 0 || isExporting()" (clicked)="onExportSelectionPdf()" title="Exporter la selection en PDF">PDF</app-button>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between gap-2 px-4 py-2.5">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Page affichee ({{ pageCount() }})</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">Uniquement les lignes visibles</p>
+                </div>
+                <div class="flex shrink-0 items-center gap-1">
+                  <app-button type="button" variant="ghost" size="sm" [disabled]="pageCount() === 0 || isExporting()" (clicked)="onExportPageExcel()" title="Exporter la page en Excel">Excel</app-button>
+                  <app-button type="button" variant="ghost" size="sm" [disabled]="pageCount() === 0 || isExporting()" (clicked)="onExportPagePdf()" title="Exporter la page en PDF">PDF</app-button>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between gap-2 px-4 py-2.5">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Tous les resultats ({{ totalElements() }})</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ searchQuery() ? "Tous les dossiers correspondant à la recherche" : (selectedStatus() === 'ALL' ? "Tous les dossiers du filtre" : "Dossiers du statut selectionne") }}
+                  </p>
+                </div>
+                <div class="flex shrink-0 items-center gap-1">
+                  <app-button type="button" variant="ghost" size="sm" [disabled]="totalElements() === 0 || isExporting()" (clicked)="onExportAllExcel()" title="Exporter tous les resultats en Excel">Excel</app-button>
+                  <app-button type="button" variant="ghost" size="sm" [disabled]="totalElements() === 0 || isExporting()" (clicked)="onExportAllPdf()" title="Exporter tous les resultats en PDF">PDF</app-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+        @if (exportMenuOpen()) {
+          <div
+            class="fixed inset-0 z-20"
+            (click)="closeExportMenu()"
+            aria-hidden="true"
+          ></div>
+        }
+      </div>
+
+      @if (selectedCount() > 0) {
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
+          {{ selectedCount() }} selectionne(s)
+          <button
+            type="button"
+            class="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-primary-500 hover:bg-primary-100 hover:text-primary-700 dark:hover:bg-primary-800"
+            (click)="clearSelection()"
+            aria-label="Effacer la selection"
+          >
+            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </span>
+      }
+
+      <app-button
+        type="button"
+        variant="primary"
+        prefixIcon="+"
+        routerLink="/pre-enrollments/new"
+      >
+        Nouvelle Préinscription
+      </app-button>
+    </div>
   </app-page-header>
+
+  <div class="fixed right-4 top-4 z-[70]">
+    <app-toast
+      [visible]="toast().visible"
+      [title]="toast().title"
+      [message]="toast().message"
+      [variant]="toast().variant"
+      [duration]="5000"
+      (dismissed)="hideToast()"
+    />
+  </div>
 
   <!-- Filtres et recherche -->
   <div class="mt-6 flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
@@ -101,9 +200,20 @@
   <div class="mt-6">
     <app-table
       [empty]="filteredEnrollments().length === 0"
-      [emptyColspan]="6"
+      [emptyColspan]="7"
       [emptyMessage]="isLoading() ? 'Chargement des dossiers...' : 'Aucun dossier de préinscription trouvé.'"
     >
+      <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-sm font-semibold text-gray-600 dark:text-gray-300">
+        <input
+          type="checkbox"
+          class="h-4 w-4 cursor-pointer rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+          [checked]="allPageSelected()"
+          [appIndeterminate]="somePageSelected() && !allPageSelected()"
+          [disabled]="filteredEnrollments().length === 0"
+          (change)="toggleSelectAllOnPage($any($event.target).checked)"
+          aria-label="Sélectionner tous les dossiers de la page"
+        />
+      </th>
       <th table-head scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
         N° Dossier
       </th>
@@ -124,8 +234,19 @@
       </th>
 
       @for (item of filteredEnrollments(); track item.id) {
-        <tr table-body class="hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-800">
-          <td class="whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-semibold text-primary-700 dark:text-primary-400">
+        <tr table-body class="hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-800"
+            [class.bg-primary-50]="selectedIds().has(item.id)"
+          >
+            <td class="whitespace-nowrap py-3.5 pl-4 pr-3 text-sm text-gray-500 dark:text-gray-300">
+              <input
+                type="checkbox"
+                class="h-4 w-4 cursor-pointer rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+                [checked]="selectedIds().has(item.id)"
+                (change)="toggleSelection(item.id)"
+                [attr.aria-label]="'Sélectionner le dossier ' + item.number"
+              />
+            </td>
+            <td class="whitespace-nowrap py-3.5 pl-4 pr-3 text-sm font-semibold text-primary-700 dark:text-primary-400">
             {{ item.number }}
           </td>
           <td class="whitespace-nowrap px-3 py-3.5 text-sm text-gray-900 dark:text-white">

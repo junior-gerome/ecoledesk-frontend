@@ -170,48 +170,45 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
 
   getClassRanking(classId: number, period: string): Observable<StudentRankingItem[]> {
     return this.getGradesByClass(classId, period).pipe(
-      map((grades) => {
-        const statsByStudent = new Map<
-          number,
-          { name: string; weightedTotal: number; totalCoef: number }
-        >();
+      map((grades) => this.computeRanking(grades)),
+    );
+  }
 
-        grades.forEach((grade) => {
-          const studentId = Number(grade.studentId);
-          if (!studentId) {
-            return;
-          }
+  getBulletinsByClassAndPeriodWindow(
+    classId: number,
+    selectedPeriod: string,
+    displayLabel?: string,
+  ): Observable<Bulletin[]> {
+    return forkJoin({
+      grades: this.getGradesByClass(classId, ""),
+      academicYear: this.getActiveAcademicYearLabel(),
+    }).pipe(
+      switchMap(({ grades, academicYear }) => {
+        const windowGrades = (grades ?? []).filter((grade) =>
+          this.matchesPeriodWindow(grade.period, selectedPeriod),
+        );
 
-          const rawValue = Number(grade.score ?? 0);
-          const rawCoefficient = Number(grade.coefficient ?? 1);
-          const coefficient = Number.isFinite(rawCoefficient) && rawCoefficient > 0 ? rawCoefficient : 1;
+        const ranking = this.computeRanking(windowGrades);
+        const gradesByStudent = new Map<number, GradeResponse[]>();
 
-          const current = statsByStudent.get(studentId) ?? {
-            name: grade.studentName || `Eleve ${studentId}`,
-            weightedTotal: 0,
-            totalCoef: 0,
-          };
-
-          const safeValue = Number.isFinite(rawValue) ? rawValue : 0;
-          current.weightedTotal += safeValue * coefficient;
-          current.totalCoef += coefficient;
-          statsByStudent.set(studentId, current);
+        windowGrades.forEach((grade) => {
+          const studentGrades = gradesByStudent.get(grade.studentId) ?? [];
+          studentGrades.push(grade);
+          gradesByStudent.set(grade.studentId, studentGrades);
         });
 
-        const ranking = Array.from(statsByStudent.entries())
-          .map(([studentId, stat]) => ({
-            studentId,
-            studentName: stat.name,
-            average: stat.totalCoef ? stat.weightedTotal / stat.totalCoef : 0,
-            rank: 0,
-          }))
-          .sort((left, right) => right.average - left.average);
-
-        ranking.forEach((item, index) => {
-          item.rank = index + 1;
-        });
-
-        return ranking;
+        return of(
+          Array.from(gradesByStudent.entries()).map(([studentId, studentGrades]) =>
+            this.buildBulletin({
+              studentId,
+              grades: studentGrades,
+              academicYear,
+              period: selectedPeriod,
+              ranking,
+              displayPeriod: displayLabel,
+            }),
+          ),
+        );
       }),
     );
   }
@@ -318,16 +315,79 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
     });
   }
 
-  generateClassBulletinsZip(classId: number, period?: string): Observable<Blob> {
+  generateClassBulletinsZip(
+    classId: number,
+    period?: string,
+    studentIds?: number[],
+    untilPeriod?: string,
+  ): Observable<Blob> {
     let params = new HttpParams();
+
     if (period) {
       params = params.set("period", period);
+    }
+
+    if (untilPeriod) {
+      params = params.set("untilPeriod", untilPeriod);
+    }
+
+    if (studentIds && studentIds.length) {
+      studentIds.forEach((studentId) => {
+        params = params.append("studentIds", String(studentId));
+      });
     }
 
     return this.http.get(`${environment.apiUrl}/reports/classe/${classId}/bulletins.zip`, {
       params,
       responseType: "blob",
     });
+  }
+
+  private computeRanking(grades: GradeResponse[]): StudentRankingItem[] {
+    const statsByStudent = new Map<
+      number,
+      { name: string; weightedTotal: number; totalCoef: number }
+    >();
+
+    (grades ?? []).forEach((grade) => {
+      const studentId = Number(grade.studentId);
+      if (!studentId) {
+        return;
+      }
+
+      const rawValue = Number(grade.score ?? 0);
+      const rawCoefficient = Number(grade.coefficient ?? 1);
+      const coefficient =
+        Number.isFinite(rawCoefficient) && rawCoefficient > 0
+          ? rawCoefficient
+          : 1;
+
+      const current = statsByStudent.get(studentId) ?? {
+        name: grade.studentName || `Eleve ${studentId}`,
+        weightedTotal: 0,
+        totalCoef: 0,
+      };
+
+      const safeValue = Number.isFinite(rawValue) ? rawValue : 0;
+      current.weightedTotal += safeValue * coefficient;
+      current.totalCoef += coefficient;
+      statsByStudent.set(studentId, current);
+    });
+
+    const ranking = Array.from(statsByStudent.entries())
+      .map(([studentId, stat]) => ({
+        studentId,
+        studentName: stat.name,
+        average: stat.totalCoef ? stat.weightedTotal / stat.totalCoef : 0,
+        rank: 0,
+      }))
+      .sort((left, right) => right.average - left.average);
+
+    ranking.forEach((item, index) => {
+      item.rank = index + 1;
+    });
+
+    return ranking;
   }
 
   private buildBulletin(params: {
@@ -337,6 +397,7 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
     period: string;
     ranking: StudentRankingItem[];
     student?: StudentEntity;
+    displayPeriod?: string;
   }): Bulletin {
     const grades = params.grades ?? [];
     const firstGrade = grades[0];
@@ -363,7 +424,7 @@ export class GradeManagementRepositoryAdapter implements GradeManagementReposito
     const academicContext = new AcademicContext(
       params.academicYear,
       this.resolveTrimester(sequenceId),
-      params.period || firstGrade?.period || "Sequence 1",
+      params.displayPeriod || params.period || firstGrade?.period || "Sequence 1",
       this.resolveEvaluationMonth(grades, sequenceId),
     );
 

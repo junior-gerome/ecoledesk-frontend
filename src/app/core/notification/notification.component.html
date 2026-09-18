@@ -2,7 +2,7 @@
   <button
     #triggerBtn
     type="button"
-    class="relative rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 shadow-sm transition hover:border-sky-300 hover:text-sky-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-sky-700 dark:hover:text-sky-300"
+    class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-sm font-semibold text-gray-600 shadow-sm transition hover:border-sky-300 hover:text-sky-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-sky-700 dark:hover:text-sky-300"
     (click)="togglePanel()"
     [attr.aria-label]="'notifications.title' | translate"
   >
@@ -18,7 +18,7 @@
 
   @if (isOpen()) {
     <div
-      class="fixed z-50 w-64 rounded-lg border border-gray-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900"
+      class="fixed z-50 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-gray-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900"
       [style.top.px]="dropdownTop"
       [style.right.px]="dropdownRight"
       role="dialog"

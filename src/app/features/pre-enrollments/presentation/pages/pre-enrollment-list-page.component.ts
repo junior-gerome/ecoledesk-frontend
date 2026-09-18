@@ -6,8 +6,12 @@ import { PageHeaderComponent } from '@app/shared/page-header/page-header.compone
 import { PageLayoutComponent } from '@app/shared/page-layout/page-layout.component';
 import { ButtonComponent } from '@app/shared/ui/button/button.component';
 import { TableComponent } from '@app/shared/ui/table/table.component';
+import { IndeterminateCheckboxDirective } from '@app/shared/ui/checkbox/indeterminate-checkbox.directive';
+import { ToastComponent, ToastVariant } from '@app/shared/ui/toast/toast.component';
+import { ListExportService, ListExportOptions } from '@app/shared/services/list-export.service';
 import { PreEnrollment, PreEnrollmentStatus } from '../../domain/models/pre-enrollment.model';
 import { PreEnrollmentHttpRepository } from '../../infrastructure/pre-enrollment-http.repository';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-pre-enrollment-list-page',
@@ -16,16 +20,45 @@ import { PreEnrollmentHttpRepository } from '../../infrastructure/pre-enrollment
     CommonModule,
     FormsModule,
     RouterLink,
-    PageLayoutComponent,
     PageHeaderComponent,
+    PageLayoutComponent,
     ButtonComponent,
     TableComponent,
+    IndeterminateCheckboxDirective,
+    ToastComponent,
   ],
   templateUrl: './pre-enrollment-list-page.component.html',
 })
 export class PreEnrollmentListPageComponent implements OnInit {
   private readonly repository = inject(PreEnrollmentHttpRepository);
   private readonly router = inject(Router);
+  private readonly listExport = inject(ListExportService);
+
+  readonly selectedIds = signal<Set<number>>(new Set<number>());
+  readonly exportMenuOpen = signal(false);
+  readonly isExporting = signal(false);
+
+  readonly allPageSelected = computed(() => {
+    const ids = this.filteredEnrollments().map((item) => item.id);
+    return ids.length > 0 && ids.every((id) => this.selectedIds().has(id));
+  });
+  readonly somePageSelected = computed(() =>
+    this.filteredEnrollments().some((item) => this.selectedIds().has(item.id)),
+  );
+  readonly selectedCount = computed(() => this.selectedIds().size);
+  readonly pageCount = computed(() => this.filteredEnrollments().length);
+
+  readonly toast = signal<{
+    visible: boolean;
+    title: string;
+    message: string;
+    variant: ToastVariant;
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    variant: 'info',
+  });
 
   // ── Données ─────────────────────────────────────────────────────────────
   readonly preEnrollments = signal<PreEnrollment[]>([]);
@@ -113,6 +146,7 @@ export class PreEnrollmentListPageComponent implements OnInit {
   goToPage(page: number): void {
     if (page < 0 || page >= this.totalPages() || page === this.currentPage()) return;
     this.currentPage.set(page);
+    this.clearSelection();
     this.loadData();
   }
 
@@ -127,6 +161,7 @@ export class PreEnrollmentListPageComponent implements OnInit {
   changePageSize(size: number): void {
     this.pageSize.set(size);
     this.currentPage.set(0);
+    this.clearSelection();
     this.loadData();
   }
 
@@ -134,6 +169,7 @@ export class PreEnrollmentListPageComponent implements OnInit {
   filterByStatus(status: string): void {
     this.selectedStatus.set(status);
     this.currentPage.set(0);
+    this.clearSelection();
     this.loadData();
   }
 
@@ -179,5 +215,186 @@ export class PreEnrollmentListPageComponent implements OnInit {
       (this.currentPage() + 1) * this.pageSize(),
       this.totalElements()
     );
+  }
+
+  // ── Sélection ──────────────────────────────────────────────────────────────
+  toggleExportMenu(): void {
+    this.exportMenuOpen.update((open) => !open);
+  }
+
+  closeExportMenu(): void {
+    this.exportMenuOpen.set(false);
+  }
+
+  toggleSelection(id: number): void {
+    this.selectedIds.update((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  toggleSelectAllOnPage(checked: boolean): void {
+    this.selectedIds.update((current) => {
+      const next = new Set(current);
+      for (const item of this.filteredEnrollments()) {
+        if (checked) {
+          next.add(item.id);
+        } else {
+          next.delete(item.id);
+        }
+      }
+      return next;
+    });
+  }
+
+  clearSelection(): void {
+    this.selectedIds.set(new Set<number>());
+  }
+
+  // ── Export ────────────────────────────────────────────────────────────────
+  async onExportSelectionExcel(): Promise<void> {
+    const rows = this.selectedEnrollments();
+    if (!rows.length) {
+      this.showToast('Aucun dossier sélectionné', 'warning', 'Export');
+      return;
+    }
+    this.closeExportMenu();
+    await this.runExport('Excel', this.buildOptions('Préinscriptions — sélection', rows, 'xlsx'));
+  }
+
+  async onExportSelectionPdf(): Promise<void> {
+    const rows = this.selectedEnrollments();
+    if (!rows.length) {
+      this.showToast('Aucun dossier sélectionné', 'warning', 'Export');
+      return;
+    }
+    this.closeExportMenu();
+    await this.runExport('PDF', this.buildOptions('Préinscriptions — sélection', rows, 'pdf'));
+  }
+
+  async onExportPageExcel(): Promise<void> {
+    const rows = this.filteredEnrollments();
+    if (!rows.length) {
+      this.showToast('Aucun dossier à exporter', 'warning', 'Export');
+      return;
+    }
+    this.closeExportMenu();
+    await this.runExport('Excel', this.buildOptions('Préinscriptions — page affichée', rows, 'xlsx'));
+  }
+
+  async onExportPagePdf(): Promise<void> {
+    const rows = this.filteredEnrollments();
+    if (!rows.length) {
+      this.showToast('Aucun dossier à exporter', 'warning', 'Export');
+      return;
+    }
+    this.closeExportMenu();
+    await this.runExport('PDF', this.buildOptions('Préinscriptions — page affichée', rows, 'pdf'));
+  }
+
+  async onExportAllExcel(): Promise<void> {
+    this.closeExportMenu();
+    const rows = await this.fetchAllMatching();
+    await this.runExport('Excel', this.buildOptions('Liste des préinscriptions', rows, 'xlsx'));
+  }
+
+  async onExportAllPdf(): Promise<void> {
+    this.closeExportMenu();
+    const rows = await this.fetchAllMatching();
+    await this.runExport('PDF', this.buildOptions('Liste des préinscriptions', rows, 'pdf'));
+  }
+
+  private selectedEnrollments(): PreEnrollment[] {
+    return this.filteredEnrollments().filter((item) => this.selectedIds().has(item.id));
+  }
+
+  private async runExport(format: 'Excel' | 'PDF', options: ListExportOptions): Promise<void> {
+    if (this.isExporting()) return;
+    this.isExporting.set(true);
+    try {
+      if (format === 'Excel') {
+        await this.listExport.exportExcel(options);
+      } else {
+        await this.listExport.exportPdf(options);
+      }
+      this.showToast(
+        `${options.rows.length} dossier(s) exporté(s) en ${format}`,
+        'success',
+        'Export réussi',
+      );
+    } catch {
+      console.error('Erreur lors de l\'export', format);
+      this.showToast(`Erreur lors de l'export ${format}`, 'danger', 'Erreur');
+    } finally {
+      this.isExporting.set(false);
+    }
+  }
+
+  private buildOptions(title: string, items: PreEnrollment[], extension: 'xlsx' | 'pdf'): ListExportOptions {
+    const date = new Date().toISOString().split('T')[0];
+    return {
+      title,
+      subtitle: `Généré le ${new Date().toLocaleDateString('fr-FR')} — ${items.length} dossier(s)`,
+      fileName: `liste-preinscriptions-${date}.${extension}`,
+      columns: [
+        { header: 'N° Dossier', key: 'dossier', weight: 14, align: 'center' },
+        { header: 'Candidat', key: 'candidat', weight: 26 },
+        { header: 'Niveau demandé', key: 'niveau', weight: 22 },
+        { header: 'Année scolaire', key: 'annee', weight: 20 },
+        { header: 'Statut', key: 'statut', weight: 18, align: 'center' },
+      ],
+      rows: items.map((item) => this.toExportRow(item)),
+    };
+  }
+
+  private toExportRow(item: PreEnrollment): Record<string, string> {
+    const gender =
+      item.applicantGender === 'FEMININ' || item.applicantGender === 'FEMALE'
+        ? 'Fille'
+        : 'Garçon';
+    return {
+      dossier: item.number || String(item.id),
+      candidat: `${item.applicantLastName} ${item.applicantFirstName} (${gender})`,
+      niveau: item.requestedLevel || '—',
+      annee: item.academicYearLabel || 'N/A',
+      statut: this.getStatusLabel(item.status),
+    };
+  }
+
+  private async fetchAllMatching(): Promise<PreEnrollment[]> {
+    const status = this.selectedStatus();
+    const query = this.searchQuery().trim().toLowerCase();
+    const all: PreEnrollment[] = [];
+    let page = 0;
+    let hasNext = true;
+
+    while (hasNext) {
+      const response = await firstValueFrom(
+        this.repository.getAll(page, 200, status),
+      );
+      all.push(...(response.content ?? []));
+      hasNext = !response.last;
+      page += 1;
+      if (page > 5000) break;
+    }
+
+    if (!query) return all;
+    return all.filter((item) => {
+      const text = `${item.number || ''} ${item.applicantFirstName || ''} ${item.applicantLastName || ''} ${item.requestedLevel || ''}`.toLowerCase();
+      return text.includes(query);
+    });
+  }
+
+  private showToast(message: string, variant: ToastVariant, title = ''): void {
+    this.toast.set({ visible: true, title, message, variant });
+  }
+
+  hideToast(): void {
+    this.toast.update((current) => ({ ...current, visible: false }));
   }
 }

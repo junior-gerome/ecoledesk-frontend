@@ -54,7 +54,7 @@
           {{ teacher.phoneNumber || '—' }}
         </td>
         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 uppercase">
-          <div class="flex justify-center gap-3">
+          <div class="flex flex-wrap justify-center gap-3">
             <app-button [routerLink]="['/staff', teacher.id]" variant="ghost">
               Détail
             </app-button>

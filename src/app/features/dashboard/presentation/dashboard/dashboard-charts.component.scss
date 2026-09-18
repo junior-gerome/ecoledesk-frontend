@@ -2,16 +2,24 @@
   display: block;
 }
 
+/* Mobile first : 1 colonne, puis 2 (lg) */
 .charts-grid {
   display: grid;
   gap: 1.25rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .charts-column {
   display: grid;
   gap: 1.25rem;
+  min-width: 0;
 }
 
 .chart-card {
@@ -41,10 +49,4 @@ canvas {
 
 :host-context(.dark) .dashboard-card-title {
   color: #f8fafc;
-}
-
-@media (max-width: 768px) {
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
 }

@@ -19,18 +19,31 @@
            transition-colors
            focus:outline-none focus:ring-2 focus:ring-offset-2
            disabled:opacity-60 disabled:cursor-not-allowed;
+    min-height: 2.75rem;
   }
 
   .btn-sm {
     @apply px-3 py-1.5 text-xs;
+    min-height: 2.5rem;
   }
 
   .btn-md {
     @apply px-4 py-2 text-sm;
+    min-height: 2.75rem;
   }
 
   .btn-lg {
     @apply px-5 py-2.5 text-sm;
+    min-height: 3rem;
+  }
+
+  @media (min-width: 640px) {
+    .btn,
+    .btn-sm,
+    .btn-md,
+    .btn-lg {
+      min-height: 0;
+    }
   }
 
   .btn-primary {
@@ -159,10 +172,10 @@
   ========================== */
 
   .card {
-    @apply bg-white dark:bg-gray-800
-           shadow-sm
-           ring-1 ring-gray-200 dark:ring-gray-700
-           rounded-lg p-6;
+    @apply bg-white dark:bg-slate-800/90
+           shadow-sm shadow-slate-200/60 dark:shadow-black/20
+           ring-1 ring-slate-200/70 dark:ring-white/10
+           rounded-2xl p-6;
   }
 
   .card-header {
@@ -1328,11 +1341,12 @@
   --receipt-gold: #b6853d;
   --receipt-gold-soft: rgba(182, 133, 61, 0.14);
   --receipt-shadow: 0 22px 56px rgba(23, 38, 54, 0.14);
+  overflow-x: auto;
 }
 
 .payment-receipt-sheet {
   position: relative;
-  width: 210mm;
+  width: min(100%, 210mm);
   min-height: 297mm;
   padding: 12mm;
   border: 1px solid rgba(182, 133, 61, 0.28);
@@ -1342,7 +1356,6 @@
     var(--receipt-paper);
   box-shadow: var(--receipt-shadow);
   color: var(--receipt-ink);
-  overflow: hidden;
 }
 
 .payment-receipt-sheet::before {

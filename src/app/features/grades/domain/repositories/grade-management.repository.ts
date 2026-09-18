@@ -27,12 +27,22 @@ export interface GradeManagementRepository {
 
   getBulletinByStudentAndPeriod(studentId: number, period: string): Observable<Bulletin>;
   getBulletinsByClassAndPeriod(classId: number, period: string): Observable<Bulletin[]>;
+  getBulletinsByClassAndPeriodWindow(
+    classId: number,
+    selectedPeriod: string,
+    displayLabel?: string,
+  ): Observable<Bulletin[]>;
   getAvailablePeriodsForStudent(studentId: number): Observable<string[]>;
+  generateClassBulletinsZip(
+    classId: number,
+    period?: string,
+    studentIds?: number[],
+    untilPeriod?: string,
+  ): Observable<Blob>;
 
   getActiveAcademicYearLabel(): Observable<string>;
   generateReportCard(studentId: number, period?: string): Observable<Blob>;
   generateClassReport(classId: number, period?: string): Observable<Blob>;
-  generateClassBulletinsZip(classId: number, period?: string): Observable<Blob>;
 }
 
 export const GRADE_MANAGEMENT_REPOSITORY =
